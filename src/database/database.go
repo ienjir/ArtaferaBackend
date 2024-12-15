@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/ienjir/ArtaferaBackend/models"
+	"github.com/ienjir/ArtaferaBackend/src/models"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
