@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/ienjir/ArtaferaBackend/database"
-	"github.com/ienjir/ArtaferaBackend/routes"
+	"github.com/ienjir/ArtaferaBackend/src/database"
+	"github.com/ienjir/ArtaferaBackend/src/routes"
 )
 
 func main() {
