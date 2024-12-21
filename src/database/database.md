@@ -1,157 +1,152 @@
 # Database
 
+## Tables Overview
 - User
 - Roles
+- UserRoles
 - Texts
-- Text Translations
-- Art
-- Art Translation
+- Translations
 - Languages
+- Art
+- ArtPictures
 - Pictures
-
+- Orders
+- OrderDetails
+- Payments
+- Currencies
+ 
 ## User
-
-- UserID
-- Firstname
-- Lastname
-- Email
-- Phone (optional)
-- Street
-- Number
-- City
-- Postal code
-- Password
-- Last access
-- Created at
-- Updated at
-
-| Key | Name       | Type         | Nullable | More           | 
+| Key | Name       | Type         | Nullable | More           |
 |:---:|------------|--------------|----------|----------------|
 | PK  | UserID     | Int          | No       | Auto increment |
 |     | Firstname  | Varchar(255) | No       |                |
 |     | Lastname   | Varchar(255) | No       |                |
 |     | Email      | Varchar(255) | No       | Unique         |
-|     | Phone      | Varchar(20)  | Yes      | Unique         |
-|     | Street     | Varchar(255) | Yes      |                |
-|     | Number     | Smallint     | Yes      |                |
+|     | Phone      | Varchar(20)  | Yes      |                |
+|     | Address1   | Varchar(255) | Yes      |                |
+|     | Address2   | Varchar(255) | Yes      |                |
 |     | City       | Varchar(255) | Yes      |                |
 |     | PostalCode | Varchar(32)  | Yes      |                |
-|     | Password   | Char(40)     | No       |                |
-|     | LastAccess | Time         | Yes      | Auto update    |
-|     | CreatedAt  | Time         | Yes      | Auto update    |
-|     | UpdatedAt  | Time         | Yes      | Auto update    |
+|     | Password   | Binary(60)   | No       | Hashed         |
+|     | LastAccess | Datetime     | Yes      | Auto update    |
+|     | CreatedAt  | Datetime     | Yes      | Auto update    |
+|     | UpdatedAt  | Datetime     | Yes      | Auto update    |
+|     | IsDeleted  | Boolean      | Yes      | Default false  |
 
 ## Roles
-
-- RoleID
-- Role
-- Created at
-- Updated at
-
 | Key | Name      | Type        | Nullable | More           |
 |:---:|-----------|-------------|----------|----------------|
 | PK  | RoleID    | Int         | No       | Auto increment |
 |     | Role      | Varchar(50) | No       |                |
-|     | CreatedAt | Time        | Yes      | Auto update    |
-|     | UpdatedAt | Time        | Yes      | Auto update    |
+|     | CreatedAt | Datetime    | Yes      | Auto update    |
+|     | UpdatedAt | Datetime    | Yes      | Auto update    |
 
-## Text
-
-- TextID
-- Created at
-- Updated at
-
+## UserRoles
 | Key | Name      | Type | Nullable | More           |
 |:---:|-----------|------|----------|----------------|
-| PK  | TextID    | Int  | No       | Auto increment |
-|     | CreatedAt | Time | Yes      | Auto update    |
-|     | UpdatedAt | Time | Yes      | Auto update    |
+| PK  | UserRoleID| Int  | No       | Auto increment |
+| FK  | UserID    | Int  | No       |                |
+| FK  | RoleID    | Int  | No       |                |
+|     | CreatedAt | Datetime | Yes  | Auto update    |
+|     | UpdatedAt | Datetime | Yes  | Auto update    |
 
-## Text Translations
+## Texts
+| Key | Name      | Type      | Nullable | More           |
+|:---:|-----------|-----------|----------|----------------|
+| PK  | TextID    | Int       | No       | Auto increment |
+|     | CreatedAt | Datetime  | Yes      | Auto update    |
+|     | UpdatedAt | Datetime  | Yes      | Auto update    |
 
-- TranslationID
-- TextID
-- LanguageID
-- Text
-- Created at
-- Updated at
-
-| Key | Name          | Type | Nullable | More           |
-|:---:|---------------|------|----------|----------------|
-| PK  | TranslationID | Int  | No       | Auto Increment |
-| FK  | TextID        | Int  | No       |                |  
-| FK  | LanguageID    | Int  | No       |                |
-|     | Text          | Text | No       |                |
-|     | CreatedAt     | Time | Yes      | Auto update    |
-|     | UpdatedAt     | Time | Yes      | Auto update    |
+## Translations
+| Key | Name        | Type         | Nullable | More           |
+|:---:|-------------|--------------|----------|----------------|
+| PK  | TranslationID | Int        | No       | Auto Increment |
+| FK  | EntityID     | Int         | No       | Links Text or Art |
+| FK  | LanguageID   | Int         | No       |                |
+|     | Context      | Varchar(50) | No       | Describes field |
+|     | Text         | Text        | No       |                |
+|     | CreatedAt    | Datetime    | Yes      | Auto update    |
+|     | UpdatedAt    | Datetime    | Yes      | Auto update    |
 
 ## Languages
-
-- LanguageID
-- Language name
-- Language code
-- Created At
-- Updated At
-
 | Key | Name         | Type        | Nullable | More           |
 |:---:|--------------|-------------|----------|----------------|
 | PK  | LanguageID   | Int         | No       | Auto Increment |
 |     | LanguageName | Varchar(50) | No       | Unique         |
 |     | LanguageCode | Char(3)     | No       | Unique         |
-|     | CreatedAt    | Time        | Yes      | Auto update    |
-|     | UpdatedAt    | Time        | Yes      | Auto update    |
+|     | CreatedAt    | Datetime    | Yes      | Auto update    |
+|     | UpdatedAt    | Datetime    | Yes      | Auto update    |
 
 ## Art
-
-- ArtID
-- Price
-- Currency
-- Creation year
-- Dimensions
-- Created at
-- Updated at
-
 | Key | Name          | Type        | Nullable | More           |
 |:---:|---------------|-------------|----------|----------------|
 | PK  | ArtID         | Int         | No       | Auto Increment |
 |     | Price         | Int         | No       |                |
-|     | Currency      | Char(3)     | No       |                |
-|     | Creation year | Char(4)     | No       |                |
-|     | Dimensions    | Varchar(40) | Yes      |                |
-|     | CreatedAt     | Time        | Yes      | Auto update    |
-|     | UpdatedAt     | Time        | Yes      | Auto update    |
+| FK  | CurrencyID    | Int         | No       | References Currency |
+|     | CreationYear  | Char(4)     | No       |                |
+|     | Width         | Decimal(8,2)| Yes      |                |
+|     | Height        | Decimal(8,2)| Yes      |                |
+|     | Depth         | Decimal(8,2)| Yes      |                |
+|     | CreatedAt     | Datetime    | Yes      | Auto update    |
+|     | UpdatedAt     | Datetime    | Yes      | Auto update    |
 
-## Art translations
-
-- TranslationID
-- ArtID
-- LanguageID
-- Title
-- Description
-- Created at
-- Updated at
-
-| Key | Name          | Type         | Nullable | More           |
-|:---:|---------------|--------------|----------|----------------|
-| PK  | TranslationID | Int          | No       | Auto Increment |
-| FK  | ArtID         | Int          | No       |                |
-| FK  | LanguageID    | Int          | No       |                |
-|     | Title         | Varchar(255) | No       | Unique         |
-|     | Description   | Text         | No       |                |
-|     | CreatedAt     | Time         | Yes      | Auto update    |
-|     | UpdatedAt     | Time         | Yes      | Auto update    |
+## ArtPictures
+| Key | Name       | Type | Nullable | More           |
+|:---:|------------|------|----------|----------------|
+| PK  | ArtPictureID | Int | No       | Auto Increment |
+| FK  | ArtID        | Int | No       |                |
+| FK  | PictureID    | Int | No       |                |
+|     | Priority     | Int | Yes      | Sorting Order  |
+|     | CreatedAt    | Datetime | Yes | Auto update    |
+|     | UpdatedAt    | Datetime | Yes | Auto update    |
 
 ## Pictures
-
-- PictureID
-- PictureLink
-- Created at
-- Updated at
-
 | Key | Name        | Type         | Nullable | More           |
 |:---:|-------------|--------------|----------|----------------|
 | PK  | PictureID   | Int          | No       | Auto Increment |
-|     | PicutreLink | Varchar(255) | No       |                |
-|     | CreatedAt   | Time         | Yes      | Auto update    |
-|     | UpdatedAt   | Time         | Yes      | Auto update    |
+|     | PictureLink | Varchar(255) | No       |                |
+|     | CreatedAt   | Datetime     | Yes      | Auto update    |
+|     | UpdatedAt   | Datetime     | Yes      | Auto update    |
 
+## Orders
+| Key | Name      | Type      | Nullable | More           |
+|:---:|-----------|-----------|----------|----------------|
+| PK  | OrderID   | Int       | No       | Auto increment |
+| FK  | UserID    | Int       | No       |                |
+|     | OrderDate | Datetime  | No       |                |
+|     | TotalPrice| Decimal(10,2)| No    |                |
+|     | Status    | Varchar(50)| No     |                |
+|     | CreatedAt | Datetime  | Yes     | Auto update    |
+|     | UpdatedAt | Datetime  | Yes     | Auto update    |
+
+## OrderDetails
+| Key | Name          | Type      | Nullable | More           |
+|:---:|---------------|-----------|----------|----------------|
+| PK  | OrderDetailID | Int       | No       | Auto Increment |
+| FK  | OrderID       | Int       | No       |                |
+| FK  | ArtID         | Int       | No       |                |
+|     | Quantity      | Int       | No       |                |
+|     | Price         | Decimal(10,2)| No    |                |
+|     | CreatedAt     | Datetime  | Yes      | Auto update    |
+|     | UpdatedAt     | Datetime  | Yes      | Auto update    |
+
+## Payments
+| Key | Name        | Type        | Nullable | More           |
+|:---:|-------------|-------------|----------|----------------|
+| PK  | PaymentID   | Int         | No       | Auto increment |
+| FK  | OrderID     | Int         | No       |                |
+|     | PaymentDate | Datetime    | No       |                |
+|     | Amount      | Decimal(10,2)| No      |                |
+|     | PaymentMethod| Varchar(50)| No       |                |
+|     | Status      | Varchar(50)| No       |                |
+|     | CreatedAt   | Datetime    | Yes      | Auto update    |
+|     | UpdatedAt   | Datetime    | Yes      | Auto update    |
+
+## Currencies
+| Key | Name          | Type         | Nullable | More           |
+|:---:|---------------|--------------|----------|----------------|
+| PK  | CurrencyID    | Int          | No       | Auto Increment |
+|     | CurrencyCode  | Char(3)      | No       | Unique         |
+|     | CurrencyName  | Varchar(50)  | No       |                |
+|     | CreatedAt     | Datetime     | Yes      | Auto update    |
+|     | UpdatedAt     | Datetime     | Yes      | Auto update    |
