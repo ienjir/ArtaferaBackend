@@ -13,6 +13,7 @@ func main() {
 	// Initialize the database
 	database.ConnectDatabase()
 
+	// If not existing make the file storage directory
 	// Register routes
 	routes.RegisterRoutes(router)
 
