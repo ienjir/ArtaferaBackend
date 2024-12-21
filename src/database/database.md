@@ -79,22 +79,47 @@
 | Key | Name          | Type | Nullable | More           |
 |:---:|---------------|------|----------|----------------|
 | PK  | TranslationID | Int  | No       | Auto Increment |
-| 
+| FK  | TextID        | Int  | No       |                |  
+| FK  | LanguageID    | Int  | No       |                |
+|     | Text          | Text | No       |                |
+|     | CreatedAt     | Time | Yes      | Auto update    |
+|     | UpdatedAt     | Time | Yes      | Auto update    |
 
 ## Languages
 
 - LanguageID
 - Language name
 - Language code
+- Created At
+- Updated At
+
+| Key | Name         | Type        | Nullable | More           |
+|:---:|--------------|-------------|----------|----------------|
+| PK  | LanguageID   | Int         | No       | Auto Increment |
+|     | LanguageName | Varchar(50) | No       | Unique         |
+|     | LanguageCode | Char(3)     | No       | Unique         |
+|     | CreatedAt    | Time        | Yes      | Auto update    |
+|     | UpdatedAt    | Time        | Yes      | Auto update    |
 
 ## Art
 
 - ArtID
 - Price
-- Creation date
+- Currency
+- Creation year
 - Dimensions
 - Created at
 - Updated at
+
+| Key | Name          | Type        | Nullable | More           |
+|:---:|---------------|-------------|----------|----------------|
+| PK  | ArtID         | Int         | No       | Auto Increment |
+|     | Price         | Int         | No       |                |
+|     | Currency      | Char(3)     | No       |                |
+|     | Creation year | Char(4)     | No       |                |
+|     | Dimensions    | Varchar(40) | Yes      |                |
+|     | CreatedAt     | Time        | Yes      | Auto update    |
+|     | UpdatedAt     | Time        | Yes      | Auto update    |
 
 ## Art translations
 
@@ -106,9 +131,27 @@
 - Created at
 - Updated at
 
+| Key | Name          | Type         | Nullable | More           |
+|:---:|---------------|--------------|----------|----------------|
+| PK  | TranslationID | Int          | No       | Auto Increment |
+| FK  | ArtID         | Int          | No       |                |
+| FK  | LanguageID    | Int          | No       |                |
+|     | Title         | Varchar(255) | No       | Unique         |
+|     | Description   | Text         | No       |                |
+|     | CreatedAt     | Time         | Yes      | Auto update    |
+|     | UpdatedAt     | Time         | Yes      | Auto update    |
+
 ## Pictures
 
 - PictureID
 - PictureLink
 - Created at
 - Updated at
+
+| Key | Name        | Type         | Nullable | More           |
+|:---:|-------------|--------------|----------|----------------|
+| PK  | PictureID   | Int          | No       | Auto Increment |
+|     | PicutreLink | Varchar(255) | No       |                |
+|     | CreatedAt   | Time         | Yes      | Auto update    |
+|     | UpdatedAt   | Time         | Yes      | Auto update    |
+
