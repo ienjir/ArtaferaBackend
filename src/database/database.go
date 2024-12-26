@@ -18,6 +18,7 @@ func ConnectDatabase() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
+	// Drop all tables
 	for _, model := range models.AllModels {
 		err := db.Migrator().DropTable(model)
 		if err != nil {
@@ -25,9 +26,10 @@ func ConnectDatabase() {
 		}
 	}
 
-	err = db.AutoMigrate(&models.User{})
+	// Make all tables
+	err = db.AutoMigrate(models.AllModels...)
 	if err != nil {
-		log.Fatal("Failed to migrate the schema:", err)
+		log.Fatalf("Failed to migrate tables: %v", err)
 	}
 
 	fmt.Println("Table 'users' created successfully!")

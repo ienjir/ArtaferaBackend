@@ -5,6 +5,22 @@ import (
 	"time"
 )
 
+var AllModels = []interface{}{
+	&User{},
+	&Role{},
+	&UserRole{},
+	&Text{},
+	&Translation{},
+	&Language{},
+	&Art{},
+	&ArtPicture{},
+	&Picture{},
+	&Order{},
+	&OrderDetail{},
+	&Payment{},
+	&Currency{},
+}
+
 // User model
 type User struct {
 	gorm.Model
