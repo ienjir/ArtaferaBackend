@@ -13,10 +13,16 @@ var DB *gorm.DB
 func ConnectDatabase() {
 	dsn := "host=localhost user=DBAdmin password=AVerySecurePassword dbname=ArtaferaDB port=5432 sslmode=disable"
 
-	// Open the SQLite database
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
+	}
+
+	for _, model := range models.AllModels {
+		err := db.Migrator().DropTable(model)
+		if err != nil {
+			log.Printf("Failed to drop table: %v", err)
+		}
 	}
 
 	err = db.AutoMigrate(&models.User{})
