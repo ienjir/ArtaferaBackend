@@ -10,7 +10,7 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDatabase() {
+func ConnectDatabase() *gorm.DB {
 	dsn := "host=localhost user=DBAdmin password=AVerySecurePassword dbname=ArtaferaDB port=5432 sslmode=disable"
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -36,4 +36,6 @@ func ConnectDatabase() {
 
 	DB = db
 	log.Println("Database connected and migrated")
+
+	return DB
 }

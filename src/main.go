@@ -13,9 +13,8 @@ func main() {
 	// Initialize the database
 	database.ConnectDatabase()
 
-	// If not existing make the file storage directory
 	// Register routes
-	routes.RegisterRoutes(router)
+	routes.RegisterRoutes(router, database.DB)
 
 	// Start the server
 	err := router.Run(":8080")

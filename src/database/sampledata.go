@@ -1,2 +1,4 @@
-package go
+package database
 
+func GenerateFakeData() {
+}
