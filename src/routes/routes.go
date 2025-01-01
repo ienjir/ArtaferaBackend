@@ -12,5 +12,4 @@ func RegisterRoutes(router *gin.Engine, Database *gorm.DB) {
 		authRoutes.GET("/", auth.ProtectedHandler)
 		authRoutes.POST("/", auth.LoginHandler)
 	}
-
 }

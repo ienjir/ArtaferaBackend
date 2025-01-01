@@ -13,6 +13,9 @@ func main() {
 	// Initialize the database
 	database.ConnectDatabase()
 
+	// Generate fake data to
+	database.GenerateFakeData(database.DB)
+
 	// Register routes
 	routes.RegisterRoutes(router, database.DB)
 

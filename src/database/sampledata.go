@@ -1,4 +1,7 @@
 package database
 
-func GenerateFakeData() {
+import "gorm.io/gorm"
+
+var user 
+func GenerateFakeData(database *gorm.DB) {
 }
