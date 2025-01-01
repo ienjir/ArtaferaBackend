@@ -68,7 +68,7 @@ type Translation struct {
 type Language struct {
 	gorm.Model
 	LanguageName string `gorm:"size:50;not null;unique"`
-	LanguageCode string `gorm:"size:3;not null;unique"`
+	LanguageCode string `gorm:"size:2;not null;unique"`
 }
 
 // Art model
