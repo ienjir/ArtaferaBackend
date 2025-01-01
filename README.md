@@ -16,6 +16,7 @@ Run `go mod tidy` to install all dependency's. Then run `docker compose up -d` t
 To start using this project for prod make the following steps:
 - In `database.go` remove the loop that drops all tables when rebuilding the application to prevent data loss
 - In `main.go` remove the `database.GenerateFakeData()` call to not have data when running the application
+- In `main.go` set the right proxies
 - In `docker-compose.yml` change the credentials to the database because currently they are not safe and only for testing
 
 Afterwards compose docker again so it has the new credentials. 

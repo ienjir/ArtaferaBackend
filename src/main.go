@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/routes"
@@ -9,6 +8,12 @@ import (
 
 func main() {
 	router := gin.Default()
+
+	// Set proxies
+	err := router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+	if err != nil {
+		return
+	}
 
 	// Initialize the database
 	database.ConnectDatabase()
@@ -20,9 +25,8 @@ func main() {
 	routes.RegisterRoutes(router, database.DB)
 
 	// Start the server
-	err := router.Run(":8080")
+	err = router.Run(":8080")
 	if err != nil {
 		return
 	}
-	fmt.Println("Server started")
 }
