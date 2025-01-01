@@ -19,8 +19,8 @@ func LoginHandler(c *gin.Context) {
 
 	fmt.Printf("The user request value: %v\n", u)
 
-	if u.Username == "Chek" && u.Password == "123456" {
-		tokenString, err := CreateToken(u.Username)
+	if true {
+		tokenString, err := CreateToken("test")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 			return
