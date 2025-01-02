@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -31,8 +30,6 @@ func ConnectDatabase() *gorm.DB {
 	if err != nil {
 		log.Fatalf("Failed to migrate tables: %v", err)
 	}
-
-	fmt.Println("Table 'users' created successfully!")
 
 	DB = db
 	log.Println("Database connected and migrated")

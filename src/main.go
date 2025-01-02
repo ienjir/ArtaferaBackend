@@ -1,32 +1,31 @@
-package main
+// routes.go
+package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/ienjir/ArtaferaBackend/src/database"
-	"github.com/ienjir/ArtaferaBackend/src/routes"
+	"github.com/ienjir/ArtaferaBackend/src/api/auth"
+	"github.com/ienjir/ArtaferaBackend/src/api/user"
+	"gorm.io/gorm"
 )
 
-func main() {
-	router := gin.Default()
-
-	// Set proxies
-	err := router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
-	if err != nil {
-		return
+func RegisterRoutes(router *gin.Engine, db *gorm.DB) {
+	// Auth routes
+	authRoutes := router.Group("/auth")
+	{
+		authRoutes.GET("/", auth.ProtectedHandler)
+		authRoutes.POST("/", auth.LoginHandler)
 	}
 
-	// Initialize the database
-	database.ConnectDatabase()
+	// User routes
+	userService := user.NewUserService(db)
+	userController := user.NewUserController(userService)
 
-	// Generate fake data to
-	database.GenerateFakeData(database.DB)
-
-	// Register routes
-	routes.RegisterRoutes(router, database.DB)
-
-	// Start the server
-	err = router.Run(":8080")
-	if err != nil {
-		return
+	userRoutes := router.Group("/users")
+	{
+		userRoutes.POST("/", userController.Create)
+		userRoutes.GET("/:id", userController.Get)
+		userRoutes.PUT("/:id", userController.Update)
+		userRoutes.DELETE("/:id", userController.Delete)
+		userRoutes.GET("/", userController.List)
 	}
 }
