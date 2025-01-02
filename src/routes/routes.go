@@ -1,3 +1,4 @@
+// routes.go
 package routes
 
 import (
@@ -7,18 +8,24 @@ import (
 	"gorm.io/gorm"
 )
 
-func RegisterRoutes(router *gin.Engine, Database *gorm.DB) {
+func RegisterRoutes(router *gin.Engine, db *gorm.DB) {
+	// Auth routes
 	authRoutes := router.Group("/auth")
 	{
 		authRoutes.GET("/", auth.ProtectedHandler)
 		authRoutes.POST("/", auth.LoginHandler)
 	}
 
-	// User Routes
-	userService := user.NewUserService(Database)
+	// User routes
+	userService := user.NewUserService(db)
 	userController := user.NewUserController(userService)
+
 	userRoutes := router.Group("/users")
 	{
-		userRoutes.POST("/", userController.CreateUser)
+		userRoutes.POST("/", userController.Create)
+		userRoutes.GET("/:id", userController.Get)
+		userRoutes.PUT("/:id", userController.Update)
+		userRoutes.DELETE("/:id", userController.Delete)
+		userRoutes.GET("/", userController.List)
 	}
 }
