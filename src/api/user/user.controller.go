@@ -13,24 +13,12 @@ type UserController struct {
 	service *UserService
 }
 
-type CreateUserRequest struct {
-	Firstname  string  `json:"firstname" binding:"required"`
-	Lastname   string  `json:"lastname" binding:"required"`
-	Email      string  `json:"email" binding:"required,email"`
-	Phone      *string `json:"phone"`
-	Address1   *string `json:"address1"`
-	Address2   *string `json:"address2"`
-	City       *string `json:"city"`
-	PostalCode *string `json:"postal_code"`
-	Password   string  `json:"password" binding:"required,min=6"`
-}
-
 func NewUserController(service *UserService) *UserController {
 	return &UserController{service: service}
 }
 
 func (c *UserController) Create(ctx *gin.Context) {
-	var req CreateUserRequest
+	var req models.CreateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -88,7 +76,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 		return
 	}
 
-	var req CreateUserRequest
+	var req models.CreateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

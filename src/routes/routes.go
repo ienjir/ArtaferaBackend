@@ -4,6 +4,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
+	"github.com/ienjir/ArtaferaBackend/src/api/roles"
 	"github.com/ienjir/ArtaferaBackend/src/api/user"
 	"gorm.io/gorm"
 )
@@ -22,10 +23,19 @@ func RegisterRoutes(router *gin.Engine, db *gorm.DB) {
 
 	userRoutes := router.Group("/users")
 	{
-		userRoutes.POST("/", userController.Create)
+		userRoutes.GET("/list", userController.List)
 		userRoutes.GET("/:id", userController.Get)
+		userRoutes.POST("/", userController.Create)
 		userRoutes.PUT("/:id", userController.Update)
 		userRoutes.DELETE("/:id", userController.Delete)
-		userRoutes.GET("/", userController.List)
+	}
+
+	// Roles
+	rolesService := roles.NewRolesService(db)
+	rolesController := roles.NewRolesController(rolesService)
+
+	rolesRoutes := router.Group("/roles")
+	{
+		rolesRoutes.POST("/", rolesController.Create)
 	}
 }

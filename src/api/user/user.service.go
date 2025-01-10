@@ -40,18 +40,6 @@ func (s *UserService) GetByID(id uint) (*models.User, error) {
 	return &user, nil
 }
 
-func (s *UserService) GetByEmail(email string) (*models.User, error) {
-	var user models.User
-	result := s.db.Where("email = ? AND is_deleted = ?", email, false).First(&user)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, result.Error
-	}
-	return &user, nil
-}
-
 func (s *UserService) Update(user *models.User) error {
 	// Don't update password if it's empty
 	if len(user.Password) > 0 {
