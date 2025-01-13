@@ -14,7 +14,10 @@ func NewRolesService(db *gorm.DB) *RolesService {
 }
 
 func (s *RolesService) Create(role *models.Role) error {
-	// Hash password before saving
 	result := s.db.Create(role)
 	return result.Error
+}
+
+func (s *RolesService) Update(role *models.Role) error {
+	return s.db.Save(role).Error
 }
