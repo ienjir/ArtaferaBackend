@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/Routes"
 	"github.com/ienjir/ArtaferaBackend/src/database"
-	"github.com/ienjir/ArtaferaBackend/src/routes"
 )
 
 func main() {
@@ -16,13 +16,16 @@ func main() {
 	}
 
 	// Initialize the database
-	database.ConnectDatabase()
+	err = database.ConnectDatabase()
+	if err != nil {
+		return
+	}
 
 	// Generate fake data to
 	database.GenerateFakeData(database.DB)
 
 	// Register routes
-	routes.RegisterRoutes(router, database.DB)
+	Routes.RegisterRoutes(router, database.DB)
 
 	// Start the server
 	err = router.Run(":8080")

@@ -9,8 +9,8 @@ import (
 func GenerateFakeData(database *gorm.DB) {
 	// Sample Users
 	users := []models.User{
-		{Firstname: "John", Lastname: "Doe", Email: "john.doe@example.com", Password: []byte("password123")},
-		{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: []byte("password456")},
+		{Firstname: "John", Lastname: "Doe", Email: "john.doe@example.com", Password: "password123"},
+		{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: "password456"},
 	}
 
 	// Sample Roles
@@ -79,19 +79,19 @@ func GenerateFakeData(database *gorm.DB) {
 	}
 
 	// Bulk insert data
-	database.Create(&users)
-	database.Create(&roles)
-	database.Create(&userRoles)
-	database.Create(&languages)
-	database.Create(&texts)
-	database.Create(&translations)
-	database.Create(&currencies)
-	database.Create(&arts)
-	database.Create(&pictures)
-	database.Create(&artPictures)
-	database.Create(&orders)
-	database.Create(&orderDetails)
-	database.Create(&payments)
+	DB.Create(&users)
+	DB.Create(&roles)
+	DB.Create(&userRoles)
+	DB.Create(&languages)
+	DB.Create(&texts)
+	DB.Create(&translations)
+	DB.Create(&currencies)
+	DB.Create(&arts)
+	DB.Create(&pictures)
+	DB.Create(&artPictures)
+	DB.Create(&orders)
+	DB.Create(&orderDetails)
+	DB.Create(&payments)
 }
 
 func toPointer[T any](v T) *T {

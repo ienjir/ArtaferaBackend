@@ -1,40 +1,26 @@
 package auth
 
 import (
-	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"time"
+	"errors"
+	"github.com/ienjir/ArtaferaBackend/src/database"
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"gorm.io/gorm"
 )
 
-var secretKey = []byte("secret-key")
+func VerifyUserExists(email, encryptedPassword string) (*models.User, error) {
+	var err error
+	var user models.User
 
-func VerifyToken(tokenString string) error {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
-	})
-
-	if err != nil {
-		return err
+	if err = database.DB.Where("email = ?", email).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found or incorrect credentials")
+		}
+		return nil, err
 	}
 
-	if !token.Valid {
-		return fmt.Errorf("invalid token")
+	if user.Password != encryptedPassword {
+		return nil, errors.New("incorrect password")
 	}
 
-	return nil
-}
-
-func CreateToken(username string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"username": username,
-			"exp":      time.Now().Add(time.Hour * 24).Unix(),
-		})
-
-	tokenString, err := token.SignedString(secretKey)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
+	return &user, nil
 }
