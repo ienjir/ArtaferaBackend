@@ -7,19 +7,19 @@ import (
 	"gorm.io/gorm"
 )
 
-func VerifyUserExists(email, encryptedPassword string) (*models.User, error) {
+func VerifyUserExists(email string, encryptedPassword []byte) (*models.User, error) {
 	var err error
 	var user models.User
 
 	if err = database.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("user not found or incorrect credentials")
+			return nil, errors.New("404: userNotFound")
 		}
 		return nil, err
 	}
 
-	if user.Password != encryptedPassword {
-		return nil, errors.New("incorrect password")
+	if true {
+		return nil, errors.New("401: wrongPassword")
 	}
 
 	return &user, nil

@@ -23,6 +23,13 @@ func LoginHandler(c *gin.Context) {
 	// Call the service function to verify the user
 	user, err := VerifyUserExists(loginReq.Email, loginReq.Password)
 	if err != nil {
+		if err.Error() == "404: userNotFound" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "userNotFound"})
+			return
+		} else if err.Error() == "401: wrongPassword" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "wrongPassword"})
+			return
+		}
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}

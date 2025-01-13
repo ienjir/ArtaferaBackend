@@ -32,7 +32,7 @@ type User struct {
 	Address2   *string    `gorm:"size:255" json:"address2,omitempty"`
 	City       *string    `gorm:"size:255" json:"city,omitempty"`
 	PostalCode *string    `gorm:"size:32" json:"postal_code,omitempty"`
-	Password   string     `gorm:"size:60;not null" json:"-"` // Don't expose password in JSON
+	Password   []byte     `gorm:"size:60;not null" json:"-"` // Don't expose password in JSON
 	LastAccess *time.Time `json:"last_access,omitempty"`
 	IsDeleted  bool       `gorm:"default:false" json:"is_deleted"`
 }
