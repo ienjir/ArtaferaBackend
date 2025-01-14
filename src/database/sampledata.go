@@ -9,8 +9,8 @@ import (
 func GenerateFakeData(database *gorm.DB) {
 	// Sample Users
 	users := []models.User{
-		{Firstname: "John", Lastname: "Doe", Email: "john.doe@example.com", Password: "password123"},
-		{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: "password456"},
+		{Firstname: "John", Lastname: "Doe", Email: "john.doe@example.com", Password: []byte("password123")},
+		{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: []byte("password456")},
 	}
 
 	// Sample Roles

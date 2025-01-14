@@ -21,7 +21,7 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	// Call the service function to verify the user
-	user, err := VerifyUserExists(loginReq.Email, loginReq.Password)
+	user, err := VerifyUserExists(loginReq.Email, []byte(loginReq.Password))
 	if err != nil {
 		if err.Error() == "404: userNotFound" {
 			c.JSON(http.StatusNotFound, gin.H{"error": "userNotFound"})
