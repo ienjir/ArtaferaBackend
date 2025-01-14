@@ -22,6 +22,34 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	generateNewArgon2idHash()
+
+	// Set proxies
+	err = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+	if err != nil {
+		return
+	}
+
+	// Initialize the database
+	err = database.ConnectDatabase()
+	if err != nil {
+		return
+	}
+
+	// Generate fake data to
+	database.GenerateFakeData(database.DB)
+
+	// Register routes
+	Routes.RegisterRoutes(router, database.DB)
+
+	// Start the server
+	err = router.Run(":8080")
+	if err != nil {
+		return
+	}
+}
+
+func generateNewArgon2idHash() {
 	hashTimeStr := os.Getenv("HASH_TIME")
 	hashSaltLengthStr := os.Getenv("HASH_SALT_LENGTH")
 	hashMemoryStr := os.Getenv("HASH_MEMORY")
@@ -60,29 +88,11 @@ func main() {
 	}
 
 	// Pass converted values to the function
-	argon2IDHash = auth.NewArgon2idHash(uint32(hashTime), uint32(hashSaltLength), uint32(hashMemory), uint8(hashThreads), uint32(hashKeyLength))
-
-	// Set proxies
-	err = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
-	if err != nil {
-		return
-	}
-
-	// Initialize the database
-	err = database.ConnectDatabase()
-	if err != nil {
-		return
-	}
-
-	// Generate fake data to
-	database.GenerateFakeData(database.DB)
-
-	// Register routes
-	Routes.RegisterRoutes(router, database.DB)
-
-	// Start the server
-	err = router.Run(":8080")
-	if err != nil {
-		return
-	}
+	argon2IDHash = auth.NewArgon2idHash(
+		uint32(hashTime),
+		uint32(hashSaltLength),
+		uint32(hashMemory),
+		uint8(hashThreads),
+		uint32(hashKeyLength),
+	)
 }
