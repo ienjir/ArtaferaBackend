@@ -33,7 +33,6 @@ func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keyLen 
 
 // GenerateHash using the password and provided salt. If not salt value provided fallback to random value generated of a given length.
 func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
-
 	var err error
 
 	// If salt is not provided generate a salt of the configured salt length.
@@ -57,13 +56,11 @@ func (a *Argon2idHash) Compare(hash, salt, password []byte) error {
 
 	// Generate hash for comparison.
 	hashSalt, err := a.GenerateHash(password, salt)
-
 	if err != nil {
 		return err
 	}
 
 	// Compare the generated hash with the stored hash. If they don't match return error.
-
 	if !bytes.Equal(hash, hashSalt.Hash) {
 		return errors.New("hash doesn't match")
 	}
@@ -72,17 +69,13 @@ func (a *Argon2idHash) Compare(hash, salt, password []byte) error {
 }
 
 func randomSecret(length uint32) ([]byte, error) {
-
 	secret := make([]byte, length)
 
 	_, err := rand.Read(secret)
 
 	if err != nil {
-
 		return nil, err
-
 	}
 
 	return secret, nil
-
 }
