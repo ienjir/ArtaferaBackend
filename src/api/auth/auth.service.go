@@ -8,7 +8,7 @@ import (
 
 var Argon2IDHash *Argon2idHash
 
-func hashPassword(password string) (*HashSalt, error) {
+func HashPassword(password string) (*HashSalt, error) {
 	bytePassword := []byte(password)
 
 	hashSalt, err := Argon2IDHash.GenerateHash(bytePassword, nil)

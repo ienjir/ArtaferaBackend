@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/Routes"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/joho/godotenv"
 	"log"
+	"os"
 )
 
 func main() {
@@ -18,6 +20,18 @@ func main() {
 	}
 
 	auth.GenerateNewArgon2idHash()
+
+	test, kek := auth.HashPassword("test")
+	if kek != nil {
+		fmt.Println(kek)
+	}
+
+	err = auth.Argon2IDHash.Compare(test.Hash, test.Salt, []byte("test"))
+	if err != nil {
+		fmt.Println("not working")
+		os.Exit(1)
+	}
+	fmt.Println("Worked")
 
 	// Set proxies
 	err = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
