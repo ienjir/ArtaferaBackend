@@ -1,66 +1,131 @@
 package auth
 
 import (
+	"bytes"
+	"crypto/rand"
 	"errors"
-	"github.com/ienjir/ArtaferaBackend/src/database"
-	"github.com/ienjir/ArtaferaBackend/src/models"
-	"gorm.io/gorm"
-	"net/http"
+	"fmt"
+	"golang.org/x/crypto/argon2"
+	"os"
+	"strconv"
 )
 
-var Argon2IDHash *Argon2idHash
+// HashSalt struct used to store generated hash and salt used to generate the hash.
+type HashSalt struct {
+	Hash, Salt []byte
+}
 
-func HashPassword(password string) (*HashSalt, error) {
-	bytePassword := []byte(password)
+type Argon2idHash struct {
+	time    uint32 // time represents the number of passed over the specified memory.
+	memory  uint32 // cpu memory to be used.
+	threads uint8  // threads for parallelism aspect of the algorithm.
+	keyLen  uint32 // keyLen of the generate hash key.
+	saltLen uint32 // saltLen the length of the salt used.
+}
 
-	hashSalt, err := Argon2IDHash.GenerateHash(bytePassword, nil)
+// NewArgon2idHash constructor function for Argon2idHash.
+func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keyLen uint32) *Argon2idHash {
+	return &Argon2idHash{
+		time:    time,
+		saltLen: saltLen,
+		memory:  memory,
+		threads: threads,
+		keyLen:  keyLen,
+	}
+}
+
+// GenerateHash using the password and provided salt. If not salt value provided fallback to random value generated of a given length.
+func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
+	var err error
+
+	// If salt is not provided generate a salt of the configured salt length.
+	if len(salt) == 0 {
+		salt, err = randomSecret(a.saltLen)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	return hashSalt, nil
+	// Generate hash
+	hash := argon2.IDKey(password, salt, a.time, a.memory, a.threads, a.keyLen)
+
+	// Return the generated hash and salt used for storage.
+	return &HashSalt{Hash: hash, Salt: salt}, nil
 }
 
-// ServiceError defines a custom error with an HTTP status code
-type ServiceError struct {
-	StatusCode int
-	Message    string
-}
+// Compare generated hash with store hash.
+func (a *Argon2idHash) Compare(hash, salt, password []byte) error {
 
-func CreateUserService(request models.CreateUserRequest) (*models.User, *ServiceError) {
-	var existingUser models.User
-
-	// Check if email already exists
-	if err := database.DB.Where("email = ?", request.Email).First(&existingUser).Error; err == nil {
-		return nil, &ServiceError{StatusCode: http.StatusConflict, Message: "Email already in use"}
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, &ServiceError{StatusCode: http.StatusInternalServerError, Message: "Database error"}
-	}
-
-	// Hash the password
-	hashedPassword, err := HashPassword(request.Password)
+	// Generate hash for comparison.
+	hashSalt, err := a.GenerateHash(password, salt)
 	if err != nil {
-		return nil, &ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to hash password"}
+		return err
 	}
 
-	// Create user model
-	user := &models.User{
-		Firstname:  request.Firstname,
-		Lastname:   request.Lastname,
-		Email:      request.Email,
-		Phone:      request.Phone,
-		Address1:   request.Address1,
-		Address2:   request.Address2,
-		City:       request.City,
-		PostalCode: request.PostalCode,
-		Password:   hashedPassword.Hash,
-		Salt:       hashedPassword.Salt,
+	// Compare the generated hash with the stored hash. If they don't match return error.
+	if !bytes.Equal(hash, hashSalt.Hash) {
+		return errors.New("hash doesn't match")
 	}
 
-	// Save user to the database
-	if err := database.DB.Create(user).Error; err != nil {
-		return nil, &ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to save user"}
+	return nil
+}
+
+func randomSecret(length uint32) ([]byte, error) {
+	secret := make([]byte, length)
+
+	_, err := rand.Read(secret)
+	if err != nil {
+		return nil, err
 	}
 
-	return user, nil
+	return secret, nil
+}
+
+func GenerateNewArgon2idHash() {
+	hashTimeStr := os.Getenv("HASH_TIME")
+	hashSaltLengthStr := os.Getenv("HASH_SALT_LENGTH")
+	hashMemoryStr := os.Getenv("HASH_MEMORY")
+	hashThreadsStr := os.Getenv("HASH_THREADS")
+	hashKeyLengthStr := os.Getenv("HASH_KEY_LENGTH")
+
+	// Convert to appropriate types
+	hashTime, err := strconv.ParseUint(hashTimeStr, 10, 32)
+	if err != nil {
+		fmt.Printf("Error converting HASH_TIME: %v\n", err)
+		return
+	}
+
+	hashSaltLength, err := strconv.ParseUint(hashSaltLengthStr, 10, 32)
+	if err != nil {
+		fmt.Printf("Error converting HASH_SALT_LENGTH: %v\n", err)
+		return
+	}
+
+	hashMemory, err := strconv.ParseUint(hashMemoryStr, 10, 32)
+	if err != nil {
+		fmt.Printf("Error converting HASH_MEMORY: %v\n", err)
+		return
+	}
+
+	hashThreads, err := strconv.ParseUint(hashThreadsStr, 10, 8)
+	if err != nil {
+		fmt.Printf("Error converting HASH_THREADS: %v\n", err)
+		return
+	}
+
+	hashKeyLength, err := strconv.ParseUint(hashKeyLengthStr, 10, 32)
+	if err != nil {
+		fmt.Printf("Error converting HASH_KEY_LENGTH: %v\n", err)
+		return
+	}
+
+	// Pass converted values to the function
+	Argon2IDHash = NewArgon2idHash(
+		uint32(hashTime),
+		uint32(hashSaltLength),
+		uint32(hashMemory),
+		uint8(hashThreads),
+		uint32(hashKeyLength),
+	)
 }

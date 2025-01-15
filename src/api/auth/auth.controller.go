@@ -1,27 +1,18 @@
 package auth
 
 import (
-	"github.com/gin-gonic/gin"
 	_ "github.com/golang-jwt/jwt/v5"
-	"github.com/ienjir/ArtaferaBackend/src/models"
-	"net/http"
 )
 
-func CreateUser(c *gin.Context) {
-	var json models.CreateUserRequest
+var Argon2IDHash *Argon2idHash
 
-	// Validate the input
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+func HashPassword(password string) (*HashSalt, error) {
+	bytePassword := []byte(password)
 
-	// Call the service to handle user creation
-	user, err := CreateUserService(json)
+	hashSalt, err := Argon2IDHash.GenerateHash(bytePassword, nil)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
-		return
+		return nil, err
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully", "user": user})
+	return hashSalt, nil
 }
