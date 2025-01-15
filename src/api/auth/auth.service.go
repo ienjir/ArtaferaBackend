@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // HashSalt struct used to store generated hash and salt used to generate the hash.
@@ -186,6 +187,8 @@ func VerifyData(UserData models.CreateUserRequest) *models.ServiceError {
 		if *UserData.PhoneRegion == "" {
 			return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone region can't be empty"}
 		}
+
+		*UserData.PhoneRegion = strings.ToUpper(*UserData.PhoneRegion)
 
 		ParsedNumber, err := phonenumbers.Parse(*UserData.Phone, *UserData.PhoneRegion)
 		if err != nil {

@@ -10,5 +10,5 @@ type CreateUserRequest struct {
 	Address2    *string `json:"address2"`
 	City        *string `json:"city"`
 	PostalCode  *string `json:"postal_code"`
-	Password    string  `json:"password" binding:"required,min=6"`
+	Password    string  `json:"password" binding:"required"`
 }

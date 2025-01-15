@@ -11,16 +11,22 @@ func CreateUser(c *gin.Context) {
 	var json models.CreateUserRequest
 
 	// Validate the input
-	if err := c.ShouldBindJSON(&json); err != nil {
+	err := c.ShouldBindJSON(&json)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	auth.VerifyData(json)
+	err2 := auth.VerifyData(json)
+	if err2 != nil {
+		c.JSON(err2.StatusCode, err2.Message)
+		return
+	}
+
 	// Call the service to handle user creation
-	user, err := CreateUserService(json)
-	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+	user, err3 := CreateUserService(json)
+	if err3 != nil {
+		c.JSON(err3.StatusCode, gin.H{"error": err3.Message})
 		return
 	}
 

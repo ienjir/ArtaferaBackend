@@ -28,16 +28,17 @@ func CreateUserService(request models.CreateUserRequest) (*models.User, *models.
 
 	// Create user model
 	user := &models.User{
-		Firstname:  request.Firstname,
-		Lastname:   request.Lastname,
-		Email:      request.Email,
-		Phone:      request.Phone,
-		Address1:   request.Address1,
-		Address2:   request.Address2,
-		City:       request.City,
-		PostalCode: request.PostalCode,
-		Password:   hashedPassword.Hash,
-		Salt:       hashedPassword.Salt,
+		Firstname:   request.Firstname,
+		Lastname:    request.Lastname,
+		Email:       request.Email,
+		Phone:       request.Phone,
+		PhoneRegion: request.PhoneRegion,
+		Address1:    request.Address1,
+		Address2:    request.Address2,
+		City:        request.City,
+		PostalCode:  request.PostalCode,
+		Password:    hashedPassword.Hash,
+		Salt:        hashedPassword.Salt,
 	}
 
 	fmt.Println()
