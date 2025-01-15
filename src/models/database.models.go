@@ -35,7 +35,7 @@ type User struct {
 	Password   []byte     `gorm:"type:bytea;not null" json:"-"` // Don't expose password in JSON
 	Salt       []byte     `gorm:"type:bytea;not null" json:"-"`
 	LastAccess *time.Time `json:"last_access,omitempty"`
-	IsDeleted  bool       `gorm:"default:false" json:"is_deleted"`
+	IsDeleted  bool       `gorm:"default:false" json:"-"`
 }
 
 // Role model
