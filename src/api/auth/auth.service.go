@@ -34,6 +34,17 @@ func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keyLen 
 	}
 }
 
+func GetMinEntropyBits() error {
+	minEntropyBits, err := strconv.ParseFloat(os.Getenv("ENTROPY_MIN_BITS"), 64)
+	if err != nil {
+		return err
+	}
+
+	MinEntropyBits = minEntropyBits
+
+	return nil
+}
+
 // GenerateHash using the password and provided salt. If not salt value provided fallback to random value generated of a given length.
 func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
 	var err error
@@ -82,7 +93,7 @@ func randomSecret(length uint32) ([]byte, error) {
 	return secret, nil
 }
 
-func GenerateNewArgon2idHash() {
+func GenerateNewArgon2idHash() error {
 	hashTimeStr := os.Getenv("HASH_TIME")
 	hashSaltLengthStr := os.Getenv("HASH_SALT_LENGTH")
 	hashMemoryStr := os.Getenv("HASH_MEMORY")
@@ -93,31 +104,31 @@ func GenerateNewArgon2idHash() {
 	hashTime, err := strconv.ParseUint(hashTimeStr, 10, 32)
 	if err != nil {
 		fmt.Printf("Error converting HASH_TIME: %v\n", err)
-		return
+		return err
 	}
 
 	hashSaltLength, err := strconv.ParseUint(hashSaltLengthStr, 10, 32)
 	if err != nil {
 		fmt.Printf("Error converting HASH_SALT_LENGTH: %v\n", err)
-		return
+		return err
 	}
 
 	hashMemory, err := strconv.ParseUint(hashMemoryStr, 10, 32)
 	if err != nil {
 		fmt.Printf("Error converting HASH_MEMORY: %v\n", err)
-		return
+		return err
 	}
 
 	hashThreads, err := strconv.ParseUint(hashThreadsStr, 10, 8)
 	if err != nil {
 		fmt.Printf("Error converting HASH_THREADS: %v\n", err)
-		return
+		return err
 	}
 
 	hashKeyLength, err := strconv.ParseUint(hashKeyLengthStr, 10, 32)
 	if err != nil {
 		fmt.Printf("Error converting HASH_KEY_LENGTH: %v\n", err)
-		return
+		return err
 	}
 
 	// Pass converted values to the function
@@ -128,4 +139,6 @@ func GenerateNewArgon2idHash() {
 		uint8(hashThreads),
 		uint32(hashKeyLength),
 	)
+
+	return nil
 }

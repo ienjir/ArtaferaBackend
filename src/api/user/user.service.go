@@ -2,10 +2,12 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/nyaruka/phonenumbers"
+	passwordvalidator "github.com/wagslane/go-password-validator"
 	"gorm.io/gorm"
 	"net/http"
 )
@@ -40,6 +42,7 @@ func CreateUserService(request models.CreateUserRequest) (*models.User, *models.
 		Salt:       hashedPassword.Salt,
 	}
 
+	fmt.Println()
 	// Save user to the database
 	if err := database.DB.Create(user).Error; err != nil {
 		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to save user"}
@@ -49,13 +52,13 @@ func CreateUserService(request models.CreateUserRequest) (*models.User, *models.
 }
 
 func VerifyData(UserData models.CreateUserRequest) *models.ServiceError {
-
-	if UserData.Firstname == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Firstname can't be empty"}
+	if UserData.Password == "" {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Password can't be empty"}
 	}
 
-	if UserData.Lastname == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Lastname can't be empty"}
+	err := passwordvalidator.Validate(UserData.Password, auth.MinEntropyBits)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "Password is insecure"}
 	}
 
 	if UserData.Email == "" {
@@ -64,6 +67,14 @@ func VerifyData(UserData models.CreateUserRequest) *models.ServiceError {
 
 	if UserData.Email == "" {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Email format is wrong"}
+	}
+
+	if UserData.Firstname == "" {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Firstname can't be empty"}
+	}
+
+	if UserData.Lastname == "" {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Lastname can't be empty"}
 	}
 
 	if UserData.Phone != nil {

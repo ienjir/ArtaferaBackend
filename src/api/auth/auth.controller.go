@@ -5,6 +5,7 @@ import (
 )
 
 var Argon2IDHash *Argon2idHash
+var MinEntropyBits float64
 
 func HashPassword(password string) (*HashSalt, error) {
 	bytePassword := []byte(password)
