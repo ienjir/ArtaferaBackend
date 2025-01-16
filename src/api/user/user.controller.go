@@ -2,8 +2,8 @@ package user
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"net/http"
 )
 
@@ -17,7 +17,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	err2 := auth.VerifyData(json)
+	err2 := validation.VerifyData(json)
 	if err2 != nil {
 		c.JSON(err2.StatusCode, err2.Message)
 		return
