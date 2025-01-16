@@ -7,3 +7,8 @@ type Argon2idHash struct {
 	keyLen  uint32 // keyLen of the generate hash key.
 	saltLen uint32 // saltLen the length of the salt used.
 }
+
+type LoginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}

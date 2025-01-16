@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Load minimal entropy bits to validate password
-	err = auth.GetMinEntropyBits()
+	err = auth.LoadsAuthEnvs()
 	if err != nil {
 		fmt.Println("Could not get entropy bits: " + err.Error())
 		return

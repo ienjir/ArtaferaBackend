@@ -39,13 +39,15 @@ func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keyLen 
 	}
 }
 
-func GetMinEntropyBits() error {
+func LoadsAuthEnvs() error {
 	minEntropyBits, err := strconv.ParseFloat(os.Getenv("ENTROPY_MIN_BITS"), 64)
 	if err != nil {
 		return err
 	}
 
 	MinEntropyBits = minEntropyBits
+
+	JWTSecret = os.Getenv("JWT_SECRET")
 
 	return nil
 }
