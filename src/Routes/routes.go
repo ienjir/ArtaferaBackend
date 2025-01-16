@@ -2,14 +2,19 @@ package Routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/api/user"
 	"gorm.io/gorm"
 )
 
 func RegisterRoutes(router *gin.Engine, db *gorm.DB) {
-	// Auth routes
+	userRoutes := router.Group("/user")
+	{
+		userRoutes.POST("/create", user.CreateUser)
+	}
+
 	authRoutes := router.Group("/auth")
 	{
-		authRoutes.POST("/", user.CreateUser)
+		authRoutes.POST("/login", auth.LoginHandler)
 	}
 }

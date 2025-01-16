@@ -17,7 +17,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	err2 := validation.VerifyData(json)
+	err2 := validation.VerifyCreateUserData(json)
 	if err2 != nil {
 		c.JSON(err2.StatusCode, err2.Message)
 		return
