@@ -151,79 +151,107 @@ func GenerateNewArgon2idHash() error {
 }
 
 func VerifyData(UserData models.CreateUserRequest) *models.ServiceError {
-	if UserData.Password == "" {
+	if err := validatePassword(UserData.Password); err != nil {
+		return err
+	}
+
+	if err := validateEmail(UserData.Email); err != nil {
+		return err
+	}
+
+	if err := validateName(UserData.Firstname, "Firstname"); err != nil {
+		return err
+	}
+
+	if err := validateName(UserData.Lastname, "Lastname"); err != nil {
+		return err
+	}
+
+	if err := validatePhone(UserData.Phone, UserData.PhoneRegion); err != nil {
+		return err
+	}
+
+	if err := validateAddress(UserData.Address1, "Address1"); err != nil {
+		return err
+	}
+
+	if err := validateAddress(UserData.Address2, "Address2"); err != nil {
+		return err
+	}
+
+	if err := validateAddress(UserData.City, "City"); err != nil {
+		return err
+	}
+
+	if err := validateAddress(UserData.PostalCode, "Postal code"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validatePassword(password string) *models.ServiceError {
+	if password == "" {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Password can't be empty"}
 	}
 
-	err := passwordvalidator.Validate(UserData.Password, MinEntropyBits)
-	if err != nil {
+	if err := passwordvalidator.Validate(password, MinEntropyBits); err != nil {
 		return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "Password is insecure"}
 	}
 
-	if UserData.Email == "" {
+	return nil
+}
+
+func validateEmail(email string) *models.ServiceError {
+	if email == "" {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Email can't be empty"}
 	}
 
-	if UserData.Email == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Email format is wrong"}
+	// Add additional email format validation logic if necessary
+	return nil
+}
+
+func validateName(name, fieldName string) *models.ServiceError {
+	if name == "" {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: fieldName + " can't be empty"}
 	}
 
-	if UserData.Firstname == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Firstname can't be empty"}
+	return nil
+}
+
+func validatePhone(phone, phoneRegion *string) *models.ServiceError {
+	if phone == nil && phoneRegion == nil {
+		return nil // Phone is optional if both are nil
 	}
 
-	if UserData.Lastname == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Lastname can't be empty"}
+	if phoneRegion == nil {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone region has to be sent"}
 	}
 
-	if UserData.Phone != nil {
-
-		if UserData.PhoneRegion == nil {
-			return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone region has to be sent"}
-		}
-
-		if *UserData.Phone == "" {
-			return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone number can't be empty"}
-		}
-
-		if *UserData.PhoneRegion == "" {
-			return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone region can't be empty"}
-		}
-
-		*UserData.PhoneRegion = strings.ToUpper(*UserData.PhoneRegion)
-
-		ParsedNumber, err := phonenumbers.Parse(*UserData.Phone, *UserData.PhoneRegion)
-		if err != nil {
-			return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while trying to parse phone number"}
-		}
-
-		if phonenumbers.IsValidNumber(ParsedNumber) == false {
-			return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone format is not valid"}
-		}
+	if phone == nil || *phone == "" {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone number can't be empty"}
 	}
 
-	if UserData.Address1 != nil {
-		if *UserData.Address1 == "" {
-			return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Address1 can't be empty"}
-		}
+	if *phoneRegion == "" {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone region can't be empty"}
 	}
 
-	if UserData.Address2 != nil {
-		if *UserData.Address2 == "" {
-			return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Address2 can't be empty"}
-		}
+	upperRegion := strings.ToUpper(*phoneRegion)
+	parsedNumber, err := phonenumbers.Parse(*phone, upperRegion)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while trying to parse phone number"}
 	}
 
-	if UserData.City != nil {
-		if *UserData.City == "" {
-			return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "City can't be empty"}
-		}
+	if !phonenumbers.IsValidNumber(parsedNumber) {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone format is not valid"}
 	}
 
-	if UserData.PostalCode != nil {
-		if *UserData.PostalCode == "" {
-			return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Postal code can't be empty"}
-		}
+	return nil
+}
+
+func validateAddress(field *string, fieldName string) *models.ServiceError {
+	if field != nil && *field == "" {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: fieldName + " can't be empty"}
 	}
 
 	return nil
