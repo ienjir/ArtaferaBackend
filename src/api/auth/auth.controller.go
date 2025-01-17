@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/models"
-	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"net/http"
 )
 
@@ -21,16 +20,19 @@ func HashPassword(password string) (*HashSalt, error) {
 	return hashSalt, nil
 }
 
-func LoginHandler(c *gin.Context) {
+func Login(c *gin.Context) {
 	var json models.LoginRequest
 
-	jsonErr := c.ShouldBindJSON(&json)
-	if jsonErr != nil {
+	if jsonErr := c.ShouldBindJSON(&json); jsonErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": jsonErr.Error()})
 	}
 
-	err := validation.VerifyLoginData(json)
-	if err != nil {
+	if err := VerifyLoginData(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 	}
+
+	if user, err := VerifyUser(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+	}
+	
 }

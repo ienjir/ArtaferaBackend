@@ -38,7 +38,7 @@ func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keyLen 
 	}
 }
 
-func VerifyLogin(request models.LoginRequest) (*models.User, *models.ServiceError) {
+func VerifyUser(request models.LoginRequest) (*models.User, *models.ServiceError) {
 	var User models.User
 
 	// Check if user exists
@@ -46,11 +46,26 @@ func VerifyLogin(request models.LoginRequest) (*models.User, *models.ServiceErro
 		return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 	}
 
+	if err := ComparePassword(User, request.Password); err != nil {
+		return nil, &models.ServiceError{StatusCode: err.StatusCode, Message: err.Message}
+	}
+
 	return nil, nil
 }
 
-func ComparePasswords(user models.User) {
+func ComparePassword(user models.User, password string) *models.ServiceError {
+	var Password, Hash, Salt []byte
 
+	Password = []byte(password)
+	Hash = user.Password
+	Salt = user.Salt
+
+	err := Argon2IDHash.Compare(Hash, Salt, Password)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Password is wrong"}
+	}
+
+	return nil
 }
 
 // GenerateHash using the password and provided salt. If not salt value provided fallback to random value generated of a given length.
@@ -151,40 +166,18 @@ func GenerateNewArgon2idHash() error {
 	return nil
 }
 
-func VerifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
-	if err := validation.ValidatePassword(Data.Password); err != nil {
+/*
+	Validation
+*/
+
+func VerifyLoginData(Data models.LoginRequest) *models.ServiceError {
+	err := validation.ValidatePassword(Data.Password)
+	if err != nil {
 		return err
 	}
 
-	if err := validation.ValidateEmail(Data.Email); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateName(Data.Firstname, "Firstname"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateName(Data.Lastname, "Lastname"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidatePhone(Data.Phone, Data.PhoneRegion); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateAddress(Data.Address1, "Address1"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateAddress(Data.Address2, "Address2"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateAddress(Data.City, "City"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateAddress(Data.PostalCode, "Postal code"); err != nil {
+	err = validation.ValidateEmail(Data.Email)
+	if err != nil {
 		return err
 	}
 
