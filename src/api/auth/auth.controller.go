@@ -9,8 +9,6 @@ import (
 )
 
 var Argon2IDHash *Argon2idHash
-var MinEntropyBits float64
-var JWTSecret string
 
 func HashPassword(password string) (*HashSalt, error) {
 	bytePassword := []byte(password)

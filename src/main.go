@@ -6,6 +6,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/Routes"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
+	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"github.com/joho/godotenv"
 	"log"
 )
@@ -27,7 +28,8 @@ func main() {
 	}
 
 	// Load minimal entropy bits to validate password
-	err = auth.LoadsAuthEnvs()
+	err = validation.LoadsAuthEnvs()
+
 	if err != nil {
 		fmt.Println("Could not get entropy bits: " + err.Error())
 		return

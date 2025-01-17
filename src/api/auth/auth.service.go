@@ -34,19 +34,6 @@ func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keyLen 
 	}
 }
 
-func LoadsAuthEnvs() error {
-	minEntropyBits, err := strconv.ParseFloat(os.Getenv("ENTROPY_MIN_BITS"), 64)
-	if err != nil {
-		return err
-	}
-
-	MinEntropyBits = minEntropyBits
-
-	JWTSecret = os.Getenv("JWT_SECRET")
-
-	return nil
-}
-
 // GenerateHash using the password and provided salt. If not salt value provided fallback to random value generated of a given length.
 func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
 	var err error

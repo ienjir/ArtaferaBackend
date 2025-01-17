@@ -1,21 +1,47 @@
 package validation
 
 import (
-	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/nyaruka/phonenumbers"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"net/http"
+	"net/mail"
+	"os"
+	"strconv"
 	"strings"
 )
 
-func validatePassword(password string) *models.ServiceError {
-	if password == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Password can't be empty"}
+var MinEntropyBits float64
+var JWTSecret string
+
+func LoadsAuthEnvs() error {
+	minEntropyBits, err := strconv.ParseFloat(os.Getenv("ENTROPY_MIN_BITS"), 64)
+	if err != nil {
+		return err
 	}
 
-	if err := passwordvalidator.Validate(password, auth.MinEntropyBits); err != nil {
+	MinEntropyBits = minEntropyBits
+
+	JWTSecret = os.Getenv("JWT_SECRET")
+
+	return nil
+}
+
+func validatePassword(password string) *models.ServiceError {
+	if err := validatePasswordWithoutEntropy(password); err != nil {
+		return &models.ServiceError{StatusCode: err.StatusCode, Message: err.Message}
+	}
+
+	if err := passwordvalidator.Validate(password, MinEntropyBits); err != nil {
 		return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "Password is insecure"}
+	}
+
+	return nil
+}
+
+func validatePasswordWithoutEntropy(password string) *models.ServiceError {
+	if password == "" {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Password can't be empty"}
 	}
 
 	return nil
@@ -26,7 +52,11 @@ func validateEmail(email string) *models.ServiceError {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Email can't be empty"}
 	}
 
-	// Add additional email format validation logic if necessary
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Error parsing email"}
+	}
+
 	return nil
 }
 
