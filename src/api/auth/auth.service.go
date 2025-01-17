@@ -5,7 +5,11 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/ienjir/ArtaferaBackend/src/database"
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"golang.org/x/crypto/argon2"
+	"net/http"
 	"os"
 	"strconv"
 )
@@ -32,6 +36,21 @@ func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keyLen 
 		threads: threads,
 		keyLen:  keyLen,
 	}
+}
+
+func VerifyLogin(request models.LoginRequest) (*models.User, *models.ServiceError) {
+	var User models.User
+
+	// Check if user exists
+	if err := database.DB.Where("email = ?", request.Email).First(&User).Error; err != nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+	}
+
+	return nil, nil
+}
+
+func ComparePasswords(user models.User) {
+
 }
 
 // GenerateHash using the password and provided salt. If not salt value provided fallback to random value generated of a given length.
@@ -128,6 +147,46 @@ func GenerateNewArgon2idHash() error {
 		uint8(hashThreads),
 		uint32(hashKeyLength),
 	)
+
+	return nil
+}
+
+func VerifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
+	if err := validation.ValidatePassword(Data.Password); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateEmail(Data.Email); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateName(Data.Firstname, "Firstname"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateName(Data.Lastname, "Lastname"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidatePhone(Data.Phone, Data.PhoneRegion); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateAddress(Data.Address1, "Address1"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateAddress(Data.Address2, "Address2"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateAddress(Data.City, "City"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateAddress(Data.PostalCode, "Postal code"); err != nil {
+		return err
+	}
 
 	return nil
 }

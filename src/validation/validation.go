@@ -27,8 +27,8 @@ func LoadsAuthEnvs() error {
 	return nil
 }
 
-func validatePassword(password string) *models.ServiceError {
-	if err := validatePasswordWithoutEntropy(password); err != nil {
+func ValidatePassword(password string) *models.ServiceError {
+	if err := ValidatePasswordWithoutEntropy(password); err != nil {
 		return &models.ServiceError{StatusCode: err.StatusCode, Message: err.Message}
 	}
 
@@ -39,7 +39,7 @@ func validatePassword(password string) *models.ServiceError {
 	return nil
 }
 
-func validatePasswordWithoutEntropy(password string) *models.ServiceError {
+func ValidatePasswordWithoutEntropy(password string) *models.ServiceError {
 	if password == "" {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Password can't be empty"}
 	}
@@ -47,7 +47,7 @@ func validatePasswordWithoutEntropy(password string) *models.ServiceError {
 	return nil
 }
 
-func validateEmail(email string) *models.ServiceError {
+func ValidateEmail(email string) *models.ServiceError {
 	if email == "" {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Email can't be empty"}
 	}
@@ -60,7 +60,7 @@ func validateEmail(email string) *models.ServiceError {
 	return nil
 }
 
-func validateName(name, fieldName string) *models.ServiceError {
+func ValidateName(name, fieldName string) *models.ServiceError {
 	if name == "" {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: fieldName + " can't be empty"}
 	}
@@ -68,7 +68,7 @@ func validateName(name, fieldName string) *models.ServiceError {
 	return nil
 }
 
-func validatePhone(phone, phoneRegion *string) *models.ServiceError {
+func ValidatePhone(phone, phoneRegion *string) *models.ServiceError {
 	if phone == nil && phoneRegion == nil {
 		return nil // Phone is optional if both are nil
 	}
@@ -98,7 +98,7 @@ func validatePhone(phone, phoneRegion *string) *models.ServiceError {
 	return nil
 }
 
-func validateAddress(field *string, fieldName string) *models.ServiceError {
+func ValidateAddress(field *string, fieldName string) *models.ServiceError {
 	if field != nil && *field == "" {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: fieldName + " can't be empty"}
 	}
