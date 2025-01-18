@@ -12,17 +12,14 @@ import (
 )
 
 var MinEntropyBits float64
-var JWTSecret string
 
-func LoadsAuthEnvs() error {
+func LoadsValidationEnvs() error {
 	minEntropyBits, err := strconv.ParseFloat(os.Getenv("ENTROPY_MIN_BITS"), 64)
 	if err != nil {
 		return err
 	}
 
 	MinEntropyBits = minEntropyBits
-
-	JWTSecret = os.Getenv("JWT_SECRET")
 
 	return nil
 }

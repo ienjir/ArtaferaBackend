@@ -18,7 +18,7 @@ To start using this project for prod make the following steps:
 - In `main.go` remove the `database.GenerateFakeData()` call to not have data when running the application
 - In `main.go` set the right proxies
 - In `docker-compose.yml` change the credentials to the database because currently they are not safe and only for testing
-- Put the right credentials for the datbase in the `.env` file
+- Put the right credentials in the `.env` file for all the things
 - Switch the mode in the `.env` file to production
 
 Afterwards compose docker with `docker compose up -d`. 

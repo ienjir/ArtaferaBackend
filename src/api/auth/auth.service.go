@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	jwt2 "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
@@ -12,8 +13,10 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
+var JWTSecret []byte
 // HashSalt struct used to store generated hash and salt used to generate the hash.
 type HashSalt struct {
 	Hash, Salt []byte
@@ -38,6 +41,10 @@ func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keyLen 
 	}
 }
 
+func LoadAuthEnvs() {
+	JWTSecret = []byte(os.Getenv("JWT_SECRET"))
+}
+
 func VerifyUser(request models.LoginRequest) (*models.User, *models.ServiceError) {
 	var User models.User
 
@@ -50,7 +57,7 @@ func VerifyUser(request models.LoginRequest) (*models.User, *models.ServiceError
 		return nil, &models.ServiceError{StatusCode: err.StatusCode, Message: err.Message}
 	}
 
-	return nil, nil
+	return &User, nil
 }
 
 func ComparePassword(user models.User, password string) *models.ServiceError {
@@ -66,6 +73,24 @@ func ComparePassword(user models.User, password string) *models.ServiceError {
 	}
 
 	return nil
+}
+
+func GenerateJWT(User models.User) (string, error) {
+	// Create a new token object
+	token := jwt2.NewWithClaims(jwt2.SigningMethodHS256, jwt2.MapClaims{
+		"email": User.Email,
+		"id":    User.ID,
+		"role": ,
+		"exp":   time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+	})
+
+	// Sign the token with the secret key
+	tokenString, err := token.SignedString(JW)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	return tokenString, nil
 }
 
 // GenerateHash using the password and provided salt. If not salt value provided fallback to random value generated of a given length.
