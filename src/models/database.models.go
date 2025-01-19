@@ -37,19 +37,14 @@ type User struct {
 	Salt        []byte     `gorm:"type:bytea;not null" json:"-"`
 	LastAccess  *time.Time `json:"last_access,omitempty"`
 	IsDeleted   bool       `gorm:"default:false" json:"-"`
+	RoleID      uint       `gorm:"not null" json:"-"`
+	Role        Role       `gorm:"foreignKey:RoleID" json:"role"`
 }
 
 // Role model
 type Role struct {
 	gorm.Model
 	Role string `gorm:"size:50;not null" json:"role"`
-}
-
-// UserRole model
-type UserRole struct {
-	gorm.Model
-	UserID int `gorm:"not null;index" json:"user_id"`
-	RoleID int `gorm:"not null;index" json:"role_id"`
 }
 
 // Text model

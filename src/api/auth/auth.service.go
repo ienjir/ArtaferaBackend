@@ -17,6 +17,7 @@ import (
 )
 
 var JWTSecret []byte
+
 // HashSalt struct used to store generated hash and salt used to generate the hash.
 type HashSalt struct {
 	Hash, Salt []byte
@@ -80,12 +81,12 @@ func GenerateJWT(User models.User) (string, error) {
 	token := jwt2.NewWithClaims(jwt2.SigningMethodHS256, jwt2.MapClaims{
 		"email": User.Email,
 		"id":    User.ID,
-		"role": ,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+		"role":  "User",
+		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	})
 
 	// Sign the token with the secret key
-	tokenString, err := token.SignedString(JW)
+	tokenString, err := token.SignedString(JWTSecret)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign token: %w", err)
 	}

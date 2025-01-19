@@ -31,8 +31,13 @@ func Login(c *gin.Context) {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 	}
 
-	if user, err := VerifyUser(json); err != nil {
+	user, err := VerifyUser(json)
+	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 	}
-	
+
+	jwt, err2 := GenerateJWT(*user)
+	if err2 != nil {
+		return
+	}
 }
