@@ -29,9 +29,9 @@ func GenerateFakeData() error {
 
 	// Sample Roles
 	roles := []models.Role{
-		{Role: "Admin"},
-		{Role: "Customer"},
-		{Role: "Artist"},
+		{Role: "user"},
+		{Role: "admin"},
+		{Role: "artist"},
 	}
 
 	// Sample Languages

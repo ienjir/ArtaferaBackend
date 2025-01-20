@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"fmt"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
@@ -42,7 +41,6 @@ func CreateUserService(request models.CreateUserRequest) (*models.User, *models.
 		Salt:        hashedPassword.Salt,
 	}
 
-	fmt.Println()
 	// Save user to the database
 	if err := database.DB.Create(user).Error; err != nil {
 		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to save user"}
