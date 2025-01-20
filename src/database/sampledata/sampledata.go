@@ -1,12 +1,13 @@
-package database
+package sampledata
 
 import (
+	"github.com/ienjir/ArtaferaBackend/src/api/auth"
+	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
-	"gorm.io/gorm"
 	"time"
 )
 
-func GenerateFakeData(database *gorm.DB) error {
+func GenerateFakeData() error {
 	// Sample Users
 	users := []models.User{
 		{Firstname: "John", Lastname: "Doe", Email: "john.doe@example.com", Phone: nil, PhoneRegion: nil, Address1: nil, Address2: nil, City: nil, PostalCode: nil, Password: []byte("Password"), Salt: []byte("Kek"), LastAccess: nil},
@@ -14,6 +15,16 @@ func GenerateFakeData(database *gorm.DB) error {
 		{Firstname: "Alice", Lastname: "Johnson", Email: "alice.johnson@example.com", Password: []byte("password789"), Salt: []byte("Salt"), PhoneRegion: toPointer("US"), RoleID: 3},
 		{Firstname: "Bob", Lastname: "Brown", Email: "bob.brown@example.com", Password: []byte("password234"), Salt: []byte("Salt"), Address2: toPointer("Apt 4B"), LastAccess: toPointer(time.Now()), RoleID: 1},
 		{Firstname: "Charlie", Lastname: "Williams", Email: "charlie.williams@example.com", Password: []byte("password345"), Salt: []byte("Salt"), RoleID: 2},
+	}
+
+	for i := 0; i < len(users); i++ {
+		user := users[i]
+		password, err := auth.HashPassword(string(user.Password))
+		if err != nil {
+			return err
+		}
+		users[i].Password = password.Hash
+		users[i].Salt = password.Salt
 	}
 
 	// Sample Roles
@@ -86,18 +97,18 @@ func GenerateFakeData(database *gorm.DB) error {
 	}
 
 	// Bulk insert data
-	database.Create(&roles)
-	database.Create(&users)
-	database.Create(&languages)
-	database.Create(&texts)
-	database.Create(&translations)
-	database.Create(&currencies)
-	database.Create(&arts)
-	database.Create(&pictures)
-	database.Create(&artPictures)
-	database.Create(&orders)
-	database.Create(&orderDetails)
-	database.Create(&payments)
+	database.DB.Create(&roles)
+	database.DB.Create(&users)
+	database.DB.Create(&languages)
+	database.DB.Create(&texts)
+	database.DB.Create(&translations)
+	database.DB.Create(&currencies)
+	database.DB.Create(&arts)
+	database.DB.Create(&pictures)
+	database.DB.Create(&artPictures)
+	database.DB.Create(&orders)
+	database.DB.Create(&orderDetails)
+	database.DB.Create(&payments)
 
 	return nil
 }

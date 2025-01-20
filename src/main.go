@@ -6,6 +6,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/Routes"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
+	"github.com/ienjir/ArtaferaBackend/src/database/sampledata"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"github.com/joho/godotenv"
 	"log"
@@ -48,10 +49,10 @@ func main() {
 	}
 
 	// Generate fake data to
-	/* err = database.GenerateFakeData(database.DB)
+	err = sampledata.GenerateFakeData()
 	if err != nil {
 		return
-	} */
+	}
 
 	// Register routes
 	Routes.RegisterRoutes(router, database.DB)

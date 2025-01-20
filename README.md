@@ -22,3 +22,5 @@ To start using this project for prod make the following steps:
 - Switch the mode in the `.env` file to production
 
 Afterwards compose docker with `docker compose up -d`. 
+
+For any more specific documentation refer to the `md` file in the `src/docs` folder
