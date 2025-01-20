@@ -36,23 +36,23 @@ func GenerateJWT(User models.User) (*string, *models.ServiceError) {
 	return &tokenString, nil
 }
 
-func VerifyToken(tokenString string) (jwt2.MapClaims, error) {
-	// Parse and verify the token
+func VerifyToken(tokenString string) *models.ServiceError {
 	token, err := jwt2.Parse(tokenString, func(token *jwt2.Token) (interface{}, error) {
 		// Check if the signing method is HMAC
 		if _, ok := token.Method.(*jwt2.SigningMethodHMAC); !ok {
+			// Returning ServiceError if signing method is unexpected
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return JWTSecret, nil
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("error verifying token: %v", err)
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: fmt.Sprintf("Error verifying token: %v", err)}
 	}
 
-	// Check if the token is valid
-	if claims, ok := token.Claims.(jwt2.MapClaims); ok && token.Valid {
-		return claims, nil
+	if !token.Valid {
+		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Token is invalid"}
 	}
-	return nil, fmt.Errorf("token is invalid")
+
+	return nil
 }

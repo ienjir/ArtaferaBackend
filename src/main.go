@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/Routes"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
@@ -50,12 +49,10 @@ func main() {
 		return
 	}
 
-	token, err := auth.VerifyToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwiZXhwIjoxNzM3NDU3NjY1LCJpZCI6MSwicm9sZSI6IkFkbWluIn0.0ESDQ0KVBdMc-rz5_H4IghYj5ptaRaON8uGCXfVR6tw")
-	if err != nil {
-		fmt.Println(err)
-		return
+	err2 := auth.VerifyToken("xeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwiZXhwIjoxNzM3NDYwNjk2LCJpZCI6MSwicm9sZSI6IkFkbWluIn0.RG1eh5PNr4Byehuz7m2UA-4xj0G3AVnYDJyxkKboBbc")
+	if err2 != nil {
+		log.Fatal(err2.Message)
 	}
-	fmt.Println(token)
 
 	// Register routes
 	Routes.RegisterRoutes(router, database.DB)
