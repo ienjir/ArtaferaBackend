@@ -49,13 +49,8 @@ func main() {
 		return
 	}
 
-	err2 := auth.VerifyToken("xeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwiZXhwIjoxNzM3NDYwNjk2LCJpZCI6MSwicm9sZSI6IkFkbWluIn0.RG1eh5PNr4Byehuz7m2UA-4xj0G3AVnYDJyxkKboBbc")
-	if err2 != nil {
-		log.Fatal(err2.Message)
-	}
-
 	// Register routes
-	Routes.RegisterRoutes(router, database.DB)
+	Routes.RegisterRoutes(router)
 
 	// Start the server
 	err = router.Run(":8080")
