@@ -1,18 +1,13 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:latest
-    container_name: postgres_db
+    container_name: ArtaferaDB
     environment:
       POSTGRES_USER: DBAdmin
       POSTGRES_PASSWORD: AVerySecurePassword
       POSTGRES_DB: ArtaferaDB
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - mynetwork
 
 volumes:
   postgres_data:
@@ -21,3 +16,4 @@ volumes:
 networks:
   mynetwork:
     driver: bridge
+ 

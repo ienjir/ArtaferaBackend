@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/models"
@@ -40,4 +41,6 @@ func Login(c *gin.Context) {
 	if err2 != nil {
 		return
 	}
+
+	fmt.Println(jwt)
 }

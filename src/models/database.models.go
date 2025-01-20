@@ -8,7 +8,6 @@ import (
 var AllModels = []interface{}{
 	&User{},
 	&Role{},
-	&UserRole{},
 	&Text{},
 	&Translation{},
 	&Language{},
@@ -36,9 +35,8 @@ type User struct {
 	Password    []byte     `gorm:"type:bytea;not null" json:"-"`
 	Salt        []byte     `gorm:"type:bytea;not null" json:"-"`
 	LastAccess  *time.Time `json:"last_access,omitempty"`
-	IsDeleted   bool       `gorm:"default:false" json:"-"`
-	RoleID      uint       `gorm:"not null" json:"-"`
-	Role        Role       `gorm:"foreignKey:RoleID" json:"role"`
+	RoleID      uint       `gorm:"not null;default:1" json:"-"`
+	Role        *Role      `json:"role"`
 }
 
 // Role model

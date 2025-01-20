@@ -9,11 +9,11 @@ import (
 func GenerateFakeData(database *gorm.DB) {
 	// Sample Users
 	users := []models.User{
-		{Firstname: "John", Lastname: "Doe", Email: "john.doe@example.com", Password: []byte("password123"), Salt: []byte("Salt"), Phone: toPointer("1234567890"), City: toPointer("New York")},
-		{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: []byte("password456"), Salt: []byte("Salt"), Address1: toPointer("123 Maple Street"), PostalCode: toPointer("10001")},
-		{Firstname: "Alice", Lastname: "Johnson", Email: "alice.johnson@example.com", Password: []byte("password789"), Salt: []byte("Salt"), PhoneRegion: toPointer("US")},
-		{Firstname: "Bob", Lastname: "Brown", Email: "bob.brown@example.com", Password: []byte("password234"), Salt: []byte("Salt"), Address2: toPointer("Apt 4B"), LastAccess: toPointer(time.Now())},
-		{Firstname: "Charlie", Lastname: "Williams", Email: "charlie.williams@example.com", Password: []byte("password345"), Salt: []byte("Salt")},
+		{Firstname: "Luis", Lastname: "Hänny", Email: "luis.haenny@swisscom.com", Phone: nil, PhoneRegion: nil, Address1: nil, Address2: nil, City: nil, PostalCode: nil, Password: []byte("Password"), Salt: []byte("Kek"), LastAccess: nil},
+		/*{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: []byte("password456"), Salt: []byte("Salt"), Address1: toPointer("123 Maple Street"), PostalCode: toPointer("10001"), RoleID: 2},
+		{Firstname: "Alice", Lastname: "Johnson", Email: "alice.johnson@example.com", Password: []byte("password789"), Salt: []byte("Salt"), PhoneRegion: toPointer("US"), RoleID: 3},
+		{Firstname: "Bob", Lastname: "Brown", Email: "bob.brown@example.com", Password: []byte("password234"), Salt: []byte("Salt"), Address2: toPointer("Apt 4B"), LastAccess: toPointer(time.Now()), RoleID: 1},
+		{Firstname: "Charlie", Lastname: "Williams", Email: "charlie.williams@example.com", Password: []byte("password345"), Salt: []byte("Salt"), RoleID: 2}, */
 	}
 
 	// Sample Roles
@@ -21,14 +21,6 @@ func GenerateFakeData(database *gorm.DB) {
 		{Role: "Admin"},
 		{Role: "Customer"},
 		{Role: "Artist"},
-	}
-
-	// Sample UserRoles
-	userRoles := []models.UserRole{
-		{UserID: 1, RoleID: 1},
-		{UserID: 2, RoleID: 2},
-		{UserID: 3, RoleID: 3},
-		{UserID: 4, RoleID: 2},
 	}
 
 	// Sample Languages
@@ -94,9 +86,8 @@ func GenerateFakeData(database *gorm.DB) {
 	}
 
 	// Bulk insert data
-	database.Create(&users)
 	database.Create(&roles)
-	database.Create(&userRoles)
+	database.Create(&users)
 	database.Create(&languages)
 	database.Create(&texts)
 	database.Create(&translations)
