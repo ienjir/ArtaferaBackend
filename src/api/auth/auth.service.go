@@ -36,7 +36,3 @@ func ComparePassword(user models.User, password string) *models.ServiceError {
 
 	return nil
 }
-
-/*
-	Validation
-*/
