@@ -10,10 +10,10 @@ func GenerateFakeData(database *gorm.DB) {
 	// Sample Users
 	users := []models.User{
 		{Firstname: "Luis", Lastname: "Hänny", Email: "luis.haenny@swisscom.com", Phone: nil, PhoneRegion: nil, Address1: nil, Address2: nil, City: nil, PostalCode: nil, Password: []byte("Password"), Salt: []byte("Kek"), LastAccess: nil},
-		/*{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: []byte("password456"), Salt: []byte("Salt"), Address1: toPointer("123 Maple Street"), PostalCode: toPointer("10001"), RoleID: 2},
+		{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: []byte("password456"), Salt: []byte("Salt"), Address1: toPointer("123 Maple Street"), PostalCode: toPointer("10001"), RoleID: 2},
 		{Firstname: "Alice", Lastname: "Johnson", Email: "alice.johnson@example.com", Password: []byte("password789"), Salt: []byte("Salt"), PhoneRegion: toPointer("US"), RoleID: 3},
 		{Firstname: "Bob", Lastname: "Brown", Email: "bob.brown@example.com", Password: []byte("password234"), Salt: []byte("Salt"), Address2: toPointer("Apt 4B"), LastAccess: toPointer(time.Now()), RoleID: 1},
-		{Firstname: "Charlie", Lastname: "Williams", Email: "charlie.williams@example.com", Password: []byte("password345"), Salt: []byte("Salt"), RoleID: 2}, */
+		{Firstname: "Charlie", Lastname: "Williams", Email: "charlie.williams@example.com", Password: []byte("password345"), Salt: []byte("Salt"), RoleID: 2},
 	}
 
 	// Sample Roles
