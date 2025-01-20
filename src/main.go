@@ -6,7 +6,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/Routes"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
-	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"github.com/joho/godotenv"
 	"log"
@@ -49,17 +48,10 @@ func main() {
 	}
 
 	// Generate fake data to
-	database.GenerateFakeData(database.DB)
-
-	var user models.User
-	var userID uint
-	userID = 1
-	result := database.DB.Preload("Role").First(&user, userID)
-	if result.Error != nil {
-		log.Printf("Error loading user: %v", result.Error)
+	/* err = database.GenerateFakeData(database.DB)
+	if err != nil {
 		return
-	}
-	fmt.Printf("User: %s %s, Role: %s\n", user.Firstname, user.Lastname, user.Role.Role)
+	} */
 
 	// Register routes
 	Routes.RegisterRoutes(router, database.DB)

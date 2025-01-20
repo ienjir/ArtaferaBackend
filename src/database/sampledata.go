@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-func GenerateFakeData(database *gorm.DB) {
+func GenerateFakeData(database *gorm.DB) error {
 	// Sample Users
 	users := []models.User{
-		{Firstname: "Luis", Lastname: "Hänny", Email: "luis.haenny@swisscom.com", Phone: nil, PhoneRegion: nil, Address1: nil, Address2: nil, City: nil, PostalCode: nil, Password: []byte("Password"), Salt: []byte("Kek"), LastAccess: nil},
+		{Firstname: "John", Lastname: "Doe", Email: "john.doe@example.com", Phone: nil, PhoneRegion: nil, Address1: nil, Address2: nil, City: nil, PostalCode: nil, Password: []byte("Password"), Salt: []byte("Kek"), LastAccess: nil},
 		{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: []byte("password456"), Salt: []byte("Salt"), Address1: toPointer("123 Maple Street"), PostalCode: toPointer("10001"), RoleID: 2},
 		{Firstname: "Alice", Lastname: "Johnson", Email: "alice.johnson@example.com", Password: []byte("password789"), Salt: []byte("Salt"), PhoneRegion: toPointer("US"), RoleID: 3},
 		{Firstname: "Bob", Lastname: "Brown", Email: "bob.brown@example.com", Password: []byte("password234"), Salt: []byte("Salt"), Address2: toPointer("Apt 4B"), LastAccess: toPointer(time.Now()), RoleID: 1},
@@ -98,6 +98,8 @@ func GenerateFakeData(database *gorm.DB) {
 	database.Create(&orders)
 	database.Create(&orderDetails)
 	database.Create(&payments)
+
+	return nil
 }
 
 func toPointer[T any](v T) *T {
