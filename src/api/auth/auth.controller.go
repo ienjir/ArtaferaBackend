@@ -38,8 +38,9 @@ func Login(c *gin.Context) {
 
 	jwt, err2 := GenerateJWT(*user)
 	if err2 != nil {
+		c.JSON(err2.StatusCode, gin.H{"error": err2.Message})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{"token": jwt})
 }

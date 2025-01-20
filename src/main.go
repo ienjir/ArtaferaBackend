@@ -15,24 +15,20 @@ import (
 func main() {
 	router := gin.Default()
 
-	// Load env
+	// Load env's from .env file
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 		return
 	}
 
+	// Set vars in the packages
+	auth.LoadAuthEnvs()
+	validation.LoadsValidationEnvs()
+
 	// Generate Argon2idHash for password hashing
 	err = auth.GenerateNewArgon2idHash()
 	if err != nil {
-		return
-	}
-
-	// Load minimal entropy bits to validate password
-	err = validation.LoadsValidationEnvs()
-
-	if err != nil {
-		fmt.Println("Could not get entropy bits: " + err.Error())
 		return
 	}
 
@@ -53,6 +49,13 @@ func main() {
 	if err != nil {
 		return
 	}
+
+	token, err := auth.VerifyToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwiZXhwIjoxNzM3NDU3NjY1LCJpZCI6MSwicm9sZSI6IkFkbWluIn0.0ESDQ0KVBdMc-rz5_H4IghYj5ptaRaON8uGCXfVR6tw")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(token)
 
 	// Register routes
 	Routes.RegisterRoutes(router, database.DB)

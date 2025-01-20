@@ -4,6 +4,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/nyaruka/phonenumbers"
 	passwordvalidator "github.com/wagslane/go-password-validator"
+	"log"
 	"net/http"
 	"net/mail"
 	"os"
@@ -13,15 +14,16 @@ import (
 
 var MinEntropyBits float64
 
-func LoadsValidationEnvs() error {
+func LoadsValidationEnvs() {
 	minEntropyBits, err := strconv.ParseFloat(os.Getenv("ENTROPY_MIN_BITS"), 64)
 	if err != nil {
-		return err
+		log.Fatal("Failed to load minimal entropy bits: " + err.Error())
+		return
 	}
 
 	MinEntropyBits = minEntropyBits
 
-	return nil
+	return
 }
 
 func ValidatePassword(password string) *models.ServiceError {
