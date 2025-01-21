@@ -13,23 +13,21 @@ func RegisterRoutes(router *gin.Engine) {
 	authRoutes := router.Group("/auth")
 	{
 		authRoutes.POST("/login", auth.Login)
+		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
 	}
 
 	// User routes
 	userRoutes := router.Group("/user")
+	userRoutes.Use(middleware.RoleAuthMiddleware("user"))
 	{
 		// Public routes
 		userRoutes.POST("/create", user.CreateUser)
 		userRoutes.GET("/test", test)
 
-		// Protected user routes (example)
 		protected := userRoutes.Group("")
 		protected.Use(middleware.RoleAuthMiddleware("admin"))
 		{
-			// Add your protected user routes here
 			protected.GET("/test2", test2)
-			// protected.GET("/profile", user.GetProfile)
-			// protected.PUT("/update", user.UpdateUser)
 		}
 	}
 
@@ -38,9 +36,6 @@ func RegisterRoutes(router *gin.Engine) {
 	adminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 	{
 		adminRoutes.GET("/test", test)
-		// Add your admin routes here
-		// adminRoutes.GET("/users", admin.GetAllUsers)
-		// adminRoutes.DELETE("/users/:id", admin.DeleteUser)
 	}
 }
 

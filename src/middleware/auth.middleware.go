@@ -9,7 +9,6 @@ import (
 	"strings"
 )
 
-// RoleAuthMiddleware creates a middleware that checks if the user's role is allowed
 func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get the Authorization header
@@ -32,17 +31,12 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
-		// Verify the token
-		tokenString := bearerToken[1]
-		if err := auth.VerifyToken(tokenString); err != nil {
-			c.AbortWithStatusJSON(err.StatusCode, err)
+		// Verify the access token
+		token, serviceErr := auth.VerifyAccessToken(bearerToken[1])
+		if serviceErr != nil {
+			c.AbortWithStatusJSON(serviceErr.StatusCode, serviceErr)
 			return
 		}
-
-		// Parse the token to get claims
-		token, _ := jwt2.Parse(tokenString, func(token *jwt2.Token) (interface{}, error) {
-			return auth.JWTSecret, nil
-		})
 
 		// Extract claims
 		claims, ok := token.Claims.(jwt2.MapClaims)
@@ -85,7 +79,6 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		c.Set("userID", claims["id"])
 		c.Set("userEmail", claims["email"])
 		c.Set("userRole", userRole)
-
 		c.Next()
 	}
 }
