@@ -1,156 +1,33 @@
-// user.controller.go
 package user
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
-	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
 
-type UserController struct {
-	service *UserService
-}
+func CreateUser(c *gin.Context) {
+	var json models.CreateUserRequest
 
-func NewUserController(service *UserService) *UserController {
-	return &UserController{service: service}
-}
-
-func (c *UserController) Create(ctx *gin.Context) {
-	var req models.CreateUserRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	user := &models.User{
-		Firstname:  req.Firstname,
-		Lastname:   req.Lastname,
-		Email:      req.Email,
-		Phone:      req.Phone,
-		Address1:   req.Address1,
-		Address2:   req.Address2,
-		City:       req.City,
-		PostalCode: req.PostalCode,
-		Password:   []byte(req.Password),
-	}
-
-	if err := c.service.Create(user); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-		return
-	}
-
-	// Clear password before sending response
-	user.Password = nil
-	ctx.JSON(http.StatusCreated, user)
-}
-
-func (c *UserController) Get(ctx *gin.Context) {
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	// Validate the input
+	err := c.ShouldBindJSON(&json)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := c.service.GetByID(uint(id))
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
+	err2 := VerifyCreateUserData(json)
+	if err2 != nil {
+		c.JSON(err2.StatusCode, err2.Message)
 		return
 	}
 
-	if user == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+	// Call the service to handle user creation
+	user, err3 := CreateUserService(json)
+	if err3 != nil {
+		c.JSON(err3.StatusCode, gin.H{"error": err3.Message})
 		return
 	}
 
-	// Clear password before sending response
-	user.Password = nil
-	ctx.JSON(http.StatusOK, user)
-}
-
-func (c *UserController) Update(ctx *gin.Context) {
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
-		return
-	}
-
-	var req models.CreateUserRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	user := &models.User{
-		Firstname:  req.Firstname,
-		Lastname:   req.Lastname,
-		Email:      req.Email,
-		Phone:      req.Phone,
-		Address1:   req.Address1,
-		Address2:   req.Address2,
-		City:       req.City,
-		PostalCode: req.PostalCode,
-	}
-	user.ID = uint(id)
-
-	if req.Password != "" {
-		user.Password = []byte(req.Password)
-	}
-
-	if err := c.service.Update(user); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
-		return
-	}
-
-	// Clear password before sending response
-	user.Password = nil
-	ctx.JSON(http.StatusOK, user)
-}
-
-func (c *UserController) Delete(ctx *gin.Context) {
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
-		return
-	}
-
-	if err := c.service.Delete(uint(id)); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
-}
-
-func (c *UserController) List(ctx *gin.Context) {
-	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
-
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 10
-	}
-
-	users, total, err := c.service.List(page, pageSize)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
-		return
-	}
-
-	// Clear passwords before sending response
-	for i := range users {
-		users[i].Password = nil
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"data": users,
-		"meta": gin.H{
-			"total":     total,
-			"page":      page,
-			"page_size": pageSize,
-		},
-	})
+	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully", "user": user})
 }

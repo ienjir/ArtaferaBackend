@@ -8,7 +8,6 @@ import (
 var AllModels = []interface{}{
 	&User{},
 	&Role{},
-	&UserRole{},
 	&Text{},
 	&Translation{},
 	&Language{},
@@ -24,30 +23,26 @@ var AllModels = []interface{}{
 // User model
 type User struct {
 	gorm.Model
-	Firstname  string     `gorm:"size:255;not null" json:"firstname"`
-	Lastname   string     `gorm:"size:255;not null" json:"lastname"`
-	Email      string     `gorm:"size:255;not null;unique" json:"email"`
-	Phone      *string    `gorm:"size:20" json:"phone,omitempty"`
-	Address1   *string    `gorm:"size:255" json:"address1,omitempty"`
-	Address2   *string    `gorm:"size:255" json:"address2,omitempty"`
-	City       *string    `gorm:"size:255" json:"city,omitempty"`
-	PostalCode *string    `gorm:"size:32" json:"postal_code,omitempty"`
-	Password   []byte     `gorm:"size:60;not null" json:"-"` // Don't expose password in JSON
-	LastAccess *time.Time `json:"last_access,omitempty"`
-	IsDeleted  bool       `gorm:"default:false" json:"is_deleted"`
+	Firstname   string     `gorm:"size:255;not null" json:"firstname"`
+	Lastname    string     `gorm:"size:255;not null" json:"lastname"`
+	Email       string     `gorm:"size:255;not null;unique;index" json:"email"`
+	Phone       *string    `gorm:"size:20" json:"phone,omitempty"`
+	PhoneRegion *string    `gorm:"size:2" json:"phone_region,omitempty"`
+	Address1    *string    `gorm:"size:255" json:"address1,omitempty"`
+	Address2    *string    `gorm:"size:255" json:"address2,omitempty"`
+	City        *string    `gorm:"size:255" json:"city,omitempty"`
+	PostalCode  *string    `gorm:"size:32" json:"postal_code,omitempty"`
+	Password    []byte     `gorm:"type:bytea;not null" json:"-"`
+	Salt        []byte     `gorm:"type:bytea;not null" json:"-"`
+	LastAccess  *time.Time `json:"last_access,omitempty"`
+	RoleID      uint       `gorm:"not null;default:1" json:"-"`
+	Role        *Role      `json:"role"`
 }
 
 // Role model
 type Role struct {
 	gorm.Model
 	Role string `gorm:"size:50;not null" json:"role"`
-}
-
-// UserRole model
-type UserRole struct {
-	gorm.Model
-	UserID int `gorm:"not null;index" json:"user_id"`
-	RoleID int `gorm:"not null;index" json:"role_id"`
 }
 
 // Text model

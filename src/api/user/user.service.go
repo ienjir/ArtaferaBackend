@@ -1,84 +1,60 @@
-// user.service.go
 package user
 
 import (
 	"errors"
+	"github.com/ienjir/ArtaferaBackend/src/api/auth"
+	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"net/http"
 )
 
-type UserService struct {
-	db *gorm.DB
-}
+func CreateUserService(request models.CreateUserRequest) (*models.User, *models.ServiceError) {
+	var existingUser models.User
 
-func NewUserService(db *gorm.DB) *UserService {
-	return &UserService{db: db}
-}
+	// Check if email already exists
+	if err := database.DB.Where("email = ?", request.Email).First(&existingUser).Error; err == nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusConflict, Message: "Email already in use"}
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Database error"}
+	}
 
-func (s *UserService) Create(user *models.User) error {
-	// Hash password before saving
-	hashedPassword, err := bcrypt.GenerateFromPassword(user.Password, bcrypt.DefaultCost)
+	// Hash the password
+	hashedPassword, err := auth.HashPassword(request.Password)
 	if err != nil {
-		return err
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to hash password"}
 	}
-	user.Password = hashedPassword
 
-	result := s.db.Create(user)
-	return result.Error
+	// Create user model
+	user := &models.User{
+		Firstname:   request.Firstname,
+		Lastname:    request.Lastname,
+		Email:       request.Email,
+		Phone:       request.Phone,
+		PhoneRegion: request.PhoneRegion,
+		Address1:    request.Address1,
+		Address2:    request.Address2,
+		City:        request.City,
+		PostalCode:  request.PostalCode,
+		Password:    hashedPassword.Hash,
+		Salt:        hashedPassword.Salt,
+	}
+
+	// Save user to the database
+	if err := database.DB.Create(user).Error; err != nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to save user"}
+	}
+
+	return user, nil
 }
 
-func (s *UserService) GetByID(id uint) (*models.User, error) {
+func GetUserByEmail(email string) (*models.User, *models.ServiceError) {
 	var user models.User
-	result := s.db.First(&user, id)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, result.Error
+
+	err := database.DB.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User with email not found"}
 	}
+
 	return &user, nil
-}
-
-func (s *UserService) Update(user *models.User) error {
-	// Don't update password if it's empty
-	if len(user.Password) > 0 {
-		hashedPassword, err := bcrypt.GenerateFromPassword(user.Password, bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-		user.Password = hashedPassword
-	} else {
-		// Exclude password from update
-		return s.db.Model(user).Omit("password").Updates(user).Error
-	}
-
-	return s.db.Save(user).Error
-}
-
-func (s *UserService) Delete(id uint) error {
-	// Soft delete
-	return s.db.Model(&models.User{}).Where("id = ?", id).Update("is_deleted", true).Error
-}
-
-func (s *UserService) List(page, pageSize int) ([]models.User, int64, error) {
-	var users []models.User
-	var total int64
-
-	// Get total count
-	if err := s.db.Model(&models.User{}).Where("is_deleted = ?", false).Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-
-	// Get paginated results
-	result := s.db.Where("is_deleted = ?", false).
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Find(&users)
-
-	if result.Error != nil {
-		return nil, 0, result.Error
-	}
-
-	return users, total, nil
 }
