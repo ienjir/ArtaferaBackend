@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	jwt2 "github.com/golang-jwt/jwt/v5"
+	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"log"
 	"net/http"
@@ -111,6 +112,8 @@ func verifyToken(tokenString string, secret []byte, tokenType string) (*jwt2.Tok
 }
 
 func RefreshTokens(refreshToken string) (*TokenPair, *models.ServiceError) {
+	var user models.User
+
 	// Verify the refresh token
 	token, err := VerifyRefreshToken(refreshToken)
 	if err != nil {
@@ -120,13 +123,8 @@ func RefreshTokens(refreshToken string) (*TokenPair, *models.ServiceError) {
 	claims, _ := token.Claims.(jwt2.MapClaims)
 	userID := claims["id"]
 
-	// Here you would typically look up the user in your database
-	// For this example, we'll create a minimal user object
-	user := models.User{
-		Firstname: userID.(string),
-		// You should populate other fields from your database
+	if err := database.DB.Preload("Role").Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 	}
-
-	// Generate new token pair
 	return GenerateTokenPair(user)
 }
