@@ -37,7 +37,7 @@ func GenerateTokenPair(user models.User) (*TokenPair, *models.ServiceError) {
 		"id":    user.ID,
 		"role":  user.Role.Role,
 		"type":  "access",
-		"exp":   time.Now().Add(30 * time.Minute).Unix(),
+		"exp":   time.Now().Add(30 * time.Second).Unix(),
 	})
 
 	accessTokenString, err := accessToken.SignedString(JWTAccessSecret)
