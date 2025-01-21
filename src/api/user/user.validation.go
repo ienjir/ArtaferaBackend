@@ -3,9 +3,10 @@ package user
 import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
+	"net/http"
 )
 
-func VerifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
+func verifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
 	if err := validation.ValidatePassword(Data.Password); err != nil {
 		return err
 	}
@@ -40,6 +41,15 @@ func VerifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
 
 	if err := validation.ValidateAddress(Data.PostalCode, "Postal code"); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func verifyListUserData(Data models.ListUserRequest) *models.ServiceError {
+
+	if Data.Offset < 0 {
+		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Offset can't be less than 0"}
 	}
 
 	return nil

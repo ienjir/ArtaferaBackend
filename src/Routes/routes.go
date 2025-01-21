@@ -14,6 +14,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		authRoutes.POST("/login", auth.Login)
 		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
+		authRoutes.GET("/list", user.ListAllUsers)
 	}
 
 	// User routes
@@ -36,6 +37,7 @@ func RegisterRoutes(router *gin.Engine) {
 	adminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 	{
 		adminRoutes.GET("/test", test)
+		adminRoutes.GET("/list/users", user.ListAllUsers)
 	}
 }
 

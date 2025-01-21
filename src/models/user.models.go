@@ -12,3 +12,7 @@ type CreateUserRequest struct {
 	PostalCode  *string `json:"postal_code"`
 	Password    string  `json:"password" binding:"required"`
 }
+
+type ListUserRequest struct {
+	Offset int `json:"offset"`
+}

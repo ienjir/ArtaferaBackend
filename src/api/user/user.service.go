@@ -58,3 +58,8 @@ func GetUserByEmail(email string) (*models.User, *models.ServiceError) {
 
 	return &user, nil
 }
+
+func ListUsers(Offset int) *models.ServiceError {
+
+	return nil
+}
