@@ -1,7 +1,9 @@
 package user
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
 )
@@ -52,5 +54,27 @@ func ListAllUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"count": count, "users": users})
+	return
+}
+
+func DeleteUser(c *gin.Context) {
+	requestUserID := c.GetString("userID")
+	requestUserRole := c.GetString("userRole")
+	targetUserID := c.Param("id")
+
+	if requestUserRole != "admin" && requestUserID != targetUserID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You can only delete your own account", "requestId": requestUserID, "targetID": targetUserID})
+		return
+	}
+
+	if err := database.DB.Where("id = ?", targetUserID).Delete(&models.User{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error occurred while deleting user"})
+		return
+	}
+
+	fmt.Println(requestUserID)
+	fmt.Println(targetUserID)
+
+	c.JSON(http.StatusOK, gin.H{"message": "User successfully deleted"})
 	return
 }
