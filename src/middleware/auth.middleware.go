@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	jwt2 "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
@@ -74,6 +75,9 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			})
 			return
 		}
+
+		// In your middleware:
+		fmt.Printf("ID type: %T, value: %v\n", claims["id"], claims["id"])
 
 		// Store user information in context for later use
 		c.Set("userID", claims["id"])

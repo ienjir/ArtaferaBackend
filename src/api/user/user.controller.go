@@ -6,6 +6,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
+	"strconv"
 )
 
 func CreateUser(c *gin.Context) {
@@ -58,11 +59,18 @@ func ListAllUsers(c *gin.Context) {
 }
 
 func DeleteUser(c *gin.Context) {
-	requestUserID := c.GetString("userID")
+	requestUserID := c.GetFloat64("userID")
 	requestUserRole := c.GetString("userRole")
 	targetUserID := c.Param("id")
+	var targetUserIDFloat float64
+	var err error
 
-	if requestUserRole != "admin" && requestUserID != targetUserID {
+	targetUserIDFloat, err = strconv.ParseFloat(targetUserID, 64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while parsing ID's"})
+	}
+
+	if requestUserRole != "admin" && requestUserID != targetUserIDFloat {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You can only delete your own account", "requestId": requestUserID, "targetID": targetUserID})
 		return
 	}
