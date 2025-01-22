@@ -16,7 +16,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	err2 := verifyCreateUserData(json)
+	err2 := VerifyCreateUserData(json)
 	if err2 != nil {
 		c.JSON(err2.StatusCode, err2.Message)
 		return
@@ -37,13 +37,20 @@ func ListAllUsers(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
-	if err := verifyListUserData(json); err != nil {
+	if err := VerifyListUserData(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
 	}
 
-	if err := ListUsers(json.Offset); err != nil {
+	users, count, err := ListUsers(json.Offset)
+	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count, "users": users})
+	return
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func verifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
+func VerifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
 	if err := validation.ValidatePassword(Data.Password); err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func verifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
 	return nil
 }
 
-func verifyListUserData(Data models.ListUserRequest) *models.ServiceError {
+func VerifyListUserData(Data models.ListUserRequest) *models.ServiceError {
 
 	if Data.Offset < 0 {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Offset can't be less than 0"}

@@ -6,7 +6,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/database/sampledata"
-	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"github.com/joho/godotenv"
 	"log"
@@ -49,15 +48,6 @@ func main() {
 	if err != nil {
 		return
 	}
-
-	var users []models.User
-	var count int64
-	result := database.DB.Limit(2).Offset(3).Find(&users)
-	if result.Error != nil {
-		log.Fatal("Error fetchting")
-	}
-
-	result = database.DB.Model(&models.User{}).Count(&count)
 
 	// Register routes
 	Routes.RegisterRoutes(router)

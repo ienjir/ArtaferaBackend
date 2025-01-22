@@ -59,7 +59,25 @@ func GetUserByEmail(email string) (*models.User, *models.ServiceError) {
 	return &user, nil
 }
 
-func ListUsers(Offset int) *models.ServiceError {
+func ListUsers(offset int) (*[]models.User, *int64, *models.ServiceError) {
+	var users []models.User
+	var count int64
 
-	return nil
+	// Fetch users with pagination
+	if err := database.DB.Limit(5).Offset(offset * 10).Find(&users).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving users from database",
+		}
+	}
+
+	// Count total users in the database
+	if err := database.DB.Model(&models.User{}).Count(&count).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while counting users in database",
+		}
+	}
+
+	return &users, &count, nil
 }
