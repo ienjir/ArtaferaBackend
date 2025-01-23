@@ -59,11 +59,24 @@ func VerifyListUserData(Data models.ListUserRequest) *models.ServiceError {
 func VerifyDeleteUserRequest(requestUserID float64, requestUserRole, targetUserID string) *models.ServiceError {
 	targetUserIDFloat, err := strconv.ParseFloat(targetUserID, 64)
 	if err != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while"}
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while parsing userID"}
 	}
 
 	if requestUserRole != "admin" && requestUserID != targetUserIDFloat {
 		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "You can only delete your own account"}
+	}
+
+	return nil
+}
+
+func VerifyGetUserById(requestUserID float64, requestUserRole, targetUserID string) *models.ServiceError {
+	targetUserIDFloat, err := strconv.ParseFloat(targetUserID, 64)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while parsing userID"}
+	}
+
+	if requestUserRole != "admin" && requestUserID != targetUserIDFloat {
+		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "You can only see your own account"}
 	}
 
 	return nil

@@ -62,12 +62,11 @@ func GetUserByEmailService(email string) (*models.User, *models.ServiceError) {
 
 	return &user, nil
 }
-
-func GetUserByIDService(ID int64) (*models.User, *models.ServiceError) {
+func GetUserByIDService(userID string) (*models.User, *models.ServiceError) {
 	var user models.User
 
-	if err := database.DB.Preload("role").First(&user, ID); err != nil {
-		if errors.Is(err.Error, gorm.ErrRecordNotFound) {
+	if err := database.DB.Preload("Role").First(&user, userID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 		} else {
 			return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while retrieving user"}
@@ -81,15 +80,13 @@ func ListUsersService(offset int) (*[]models.User, *int64, *models.ServiceError)
 	var users []models.User
 	var count int64
 
-	// Fetch users with pagination
-	if err := database.DB.Limit(5).Offset(offset * 10).Find(&users).Error; err != nil {
+	if err := database.DB.Preload("Role").Limit(5).Offset(offset * 10).Find(&users).Error; err != nil {
 		return nil, nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Error while retrieving users from database",
 		}
 	}
 
-	// Count total users in the database
 	if err := database.DB.Model(&models.User{}).Count(&count).Error; err != nil {
 		return nil, nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,

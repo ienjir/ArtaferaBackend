@@ -5,7 +5,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/api/user"
 	"github.com/ienjir/ArtaferaBackend/src/middleware"
-	"net/http"
 )
 
 func RegisterRoutes(router *gin.Engine) {
@@ -14,17 +13,15 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		authRoutes.POST("/login", auth.Login)
 		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
-		authRoutes.GET("/user/getByEmail", user.GetUserByID)
 	}
 
 	// User routes
 	userRoutes := router.Group("/user")
-	userRoutes.Use(middleware.RoleAuthMiddleware("user"))
+	userRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
-		// Public routes
 		userRoutes.POST("/create", user.CreateUser)
-		userRoutes.GET("/test", test)
 		userRoutes.DELETE("/delete/:id", user.DeleteUser)
+		userRoutes.GET("/getById/:id", user.GetUserByID)
 	}
 
 	// Admin routes
@@ -33,15 +30,6 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		adminRoutes.DELETE("/user/delete/:id", user.DeleteUser)
 		adminRoutes.GET("/user/list", user.ListAllUsers)
+		adminRoutes.GET("/user/getById/:id", user.GetUserByID)
 	}
-}
-
-func test(c *gin.Context) {
-	c.JSON(http.StatusOK, "test")
-	return
-}
-
-func test2(c *gin.Context) {
-	c.JSON(http.StatusOK, "test2")
-	return
 }

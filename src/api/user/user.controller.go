@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
-	"reflect"
 )
 
 func CreateUser(c *gin.Context) {
@@ -63,10 +62,12 @@ func DeleteUser(c *gin.Context) {
 
 	if err := VerifyDeleteUserRequest(requestUserID, requestUserRole, targetUserID); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
 	}
 
 	if err := DeleteUserService(targetUserID); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User successfully deleted"})
@@ -74,7 +75,22 @@ func DeleteUser(c *gin.Context) {
 }
 
 func GetUserByID(c *gin.Context) {
-	requestUserID := c.GetUint("userID")
+	var user *models.User
+	var err *models.ServiceError
+	requestUserID := c.GetFloat64("userID")
+	requestUserRole := c.GetString("userRole")
+	targetUserID := c.Param("id")
 
-	c.JSON(http.StatusOK, gin.H{"number": requestUserID, "test": reflect.TypeOf(requestUserID)})
+	if err := VerifyGetUserById(requestUserID, requestUserRole, targetUserID); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	if user, err = GetUserByIDService(targetUserID); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
+	return
 }
