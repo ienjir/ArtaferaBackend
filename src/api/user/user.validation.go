@@ -4,6 +4,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"net/http"
+	"strconv"
 )
 
 func VerifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
@@ -50,6 +51,19 @@ func VerifyListUserData(Data models.ListUserRequest) *models.ServiceError {
 
 	if Data.Offset < 0 {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Offset can't be less than 0"}
+	}
+
+	return nil
+}
+
+func VerifyDeleteUserRequest(requestUserID float64, requestUserRole, targetUserID string) *models.ServiceError {
+	targetUserIDFloat, err := strconv.ParseFloat(targetUserID, 64)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while"}
+	}
+
+	if requestUserRole != "admin" && requestUserID != targetUserIDFloat {
+		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "You can only delete your own account"}
 	}
 
 	return nil

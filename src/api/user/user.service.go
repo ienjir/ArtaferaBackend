@@ -59,7 +59,7 @@ func GetUserByEmail(email string) (*models.User, *models.ServiceError) {
 	return &user, nil
 }
 
-func ListUsers(offset int) (*[]models.User, *int64, *models.ServiceError) {
+func ListUsersService(offset int) (*[]models.User, *int64, *models.ServiceError) {
 	var users []models.User
 	var count int64
 
@@ -80,4 +80,12 @@ func ListUsers(offset int) (*[]models.User, *int64, *models.ServiceError) {
 	}
 
 	return &users, &count, nil
+}
+
+func DeleteUserService(userID string) *models.ServiceError {
+	if err := database.DB.Where("id = ?", userID).Delete(&models.User{}, userID).Error; err != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error occured while deleting user"}
+	}
+
+	return nil
 }
