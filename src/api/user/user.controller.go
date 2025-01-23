@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
+	"reflect"
 )
 
 func CreateUser(c *gin.Context) {
@@ -70,4 +71,10 @@ func DeleteUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "User successfully deleted"})
 	return
+}
+
+func GetUserByID(c *gin.Context) {
+	requestUserID := c.GetUint("userID")
+
+	c.JSON(http.StatusOK, gin.H{"number": requestUserID, "test": reflect.TypeOf(requestUserID)})
 }

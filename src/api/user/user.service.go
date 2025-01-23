@@ -48,12 +48,30 @@ func CreateUserService(request models.CreateUserRequest) (*models.User, *models.
 	return user, nil
 }
 
-func GetUserByEmail(email string) (*models.User, *models.ServiceError) {
+func GetUserByEmailService(email string) (*models.User, *models.ServiceError) {
 	var user models.User
 
-	err := database.DB.Where("email = ?", email).First(&user).Error
-	if err != nil {
-		return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User with email not found"}
+	if err := database.DB.Where("email = ?", email).First(&user); err != nil {
+		if errors.Is(err.Error, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+		} else {
+			return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while retrieving user"}
+		}
+
+	}
+
+	return &user, nil
+}
+
+func GetUserByIDService(ID int64) (*models.User, *models.ServiceError) {
+	var user models.User
+
+	if err := database.DB.Preload("role").First(&user, ID); err != nil {
+		if errors.Is(err.Error, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+		} else {
+			return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while retrieving user"}
+		}
 	}
 
 	return &user, nil
