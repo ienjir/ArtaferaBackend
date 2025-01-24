@@ -10,11 +10,11 @@ import (
 func GenerateFakeData() error {
 	// Sample Users
 	users := []models.User{
-		{Firstname: "John", Lastname: "Doe", Email: "john.doe@example.com", Phone: nil, PhoneRegion: nil, Address1: nil, Address2: nil, City: nil, PostalCode: nil, Password: []byte("Password"), Salt: []byte("Kek"), LastAccess: nil},
-		{Firstname: "Jane", Lastname: "Smith", Email: "jane.smith@example.com", Password: []byte("password456"), Salt: []byte("Salt"), Address1: toPointer("123 Maple Street"), PostalCode: toPointer("10001"), RoleID: 2},
-		{Firstname: "Alice", Lastname: "Johnson", Email: "alice.johnson@example.com", Password: []byte("password789"), Salt: []byte("Salt"), PhoneRegion: toPointer("US"), RoleID: 3},
-		{Firstname: "Bob", Lastname: "Brown", Email: "bob.brown@example.com", Password: []byte("password234"), Salt: []byte("Salt"), Address2: toPointer("Apt 4B"), LastAccess: toPointer(time.Now()), RoleID: 1},
-		{Firstname: "Charlie", Lastname: "Williams", Email: "charlie.williams@example.com", Password: []byte("password345"), Salt: []byte("Salt"), RoleID: 2},
+		{Firstname: "Firstname1", Lastname: "Lastname1", Email: "User1@example.com", Phone: nil, PhoneRegion: nil, Address1: nil, Address2: nil, City: nil, PostalCode: nil, Password: []byte("Password"), Salt: []byte("Salt"), LastAccess: nil},
+		{Firstname: "Firstname2", Lastname: "Lastname2", Email: "User2@example.com", Password: []byte("Password"), Salt: []byte("Salt"), Address1: toPointer("123 Maple Street"), PostalCode: toPointer("10001"), RoleID: 2},
+		{Firstname: "Firstname3", Lastname: "Lastname3", Email: "User3@example.com", Password: []byte("Password"), Salt: []byte("Salt"), PhoneRegion: toPointer("US"), RoleID: 3},
+		{Firstname: "Lastname4", Lastname: "Lastname4", Email: "User4@example.com", Password: []byte("Password"), Salt: []byte("Salt"), Address2: toPointer("Apt 4B"), LastAccess: toPointer(time.Now()), RoleID: 1},
+		{Firstname: "Lastname5", Lastname: "Lastname5", Email: "User5@example.com", Password: []byte("Password"), Salt: []byte("Salt"), RoleID: 2},
 	}
 
 	for i := 0; i < len(users); i++ {
