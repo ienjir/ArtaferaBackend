@@ -81,3 +81,12 @@ func VerifyGetUserById(requestUserID float64, requestUserRole, targetUserID stri
 
 	return nil
 }
+
+func VerifyGetUserByEmail(Data models.GetUserByEmail) *models.ServiceError {
+
+	if err := validation.ValidateEmail(Data.Email); err != nil {
+		return &models.ServiceError{StatusCode: err.StatusCode, Message: err.Message}
+	}
+
+	return nil
+}

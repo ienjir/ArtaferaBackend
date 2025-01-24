@@ -48,20 +48,25 @@ func CreateUserService(request models.CreateUserRequest) (*models.User, *models.
 	return user, nil
 }
 
-func GetUserByEmailService(email string) (*models.User, *models.ServiceError) {
+func GetUserByEmailService(Data models.GetUserByEmail) (*models.User, *models.ServiceError) {
 	var user models.User
 
-	if err := database.DB.Where("email = ?", email).First(&user); err != nil {
+	if err := database.DB.Preload("Role").Where("email = ?", Data.Email).First(&user); err != nil {
 		if errors.Is(err.Error, gorm.ErrRecordNotFound) {
 			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 		} else {
-			return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while retrieving user"}
+			return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error.Error()}
 		}
 
 	}
 
+	if Data.RequestRole != "admin" && Data.Email != user.Email {
+		return nil, &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "You can only see your own account"}
+	}
+
 	return &user, nil
 }
+
 func GetUserByIDService(userID string) (*models.User, *models.ServiceError) {
 	var user models.User
 

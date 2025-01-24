@@ -16,3 +16,9 @@ type CreateUserRequest struct {
 type ListUserRequest struct {
 	Offset int `json:"offset"`
 }
+
+type GetUserByEmail struct {
+	Email       string  `json:"email"`
+	RequestID   float64 `json:"-"`
+	RequestRole string  `json:"-"`
+}

@@ -94,3 +94,26 @@ func GetUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": user})
 	return
 }
+
+func GetUserByEmail(c *gin.Context) {
+	var user *models.User
+	var err *models.ServiceError
+	var Data models.GetUserByEmail
+
+	if err := c.ShouldBindJSON(&Data); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := VerifyGetUserByEmail(Data); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	if user, err = GetUserByEmailService(Data); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
+}
