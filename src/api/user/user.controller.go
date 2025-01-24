@@ -100,6 +100,9 @@ func GetUserByEmail(c *gin.Context) {
 	var err *models.ServiceError
 	var Data models.GetUserByEmail
 
+	Data.RequestID = c.GetFloat64("userID")
+	Data.RequestRole = c.GetString("userRole")
+
 	if err := c.ShouldBindJSON(&Data); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
