@@ -24,22 +24,19 @@ type TokenPair struct {
 func LoadAuthEnvs() {
 	JWTAccessSecret = []byte(os.Getenv("JWT_ACCESS_SECRET"))
 	JWTRefreshSecret = []byte(os.Getenv("JWT_REFRESH_SECRET"))
-
 	if len(JWTAccessSecret) == 0 || len(JWTRefreshSecret) == 0 {
 		log.Fatal("JWT_ACCESS_SECRET and JWT_REFRESH_SECRET environment variables are required")
 	}
 }
-
 func GenerateTokenPair(user models.User) (*TokenPair, *models.ServiceError) {
 	// Generate access token
 	accessToken := jwt2.NewWithClaims(jwt2.SigningMethodHS256, jwt2.MapClaims{
 		"email": user.Email,
-		"id":    user.ID,
+		"id":    int(user.ID), // Convert to int here
 		"role":  user.Role.Role,
 		"type":  "access",
 		"exp":   time.Now().Add(30 * time.Minute).Unix(),
 	})
-
 	accessTokenString, err := accessToken.SignedString(JWTAccessSecret)
 	if err != nil {
 		return nil, &models.ServiceError{
@@ -47,14 +44,12 @@ func GenerateTokenPair(user models.User) (*TokenPair, *models.ServiceError) {
 			Message:    "Failed to generate access token",
 		}
 	}
-
 	// Generate refresh token
 	refreshToken := jwt2.NewWithClaims(jwt2.SigningMethodHS256, jwt2.MapClaims{
-		"id":   user.ID,
+		"id":   int(user.ID), // Convert to int here as well
 		"type": "refresh",
 		"exp":  time.Now().Add(168 * time.Hour).Unix(), // 7 days
 	})
-
 	refreshTokenString, err := refreshToken.SignedString(JWTRefreshSecret)
 	if err != nil {
 		return nil, &models.ServiceError{
@@ -62,21 +57,17 @@ func GenerateTokenPair(user models.User) (*TokenPair, *models.ServiceError) {
 			Message:    "Failed to generate refresh token",
 		}
 	}
-
 	return &TokenPair{
 		AccessToken:  accessTokenString,
 		RefreshToken: refreshTokenString,
 	}, nil
 }
-
 func VerifyAccessToken(tokenString string) (*jwt2.Token, *models.ServiceError) {
 	return verifyToken(tokenString, JWTAccessSecret, "access")
 }
-
 func VerifyRefreshToken(tokenString string) (*jwt2.Token, *models.ServiceError) {
 	return verifyToken(tokenString, JWTRefreshSecret, "refresh")
 }
-
 func verifyToken(tokenString string, secret []byte, tokenType string) (*jwt2.Token, *models.ServiceError) {
 	token, err := jwt2.Parse(tokenString, func(token *jwt2.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt2.SigningMethodHMAC); !ok {
@@ -84,14 +75,12 @@ func verifyToken(tokenString string, secret []byte, tokenType string) (*jwt2.Tok
 		}
 		return secret, nil
 	})
-
 	if err != nil {
 		return nil, &models.ServiceError{
 			StatusCode: http.StatusUnauthorized,
 			Message:    fmt.Sprintf("Invalid token: %v", err),
 		}
 	}
-
 	claims, ok := token.Claims.(jwt2.MapClaims)
 	if !ok || !token.Valid {
 		return nil, &models.ServiceError{
@@ -99,7 +88,6 @@ func verifyToken(tokenString string, secret []byte, tokenType string) (*jwt2.Tok
 			Message:    "Invalid token claims",
 		}
 	}
-
 	// Verify token type
 	if claimType, ok := claims["type"].(string); !ok || claimType != tokenType {
 		return nil, &models.ServiceError{
@@ -107,23 +95,27 @@ func verifyToken(tokenString string, secret []byte, tokenType string) (*jwt2.Tok
 			Message:    "Invalid token type",
 		}
 	}
-
 	return token, nil
 }
-
 func RefreshTokens(refreshToken string) (*TokenPair, *models.ServiceError) {
 	var user models.User
-
 	// Verify the refresh token
 	token, err := VerifyRefreshToken(refreshToken)
 	if err != nil {
 		return nil, err
 	}
-
 	claims, _ := token.Claims.(jwt2.MapClaims)
-	userID := claims["id"]
 
-	if err := database.DB.Preload("Role").Where("id = ?", userID).First(&user).Error; err != nil {
+	// Convert userID to int
+	userID, ok := claims["id"].(float64)
+	if !ok {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusUnauthorized,
+			Message:    "Invalid user ID in token",
+		}
+	}
+
+	if err := database.DB.Preload("Role").Where("id = ?", int(userID)).First(&user).Error; err != nil {
 		return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 	}
 	return GenerateTokenPair(user)

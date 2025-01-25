@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
@@ -119,4 +120,31 @@ func GetUserByEmail(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"user": user})
+}
+
+func UpdateUser(c *gin.Context) {
+	requestUserID := c.GetInt64("userID")
+	requestUserRole := c.GetString("userRole")
+	targetUserID := c.Param("id")
+
+	var req models.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := ValidateUpdateUserRequest(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Printf("RequestID: %d, RequestRole: %s, TargetId: %s \n", requestUserID, requestUserRole, targetUserID)
+
+	// Attempt to update user
+	if err := UpdateUserService(requestUserID, requestUserRole, targetUserID, req); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }

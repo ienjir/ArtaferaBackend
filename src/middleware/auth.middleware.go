@@ -20,7 +20,6 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			})
 			return
 		}
-
 		// Check if the header starts with "Bearer "
 		bearerToken := strings.Split(authHeader, " ")
 		if len(bearerToken) != 2 || bearerToken[0] != "Bearer" {
@@ -30,14 +29,12 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			})
 			return
 		}
-
 		// Verify the access token
 		token, serviceErr := auth.VerifyAccessToken(bearerToken[1])
 		if serviceErr != nil {
 			c.AbortWithStatusJSON(serviceErr.StatusCode, serviceErr)
 			return
 		}
-
 		// Extract claims
 		claims, ok := token.Claims.(jwt2.MapClaims)
 		if !ok {
@@ -54,6 +51,16 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
 				StatusCode: http.StatusUnauthorized,
 				Message:    "Role not found in token",
+			})
+			return
+		}
+
+		// Get user ID and convert from float64 to int
+		userID, ok := claims["id"].(float64)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
+				StatusCode: http.StatusUnauthorized,
+				Message:    "Invalid user ID in token",
 			})
 			return
 		}
@@ -75,8 +82,7 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
-		// Store user information in context for later use
-		c.Set("userID", claims["id"])
+		c.Set("userID", int64(userID))
 		c.Set("userEmail", claims["email"])
 		c.Set("userRole", userRole)
 		c.Next()

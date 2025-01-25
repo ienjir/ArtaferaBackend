@@ -7,6 +7,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 )
 
 func CreateUserService(request models.CreateUserRequest) (*models.User, *models.ServiceError) {
@@ -103,6 +104,81 @@ func ListUsersService(offset int) (*[]models.User, *int64, *models.ServiceError)
 func DeleteUserService(userID string) *models.ServiceError {
 	if err := database.DB.Where("id = ?", userID).Delete(&models.User{}, userID).Error; err != nil {
 		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error occured while deleting user"}
+	}
+
+	return nil
+}
+
+func UpdateUserService(requestUserID int64, requestUserRole string, targetUserID string, req models.UpdateUserRequest) *models.ServiceError {
+	targetUserIDInt64, err := strconv.ParseInt(targetUserID, 10, 64)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Could not parse numbers"}
+	}
+
+	if requestUserRole != "admin" && requestUserID != targetUserIDInt64 {
+		return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "You can only see your account"}
+	}
+
+	// Find the target user
+	var user models.User
+	if err := database.DB.First(&user, "id = ?", targetUserID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+		}
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	// If not an admin, prevent role change
+	/*
+		if requestUserRole != "admin" && req.RoleID != user.RoleID {
+			return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "You are not authorized to change the role of a user"}
+		}
+	*/
+
+	// Update fields that are provided
+	if req.Firstname != nil {
+		user.Firstname = *req.Firstname
+	}
+	if req.Lastname != nil {
+		user.Lastname = *req.Lastname
+	}
+	if req.Email != nil {
+		user.Email = *req.Email
+	}
+	if req.Phone != nil {
+		user.Phone = req.Phone
+	}
+	if req.PhoneRegion != nil {
+		user.PhoneRegion = req.PhoneRegion
+	}
+	if req.Address1 != nil {
+		user.Address1 = req.Address1
+	}
+	if req.Address2 != nil {
+		user.Address2 = req.Address2
+	}
+	if req.City != nil {
+		user.City = req.City
+	}
+	if req.PostalCode != nil {
+		user.PostalCode = req.PostalCode
+	}
+	if req.RoleID != 0 {
+		user.RoleID = req.RoleID
+	}
+
+	// Handle password update with hashing
+	if req.Password != nil {
+		password, err := auth.HashPassword(*req.Password)
+		if err != nil {
+			return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		}
+		user.Password = password.Hash
+		user.Salt = password.Salt
+	}
+
+	if err = database.DB.Save(&user).Error; err != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	return nil

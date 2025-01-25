@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/go-playground/validator/v10"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"net/http"
@@ -89,4 +90,9 @@ func VerifyGetUserByEmail(Data models.GetUserByEmail) *models.ServiceError {
 	}
 
 	return nil
+}
+
+func ValidateUpdateUserRequest(req models.UpdateUserRequest) error {
+	validate := validator.New()
+	return validate.Struct(req)
 }
