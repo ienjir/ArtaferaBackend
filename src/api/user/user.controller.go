@@ -57,7 +57,7 @@ func ListAllUsers(c *gin.Context) {
 }
 
 func DeleteUser(c *gin.Context) {
-	requestUserID := c.GetFloat64("userID")
+	requestUserID := c.GetInt64("userID")
 	requestUserRole := c.GetString("userRole")
 	targetUserID := c.Param("id")
 
@@ -72,7 +72,6 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User successfully deleted"})
-	return
 }
 
 func GetUserByID(c *gin.Context) {

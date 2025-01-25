@@ -57,13 +57,13 @@ func VerifyListUserData(Data models.ListUserRequest) *models.ServiceError {
 	return nil
 }
 
-func VerifyDeleteUserRequest(requestUserID float64, requestUserRole, targetUserID string) *models.ServiceError {
-	targetUserIDFloat, err := strconv.ParseFloat(targetUserID, 64)
+func VerifyDeleteUserRequest(requestUserID int64, requestUserRole, targetUserID string) *models.ServiceError {
+	targetUserIDInt, err := strconv.ParseInt(targetUserID, 10, 64)
 	if err != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while parsing userID"}
+		return &models.ServiceError{StatusCode: http.StatusBadRequest, Message: "Invalid target user ID"}
 	}
 
-	if requestUserRole != "admin" && requestUserID != targetUserIDFloat {
+	if requestUserRole != "admin" && requestUserID != targetUserIDInt {
 		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "You can only delete your own account"}
 	}
 

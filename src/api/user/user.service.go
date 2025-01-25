@@ -102,8 +102,13 @@ func ListUsersService(offset int) (*[]models.User, *int64, *models.ServiceError)
 }
 
 func DeleteUserService(userID string) *models.ServiceError {
-	if err := database.DB.Where("id = ?", userID).Delete(&models.User{}, userID).Error; err != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error occured while deleting user"}
+	parsedUserID, err := strconv.ParseInt(userID, 10, 64)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Invalid user ID"}
+	}
+
+	if result := database.DB.Delete(&models.User{}, parsedUserID); result.Error != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error occurred while deleting user"}
 	}
 
 	return nil
@@ -116,7 +121,7 @@ func UpdateUserService(requestUserID int64, requestUserRole string, targetUserID
 	}
 
 	if requestUserRole != "admin" && requestUserID != targetUserIDInt64 {
-		return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "You can only see your account"}
+		return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "You can only update your account"}
 	}
 
 	// Find the target user
