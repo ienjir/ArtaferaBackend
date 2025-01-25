@@ -1,9 +1,12 @@
 package user
 
 import (
+	"errors"
 	"github.com/go-playground/validator/v10"
+	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 )
@@ -58,9 +61,19 @@ func VerifyListUserData(Data models.ListUserRequest) *models.ServiceError {
 }
 
 func VerifyDeleteUserRequest(requestUserID int64, requestUserRole, targetUserID string) *models.ServiceError {
+	var user models.User
+
 	targetUserIDInt, err := strconv.ParseInt(targetUserID, 10, 64)
 	if err != nil {
 		return &models.ServiceError{StatusCode: http.StatusBadRequest, Message: "Invalid target user ID"}
+	}
+
+	if err := database.DB.First(&user, targetUserIDInt).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+		} else {
+			return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while checking if user exists"}
+		}
 	}
 
 	if requestUserRole != "admin" && requestUserID != targetUserIDInt {
