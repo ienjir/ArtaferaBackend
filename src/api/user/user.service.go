@@ -128,13 +128,6 @@ func UpdateUserService(requestUserID int64, requestUserRole string, targetUserID
 		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
-	// If not an admin, prevent role change
-	/*
-		if requestUserRole != "admin" && req.RoleID != user.RoleID {
-			return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "You are not authorized to change the role of a user"}
-		}
-	*/
-
 	// Update fields that are provided
 	if req.Firstname != nil {
 		user.Firstname = *req.Firstname
@@ -163,8 +156,12 @@ func UpdateUserService(requestUserID int64, requestUserRole string, targetUserID
 	if req.PostalCode != nil {
 		user.PostalCode = req.PostalCode
 	}
-	if req.RoleID != 0 {
-		user.RoleID = req.RoleID
+
+	if req.RoleID != nil {
+		if requestUserRole != "admin" {
+			return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "You are not authorized to change the role of a user"}
+		}
+		user.RoleID = *req.RoleID
 	}
 
 	// Handle password update with hashing

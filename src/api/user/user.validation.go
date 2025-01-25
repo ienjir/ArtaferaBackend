@@ -70,8 +70,8 @@ func VerifyDeleteUserRequest(requestUserID float64, requestUserRole, targetUserI
 	return nil
 }
 
-func VerifyGetUserById(requestUserID float64, requestUserRole, targetUserID string) *models.ServiceError {
-	targetUserIDFloat, err := strconv.ParseFloat(targetUserID, 64)
+func VerifyGetUserById(requestUserID int64, requestUserRole, targetUserID string) *models.ServiceError {
+	targetUserIDFloat, err := strconv.ParseInt(targetUserID, 10, 64)
 	if err != nil {
 		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while parsing userID"}
 	}

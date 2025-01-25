@@ -78,7 +78,7 @@ func DeleteUser(c *gin.Context) {
 func GetUserByID(c *gin.Context) {
 	var user *models.User
 	var err *models.ServiceError
-	requestUserID := c.GetFloat64("userID")
+	requestUserID := c.GetInt64("userID")
 	requestUserRole := c.GetString("userRole")
 	targetUserID := c.Param("id")
 
