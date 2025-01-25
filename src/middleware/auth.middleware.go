@@ -34,7 +34,7 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		// Verify the access token
 		token, serviceErr := auth.VerifyAccessToken(bearerToken[1])
 		if serviceErr != nil {
-			c.AbortWithStatusJSON(serviceErr.StatusCode, serviceErr)
+			c.AbortWithStatusJSON(serviceErr.StatusCode, gin.H{"error": serviceErr.Message})
 			return
 		}
 
