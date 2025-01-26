@@ -11,5 +11,4 @@ func verifyGetRoleByID(requestUserID int64, requestUserRole, targetUserID string
 	}
 
 	return nil
-
 }
