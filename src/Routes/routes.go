@@ -3,6 +3,7 @@ package Routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
+	"github.com/ienjir/ArtaferaBackend/src/api/role"
 	"github.com/ienjir/ArtaferaBackend/src/api/user"
 	"github.com/ienjir/ArtaferaBackend/src/middleware"
 )
@@ -19,11 +20,17 @@ func RegisterRoutes(router *gin.Engine) {
 	userRoutes := router.Group("/user")
 	userRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
-		userRoutes.GET("/getById/:id", user.GetUserByID)
+		userRoutes.GET("/getByID/:id", user.GetUserByID)
 		userRoutes.GET("/getByEmail/:id", user.GetUserByEmail)
 		userRoutes.POST("/create", user.CreateUser)
 		userRoutes.PUT("/update/:id", user.UpdateUser)
 		userRoutes.DELETE("/delete/:id", user.DeleteUser)
+	}
+
+	roleRoutes := router.Group("/role")
+	roleRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
+	{
+		roleRoutes.GET("/getByID/:id", role.GetRoleByID)
 	}
 
 	// Admin routes
