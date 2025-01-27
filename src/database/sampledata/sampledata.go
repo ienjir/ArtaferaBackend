@@ -34,11 +34,6 @@ func GenerateFakeData() error {
 		{LanguageName: "Spanish", LanguageCode: "ES"},
 	}
 
-	// Sample Texts and Translations
-	texts := []models.Text{
-		{}, {}, {}, // Adding dummy entries since Text has no fields
-	}
-
 	translations := []models.Translation{
 		{EntityID: 1, LanguageID: 1, Context: "WelcomeMessage", Text: "Welcome!"},
 		{EntityID: 1, LanguageID: 2, Context: "WelcomeMessage", Text: "Willkommen!"},
@@ -92,7 +87,6 @@ func GenerateFakeData() error {
 	// Bulk insert data
 	database.DB.Create(&users)
 	database.DB.Create(&languages)
-	database.DB.Create(&texts)
 	database.DB.Create(&translations)
 	database.DB.Create(&currencies)
 	database.DB.Create(&arts)
