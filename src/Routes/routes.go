@@ -39,5 +39,6 @@ func RegisterRoutes(router *gin.Engine) {
 		roleRoutes.GET("/getByID/:id", role.GetRoleByID)
 		roleRoutes.GET("/list", role.ListRoles)
 		roleRoutes.POST("/create", role.CreateRole)
+		roleRoutes.PUT("/update/:id", role.UpdateRole)
 	}
 }

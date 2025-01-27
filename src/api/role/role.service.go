@@ -64,3 +64,22 @@ func createRoleService(request models.CreateRoleRequest) (*models.Role, *models.
 
 	return &newRole, nil
 }
+
+func updateRoleService(request models.UpdateRoleRequest) (*models.Role, *models.ServiceError) {
+	var role models.Role
+
+	if err := database.DB.First(&role, "id = ?", request.RoleID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+		}
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	role.Role = request.Role
+
+	if err := database.DB.Save(&role).Error; err != nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Error while updating user"}
+	}
+
+	return &role, nil
+}

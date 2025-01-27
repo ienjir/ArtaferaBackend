@@ -61,3 +61,23 @@ func CreateRole(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"role": createdRole})
 	return
 }
+
+func UpdateRole(c *gin.Context) {
+	var role models.UpdateRoleRequest
+
+	role.RoleID = c.Param("id")
+
+	if err := c.ShouldBindJSON(&role); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updatedRole, err := updateRoleService(role)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"role": updatedRole})
+	return
+}
