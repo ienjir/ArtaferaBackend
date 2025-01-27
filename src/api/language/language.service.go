@@ -6,6 +6,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 )
 
 func getLanguageByIDService(targetLanguageID string) (*models.Language, *models.ServiceError) {
@@ -83,4 +84,25 @@ func updateRoleService(request models.UpdateLanguageRequest) (*models.Language, 
 	}
 
 	return &language, nil
+}
+
+func deleteLanguageService(languageID string) *models.ServiceError {
+	var language models.Language
+	parsedLanguageID, err := strconv.ParseInt(languageID, 10, 64)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Invalid languageID"}
+	}
+
+	if err := database.DB.First(&language, "id = ?", parsedLanguageID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Language not found"}
+		}
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	if result := database.DB.Delete(&models.Language{}, parsedLanguageID); result.Error != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error occurred while deleting role"}
+	}
+
+	return nil
 }

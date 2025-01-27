@@ -51,5 +51,6 @@ func RegisterRoutes(router *gin.Engine) {
 		languageRoutes.GET("/list", language.ListLanguages)
 		languageRoutes.POST("/create", language.CreateLanguage)
 		languageRoutes.PUT("/update/:id", language.UpdateLanguage)
+		languageRoutes.DELETE("/delete/:id", language.DeleteLanguage)
 	}
 }

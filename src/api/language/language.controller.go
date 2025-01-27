@@ -86,3 +86,15 @@ func UpdateLanguage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"language": updatedLanguage})
 	return
 }
+
+func DeleteLanguage(c *gin.Context) {
+	targetLanguageID := c.Param("id")
+
+	if err := deleteLanguageService(targetLanguageID); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Language successfully deleted"})
+	return
+}
