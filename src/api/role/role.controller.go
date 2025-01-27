@@ -43,3 +43,21 @@ func ListRoles(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"count": count, "roles": roles})
 	return
 }
+
+func CreateRole(c *gin.Context) {
+	var role models.CreateRoleRequest
+
+	if err := c.ShouldBindJSON(&role); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	createdRole, err := createRoleService(role)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"role": createdRole})
+	return
+}

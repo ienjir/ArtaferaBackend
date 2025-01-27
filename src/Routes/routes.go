@@ -34,9 +34,10 @@ func RegisterRoutes(router *gin.Engine) {
 	}
 
 	roleRoutes := router.Group("/role")
-	roleRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
+	roleRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 	{
 		roleRoutes.GET("/getByID/:id", role.GetRoleByID)
 		roleRoutes.GET("/list", role.ListRoles)
+		roleRoutes.POST("/create", role.CreateRole)
 	}
 }

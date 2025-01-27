@@ -33,7 +33,7 @@ func listRolesService(offset int) (*[]models.Role, *int64, *models.ServiceError)
 		}
 	}
 
-	if err := database.DB.Model(&models.User{}).Count(&count).Error; err != nil {
+	if err := database.DB.Model(&models.Role{}).Count(&count).Error; err != nil {
 		return nil, nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Error while counting users in database",
@@ -41,4 +41,26 @@ func listRolesService(offset int) (*[]models.Role, *int64, *models.ServiceError)
 	}
 
 	return &roles, &count, nil
+}
+
+func createRoleService(request models.CreateRoleRequest) (*models.Role, *models.ServiceError) {
+	var role models.Role
+	var newRole models.Role
+
+	// Check if role already exists
+	if err := database.DB.Where("role = ?", request.Role).First(&role).Error; err == nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusConflict, Message: "Role already exists"}
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Database error"}
+	}
+
+	newRole = models.Role{
+		Role: request.Role,
+	}
+
+	if err := database.DB.Create(&newRole).Error; err != nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to save user"}
+	}
+
+	return &newRole, nil
 }
