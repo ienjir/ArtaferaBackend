@@ -64,3 +64,23 @@ func createLanguageService(request models.CreateLanguageRequest) (*models.Langua
 
 	return &newLanguage, nil
 }
+
+func updateRoleService(request models.UpdateLanguageRequest) (*models.Language, *models.ServiceError) {
+	var language models.Language
+
+	if err := database.DB.First(&language, "id = ?", request.LanguageID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Language not found"}
+		}
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	language.LanguageName = request.Language
+	language.LanguageCode = request.LanguageCode
+
+	if err := database.DB.Save(&language).Error; err != nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Error while updating role"}
+	}
+
+	return &language, nil
+}

@@ -61,3 +61,28 @@ func CreateLanguage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"language": createdRole})
 	return
 }
+
+func UpdateLanguage(c *gin.Context) {
+	var language models.UpdateLanguageRequest
+
+	language.LanguageID = c.Param("id")
+
+	if err := c.ShouldBindJSON(&language); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := verifyUpdateLanguage(language); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.StatusCode})
+		return
+	}
+
+	updatedLanguage, err := updateRoleService(language)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"language": updatedLanguage})
+	return
+}

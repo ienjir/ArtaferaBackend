@@ -50,5 +50,6 @@ func RegisterRoutes(router *gin.Engine) {
 		languageRoutes.GET("/getByID/:id", language.GetLanguageByID)
 		languageRoutes.GET("/list", language.ListLanguages)
 		languageRoutes.POST("/create", language.CreateLanguage)
+		languageRoutes.PUT("/update/:id", language.UpdateLanguage)
 	}
 }
