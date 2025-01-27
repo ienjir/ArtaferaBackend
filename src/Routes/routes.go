@@ -48,5 +48,6 @@ func RegisterRoutes(router *gin.Engine) {
 	languageRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 	{
 		languageRoutes.GET("/getByID/:id", language.GetLanguageByID)
+		languageRoutes.GET("/list", language.ListLanguages)
 	}
 }

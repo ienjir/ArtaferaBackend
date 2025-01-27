@@ -21,3 +21,24 @@ func getLanguageByIDService(targetLanguageID string) (*models.Language, *models.
 
 	return &language, nil
 }
+
+func listLanguageService(offset int) (*[]models.Language, *int64, *models.ServiceError) {
+	var languages []models.Language
+	var count int64
+
+	if err := database.DB.Limit(5).Offset(offset * 10).Find(&languages).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving languages from database",
+		}
+	}
+
+	if err := database.DB.Model(&models.Language{}).Count(&count).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while counting languages in database",
+		}
+	}
+
+	return &languages, &count, nil
+}

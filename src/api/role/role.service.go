@@ -30,14 +30,14 @@ func listRolesService(offset int) (*[]models.Role, *int64, *models.ServiceError)
 	if err := database.DB.Limit(5).Offset(offset * 10).Find(&roles).Error; err != nil {
 		return nil, nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving users from database",
+			Message:    "Error while retrieving roles from database",
 		}
 	}
 
 	if err := database.DB.Model(&models.Role{}).Count(&count).Error; err != nil {
 		return nil, nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting users in database",
+			Message:    "Error while counting roles in database",
 		}
 	}
 
