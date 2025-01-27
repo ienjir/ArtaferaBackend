@@ -34,12 +34,30 @@ func ListLanguages(c *gin.Context) {
 		return
 	}
 
-	roles, count, err := listLanguageService(Data.Offset)
+	languages, count, err := listLanguageService(Data.Offset)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"count": count, "languages": roles})
+	c.JSON(http.StatusOK, gin.H{"count": count, "languages": languages})
+	return
+}
+
+func CreateLanguage(c *gin.Context) {
+	var language models.CreateLanguageRequest
+
+	if err := c.ShouldBindJSON(&language); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	createdRole, err := createLanguageService(language)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"language": createdRole})
 	return
 }

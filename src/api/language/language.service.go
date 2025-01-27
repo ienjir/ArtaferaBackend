@@ -42,3 +42,25 @@ func listLanguageService(offset int) (*[]models.Language, *int64, *models.Servic
 
 	return &languages, &count, nil
 }
+
+func createLanguageService(request models.CreateLanguageRequest) (*models.Language, *models.ServiceError) {
+	var language models.Language
+
+	// Check if language already exists
+	if err := database.DB.Where("language_name = ?", request.Language).First(&language).Error; err == nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusConflict, Message: "Language already exists"}
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Database error"}
+	}
+
+	newLanguage := models.Language{
+		LanguageCode: request.LanguageCode,
+		LanguageName: request.Language,
+	}
+
+	if err := database.DB.Create(&newLanguage).Error; err != nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to save language"}
+	}
+
+	return &newLanguage, nil
+}

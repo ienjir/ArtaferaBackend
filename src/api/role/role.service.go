@@ -60,7 +60,7 @@ func createRoleService(request models.CreateRoleRequest) (*models.Role, *models.
 	}
 
 	if err := database.DB.Create(&newRole).Error; err != nil {
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to save user"}
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to save role"}
 	}
 
 	return &newRole, nil
@@ -79,7 +79,7 @@ func updateRoleService(request models.UpdateRoleRequest) (*models.Role, *models.
 	role.Role = request.Role
 
 	if err := database.DB.Save(&role).Error; err != nil {
-		return nil, &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Error while updating user"}
+		return nil, &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Error while updating role"}
 	}
 
 	return &role, nil
