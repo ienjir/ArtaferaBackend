@@ -6,6 +6,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 )
 
 func getRoleByIDService(targetRoleID string) (*models.Role, *models.ServiceError) {
@@ -70,7 +71,7 @@ func updateRoleService(request models.UpdateRoleRequest) (*models.Role, *models.
 
 	if err := database.DB.First(&role, "id = ?", request.RoleID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Role not found"}
 		}
 		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
@@ -82,4 +83,25 @@ func updateRoleService(request models.UpdateRoleRequest) (*models.Role, *models.
 	}
 
 	return &role, nil
+}
+
+func deleteRoleService(roleID string) *models.ServiceError {
+	var role models.Role
+	parsedRoleID, err := strconv.ParseInt(roleID, 10, 64)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Invalid roleID"}
+	}
+
+	if err := database.DB.First(&role, "id = ?", roleID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Role not found"}
+		}
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	if result := database.DB.Delete(&models.Role{}, parsedRoleID); result.Error != nil {
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error occurred while deleting role"}
+	}
+
+	return nil
 }

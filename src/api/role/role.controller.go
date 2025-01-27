@@ -81,3 +81,15 @@ func UpdateRole(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"role": updatedRole})
 	return
 }
+
+func DeleteRole(c *gin.Context) {
+	targetRoleID := c.Param("id")
+
+	if err := deleteRoleService(targetRoleID); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Role successfully deleted"})
+	return
+}

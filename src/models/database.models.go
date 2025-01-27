@@ -36,7 +36,7 @@ type User struct {
 	Salt        []byte     `gorm:"type:bytea;not null" json:"-"`
 	LastAccess  *time.Time `json:"last_access,omitempty"`
 	RoleID      uint       `gorm:"not null;default:1" json:"-"`
-	Role        *Role      `json:"role"`
+	Role        *Role      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"role"`
 }
 
 // Role model

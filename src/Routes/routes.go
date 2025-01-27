@@ -26,10 +26,10 @@ func RegisterRoutes(router *gin.Engine) {
 		userRoutes.PUT("/update/:id", user.UpdateUser)
 		userRoutes.DELETE("/delete/:id", user.DeleteUser)
 
-		userAdminRoutes := userRoutes.Group("/")
+		userAdminRoutes := userRoutes.Group("")
 		userAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 		{
-			userAdminRoutes.Group("/list", user.ListAllUsers)
+			userAdminRoutes.GET("/list", user.ListAllUsers)
 		}
 	}
 
@@ -40,5 +40,6 @@ func RegisterRoutes(router *gin.Engine) {
 		roleRoutes.GET("/list", role.ListRoles)
 		roleRoutes.POST("/create", role.CreateRole)
 		roleRoutes.PUT("/update/:id", role.UpdateRole)
+		roleRoutes.DELETE("/delete/:id", role.DeleteRole)
 	}
 }
