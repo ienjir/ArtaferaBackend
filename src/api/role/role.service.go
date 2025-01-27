@@ -21,3 +21,24 @@ func getRoleByIDService(targetRoleID string) (*models.Role, *models.ServiceError
 
 	return &role, nil
 }
+
+func listRolesService(offset int) (*[]models.Role, *int64, *models.ServiceError) {
+	var roles []models.Role
+	var count int64
+
+	if err := database.DB.Limit(5).Offset(offset * 10).Find(&roles).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving users from database",
+		}
+	}
+
+	if err := database.DB.Model(&models.User{}).Count(&count).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while counting users in database",
+		}
+	}
+
+	return &roles, &count, nil
+}

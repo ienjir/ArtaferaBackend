@@ -18,7 +18,7 @@ func RegisterRoutes(router *gin.Engine) {
 
 	// User routes
 	userRoutes := router.Group("/user")
-	userRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
+	userRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 	{
 		userRoutes.GET("/getByID/:id", user.GetUserByID)
 		userRoutes.GET("/getByEmail/:id", user.GetUserByEmail)
@@ -37,5 +37,6 @@ func RegisterRoutes(router *gin.Engine) {
 	roleRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
 		roleRoutes.GET("/getByID/:id", role.GetRoleByID)
+		roleRoutes.GET("/list", role.ListRoles)
 	}
 }

@@ -2,6 +2,7 @@ package role
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
 )
 
@@ -22,5 +23,23 @@ func GetRoleByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"role": role})
+	return
+}
+
+func ListRoles(c *gin.Context) {
+	var Data models.ListRoleRequest
+
+	if err := c.ShouldBindJSON(&Data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	roles, count, err := listRolesService(Data.Offset)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count, "roles": roles})
 	return
 }
