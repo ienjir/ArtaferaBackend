@@ -70,10 +70,7 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		}
 
 		if !roleAllowed {
-			c.AbortWithStatusJSON(http.StatusForbidden, models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "User role not authorized for this route",
-			})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "User is not authorized for this route"})
 			return
 		}
 

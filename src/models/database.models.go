@@ -8,7 +8,6 @@ import (
 var AllModels = []interface{}{
 	&User{},
 	&Role{},
-	&Text{},
 	&Translation{},
 	&Language{},
 	&Art{},
@@ -22,7 +21,7 @@ var AllModels = []interface{}{
 
 // User model
 type User struct {
-	gorm.Model
+	gorm.Model  `json:"-"`
 	Firstname   string     `gorm:"size:255;not null" json:"firstname"`
 	Lastname    string     `gorm:"size:255;not null" json:"lastname"`
 	Email       string     `gorm:"size:255;not null;unique;index" json:"email"`
@@ -34,20 +33,16 @@ type User struct {
 	PostalCode  *string    `gorm:"size:32" json:"postal_code,omitempty"`
 	Password    []byte     `gorm:"type:bytea;not null" json:"-"`
 	Salt        []byte     `gorm:"type:bytea;not null" json:"-"`
-	LastAccess  *time.Time `json:"last_access,omitempty"`
+	LastAccess  *time.Time `json:"-,omitempty"`
 	RoleID      uint       `gorm:"not null;default:1" json:"-"`
-	Role        *Role      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"role"`
+	Role        *Role      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT" json:"role"`
 }
 
 // Role model
 type Role struct {
-	gorm.Model
-	Role string `gorm:"size:50;not null" json:"role"`
-}
-
-// Text model
-type Text struct {
-	gorm.Model
+	gorm.Model `json:"-"`
+	Role       string `gorm:"size:50;not null" json:"role"`
+	Users      []User `json:"-"`
 }
 
 // Translation model

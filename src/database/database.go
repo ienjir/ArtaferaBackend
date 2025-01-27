@@ -21,7 +21,8 @@ func ConnectDatabase() error {
 	port := os.Getenv("DB_PORT")
 	sslmode := os.Getenv("DB_SSL_MODE")
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s", host, user, password, dbname, port, sslmode)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		host, user, password, dbname, port, sslmode)
 
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -39,10 +40,45 @@ func ConnectDatabase() error {
 	// Make all tables
 	err = DB.AutoMigrate(models.AllModels...)
 	if err != nil {
-		log.Fatalf("Failed to migrate tables: %v", err)
+		log.Printf("Failed to migrate tables: %v", err)
 		return err
 	}
 
-	log.Println("Database connected and migrated")
-	return err
+	// Set the default value for role_id in users table
+	DB.Exec("ALTER TABLE users ALTER COLUMN role_id SET DEFAULT 1")
+
+	// Create initial roles
+	err = createInitialRoles()
+	if err != nil {
+		log.Printf("Failed to create initial roles: %v", err)
+		return err
+	}
+
+	log.Println("Database connected and migrated successfully")
+	return nil
+}
+
+func createInitialRoles() error {
+	userRole := models.Role{
+		Role: "user",
+	}
+	result := DB.Create(&userRole)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	adminRole := models.Role{
+		Role: "admin",
+	}
+	result = DB.Create(&adminRole)
+	if result.Error != nil {
+		return result.Error
+	}
+	
+	artistRole := models.Role{
+		Role: "artist",
+	}
+	result = DB.Create(&artistRole)
+
+	return nil
 }

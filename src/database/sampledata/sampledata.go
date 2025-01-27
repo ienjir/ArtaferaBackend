@@ -27,13 +27,6 @@ func GenerateFakeData() error {
 		users[i].Salt = password.Salt
 	}
 
-	// Sample Roles
-	roles := []models.Role{
-		{Role: "user"},
-		{Role: "admin"},
-		{Role: "artist"},
-	}
-
 	// Sample Languages
 	languages := []models.Language{
 		{LanguageName: "English", LanguageCode: "EN"},
@@ -97,7 +90,6 @@ func GenerateFakeData() error {
 	}
 
 	// Bulk insert data
-	database.DB.Create(&roles)
 	database.DB.Create(&users)
 	database.DB.Create(&languages)
 	database.DB.Create(&texts)
