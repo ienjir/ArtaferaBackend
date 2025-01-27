@@ -103,7 +103,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"User1@example.com\"\n}",
+							"raw": "{\n    \"email\": \"User2@example.com\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -141,6 +141,33 @@
 								}
 							]
 						}
+					},
+					"response": []
+				},
+				{
+					"name": "List all users",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{access_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"offset\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}{{user}}/list"
 					},
 					"response": []
 				},
@@ -232,24 +259,34 @@
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Admin",
-			"item": [
+				},
 				{
-					"name": "List users",
+					"name": "Get role by name",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{access_token}}"
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"admin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
 							}
 						},
+						"url": "{{baseURL}}{{role}}/getByName"
+					},
+					"response": []
+				},
+				{
+					"name": "List all roles",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
 						"method": "GET",
 						"header": [],
 						"body": {
@@ -261,23 +298,174 @@
 								}
 							}
 						},
-						"url": "{{baseURL}}{{admin}}/user/list"
+						"url": "{{baseURL}}{{role}}/list"
 					},
 					"response": []
 				},
 				{
-					"name": "Get user by id",
+					"name": "Create role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"kek\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}{{role}}/create"
+					},
+					"response": []
+				},
+				{
+					"name": "Update role",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"kekus\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}{{role}}/update/:id",
+							"host": [
+								"{{baseURL}}{{role}}"
+							],
+							"path": [
+								"update",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete role",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}{{role}}/delete/:id",
+							"host": [
+								"{{baseURL}}{{role}}"
+							],
+							"path": [
+								"delete",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Language",
+			"item": [
+				{
+					"name": "Get language by ID",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}{{admin}}/user/getById/:id",
+							"raw": "{{baseURL}}{{language}}/getByID/:id",
 							"host": [
-								"{{baseURL}}{{admin}}"
+								"{{baseURL}}{{language}}"
 							],
 							"path": [
-								"user",
-								"getById",
+								"getByID",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List all languages",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"offset\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}{{language}}/list"
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"language\": \"Japanese\",\n    \"languageCode\": \"jp\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}{{language}}/create"
+					},
+					"response": []
+				},
+				{
+					"name": "Update language",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"language\": \"kekus\",\n    \"languageCode\": \"ke\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}{{language}}/update/:id",
+							"host": [
+								"{{baseURL}}{{language}}"
+							],
+							"path": [
+								"update",
 								":id"
 							],
 							"variable": [
@@ -296,9 +484,9 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}{{admin}}{{user}}/delete/:id",
+							"raw": "{{baseURL}}{{language}}/delete/:id",
 							"host": [
-								"{{baseURL}}{{admin}}{{user}}"
+								"{{baseURL}}{{language}}"
 							],
 							"path": [
 								"delete",
@@ -307,7 +495,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "1"
+									"value": ""
 								}
 							]
 						}
@@ -385,6 +573,11 @@
 		{
 			"key": "role",
 			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "language",
+			"value": "/language",
 			"type": "default"
 		}
 	]
