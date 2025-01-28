@@ -99,7 +99,7 @@ func deleteRoleService(roleID string) *models.ServiceError {
 		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
-	if result := database.DB.Unscoped().Delete(&models.Role{}, parsedRoleID); result.Error != nil {
+	if result := database.DB.Delete(&models.Role{}, parsedRoleID); result.Error != nil {
 		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error occurred while deleting role"}
 	}
 
