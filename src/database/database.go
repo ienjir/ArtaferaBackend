@@ -44,9 +44,6 @@ func ConnectDatabase() error {
 		return err
 	}
 
-	// Set the default value for role_id in users table
-	DB.Exec("ALTER TABLE users ALTER COLUMN role_id SET DEFAULT 1")
-
 	// Create initial roles
 	err = createInitialRoles()
 	if err != nil {
@@ -60,7 +57,7 @@ func ConnectDatabase() error {
 
 func createInitialRoles() error {
 	userRole := models.Role{
-		Role: "user",
+		Name: "user",
 	}
 	result := DB.Create(&userRole)
 	if result.Error != nil {
@@ -68,15 +65,15 @@ func createInitialRoles() error {
 	}
 
 	adminRole := models.Role{
-		Role: "admin",
+		Name: "admin",
 	}
 	result = DB.Create(&adminRole)
 	if result.Error != nil {
 		return result.Error
 	}
-	
+
 	artistRole := models.Role{
-		Role: "artist",
+		Name: "artist",
 	}
 	result = DB.Create(&artistRole)
 

@@ -56,7 +56,7 @@ func createRoleService(request models.CreateRoleRequest) (*models.Role, *models.
 	}
 
 	newRole = models.Role{
-		Role: request.Role,
+		Name: request.Role,
 	}
 
 	if err := database.DB.Create(&newRole).Error; err != nil {
@@ -76,7 +76,7 @@ func updateRoleService(request models.UpdateRoleRequest) (*models.Role, *models.
 		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
-	role.Role = request.Role
+	role.Name = request.Role
 
 	if err := database.DB.Save(&role).Error; err != nil {
 		return nil, &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Error while updating role"}
@@ -99,7 +99,7 @@ func deleteRoleService(roleID string) *models.ServiceError {
 		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
-	if result := database.DB.Delete(&models.Role{}, parsedRoleID); result.Error != nil {
+	if result := database.DB.Unscoped().Delete(&models.Role{}, parsedRoleID); result.Error != nil {
 		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error occurred while deleting role"}
 	}
 

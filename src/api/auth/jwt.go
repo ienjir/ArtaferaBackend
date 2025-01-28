@@ -35,7 +35,7 @@ func GenerateTokenPair(user models.User) (*TokenPair, *models.ServiceError) {
 	accessToken := jwt2.NewWithClaims(jwt2.SigningMethodHS256, jwt2.MapClaims{
 		"email": user.Email,
 		"id":    user.ID,
-		"role":  user.Role.Role,
+		"role":  user.Role.Name,
 		"type":  "access",
 		"exp":   time.Now().Add(30 * time.Minute).Unix(),
 	})

@@ -19,9 +19,15 @@ var AllModels = []interface{}{
 	&Currency{},
 }
 
-// User model
+type Model struct {
+	ID        int            `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAT gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
 type User struct {
-	gorm.Model  `json:"-"`
+	Model
 	Firstname   string     `gorm:"size:255;not null" json:"firstname"`
 	Lastname    string     `gorm:"size:255;not null" json:"lastname"`
 	Email       string     `gorm:"size:255;not null;unique;index" json:"email"`
@@ -34,34 +40,30 @@ type User struct {
 	Password    []byte     `gorm:"type:bytea;not null" json:"-"`
 	Salt        []byte     `gorm:"type:bytea;not null" json:"-"`
 	LastAccess  *time.Time `json:"-,omitempty"`
-	RoleID      uint       `gorm:"not null;default:1" json:"-"`
-	Role        *Role      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT" json:"role"`
+	RoleID      uint       `gorm:"default:1;not null"` // Ensure default is set
+	Role        *Role      `gorm:"foreignKey:RoleID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT" json:"role"`
 }
 
-// Role model
 type Role struct {
-	gorm.Model `json:"-"`
-	Role       string `gorm:"size:50;not null" json:"role"`
-	Users      []User `json:"-"`
+	Model
+	Name  string `gorm:"column:name;not null"`
+	Users []User `gorm:"foreignKey:RoleID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET DEFAULT"`
 }
 
-// Translation model
 type Translation struct {
-	gorm.Model
+	Id         int    `gorm:"column:id"`
 	EntityID   int    `gorm:"not null;index" json:"entity_id"`
 	LanguageID int    `gorm:"not null;index" json:"language_id"`
 	Context    string `gorm:"size:50;not null" json:"context"`
 	Text       string `gorm:"type:text;not null" json:"text"`
 }
 
-// Language model
 type Language struct {
 	gorm.Model
 	LanguageName string `gorm:"size:50;not null;unique" json:"language_name"`
 	LanguageCode string `gorm:"size:2;not null;unique" json:"language_code"`
 }
 
-// Art model
 type Art struct {
 	gorm.Model
 	Price        int      `gorm:"not null" json:"price"`
@@ -72,7 +74,6 @@ type Art struct {
 	Depth        *float64 `gorm:"type:decimal(8,2)" json:"depth,omitempty"`
 }
 
-// ArtPicture model
 type ArtPicture struct {
 	gorm.Model
 	ArtID     int  `gorm:"not null;index" json:"art_id"`
@@ -80,13 +81,11 @@ type ArtPicture struct {
 	Priority  *int `json:"priority,omitempty"`
 }
 
-// Picture model
 type Picture struct {
 	gorm.Model
 	PictureLink string `gorm:"size:255;not null" json:"picture_link"`
 }
 
-// Order model
 type Order struct {
 	gorm.Model
 	UserID     int       `gorm:"not null;index" json:"user_id"`
@@ -95,7 +94,6 @@ type Order struct {
 	Status     string    `gorm:"size:50;not null" json:"status"`
 }
 
-// OrderDetail model
 type OrderDetail struct {
 	gorm.Model
 	OrderID  int     `gorm:"not null;index" json:"order_id"`
@@ -104,7 +102,6 @@ type OrderDetail struct {
 	Price    float64 `gorm:"type:decimal(10,2);not null" json:"price"`
 }
 
-// Payment model
 type Payment struct {
 	gorm.Model
 	OrderID       int       `gorm:"not null;index" json:"order_id"`
@@ -114,7 +111,6 @@ type Payment struct {
 	Status        string    `gorm:"size:50;not null" json:"status"`
 }
 
-// Currency model
 type Currency struct {
 	gorm.Model
 	CurrencyCode string `gorm:"size:3;not null;unique" json:"currency_code"`
