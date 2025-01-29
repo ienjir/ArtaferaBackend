@@ -49,7 +49,7 @@ func createRoleService(request models.CreateRoleRequest) (*models.Role, *models.
 	var newRole models.Role
 
 	// Check if role already exists
-	if err := database.DB.Where("role = ?", request.Role).First(&role).Error; err == nil {
+	if err := database.DB.Where("name = ?", request.Role).First(&role).Error; err == nil {
 		return nil, &models.ServiceError{StatusCode: http.StatusConflict, Message: "Role already exists"}
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Database error"}
