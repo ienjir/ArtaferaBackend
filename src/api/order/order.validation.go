@@ -27,17 +27,30 @@ func verifyCreateOrder(data models.CreateOrderRequest) *models.ServiceError {
 		}
 	}
 
-	// Get the userID from the context
-	contextUserID := *data.UserID
-
-	// If user is not an admin, they can only create orders for themselves
 	if data.UserRole != "admin" {
-		requestedUserID := *data.UserID
-		if contextUserID != requestedUserID {
+		if *data.UserID != data.AuthID {
 			return &models.ServiceError{
 				StatusCode: http.StatusForbidden,
 				Message:    "You can only create orders for your own user account",
 			}
+		}
+	}
+
+	return nil
+}
+
+func verifyGetOrderByID(data models.GetOrderByIDRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be over 1",
+		}
+	}
+
+	if data.OrderID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "OrderID has to be over 1",
 		}
 	}
 

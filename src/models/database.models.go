@@ -30,11 +30,11 @@ const (
 )
 
 type Model struct {
-	ID        int64          `gorm:"primaryKey;autoIncrement" json:"id"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID        int64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
+
 type User struct {
 	Model
 	Firstname   string     `gorm:"size:255;not null" json:"firstname" binding:"required"`
@@ -52,6 +52,7 @@ type User struct {
 	RoleID      int64      `gorm:"default:1;not null" json:"role_id"`
 	Role        *Role      `gorm:"foreignKey:RoleID;references:ID;constraint:OnDelete:SET DEFAULT" json:"role"`
 }
+
 type Role struct {
 	Model
 	Name string `gorm:"column:name;not null" json:"name"`

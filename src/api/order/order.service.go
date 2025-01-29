@@ -13,15 +13,6 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 	var art models.Art
 	var order models.Order
 
-	// Check if UserID is nil
-	if data.UserID == nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID is required",
-		}
-	}
-
-	// Find the art piece
 	if err := database.DB.First(&art, data.ArtID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &models.ServiceError{
@@ -35,7 +26,6 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 		}
 	}
 
-	// Check if art is available
 	if art.Available == false {
 		return nil, &models.ServiceError{
 			StatusCode: http.StatusConflict,
@@ -43,15 +33,14 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 		}
 	}
 
-	// Create the order
 	order = models.Order{
 		OrderDate: time.Now(),
-		UserID:    int64(int(*data.UserID)), // Convert *int64 to int
-		ArtID:     int64(int(art.ID)),       // Convert uint to int if needed
+		UserID:    int64(int(*data.UserID)),
+		ArtID:     int64(int(art.ID)),
 		Status:    models.OrderStatusPending,
 	}
 
-	// Begin transaction
+	// Start transaction
 	tx := database.DB.Begin()
 	if tx.Error != nil {
 		return nil, &models.ServiceError{
@@ -60,7 +49,6 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 		}
 	}
 
-	// Update art availability
 	art.Available = false
 	if err := tx.Save(&art).Error; err != nil {
 		tx.Rollback()
@@ -70,7 +58,6 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 		}
 	}
 
-	// Create the order
 	if err := tx.Create(&order).Error; err != nil {
 		tx.Rollback()
 		return nil, &models.ServiceError{
@@ -84,6 +71,34 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 		return nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Failed to commit transaction",
+		}
+	}
+
+	return &order, nil
+}
+
+func getOrderByIDService(data models.GetOrderByIDRequest) (*models.Order, *models.ServiceError) {
+	var order models.Order
+
+	if err := database.DB.First(&order, data.OrderID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "Order not found",
+			}
+		}
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving order",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		if data.UserID != order.UserID {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You can only see your own orders",
+			}
 		}
 	}
 

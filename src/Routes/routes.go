@@ -58,6 +58,7 @@ func RegisterRoutes(router *gin.Engine) {
 	orderRoutes := router.Group("/order")
 	orderRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
+		orderRoutes.GET("/getByID/:id", order.GetOrderByID)
 		orderRoutes.POST("/create", order.CreateOrder)
 	}
 }
