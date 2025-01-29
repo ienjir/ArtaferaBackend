@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"time"
 )
@@ -82,16 +81,17 @@ type Order struct {
 
 type Art struct {
 	Model
-	Price        decimal.Decimal  `gorm:"type:decimal(12,2);not null;check:price >= 0" json:"price"`
+	Price        int              `gorm:"not null;check:price >= 0" json:"price"`
 	CurrencyID   int              `gorm:"foreignKey:CurrencyID;references:ID;constraint:OnDelete:SET NULL;index" json:"currency_id"`
 	Currency     *Currency        `json:"currency,omitempty"`
 	CreationYear int              `gorm:"not null" json:"creation_year" binding:"required,min=1000,max=9999"`
-	Width        *decimal.Decimal `gorm:"type:decimal(8,2)" json:"width,omitempty"`
-	Height       *decimal.Decimal `gorm:"type:decimal(8,2)" json:"height,omitempty"`
-	Depth        *decimal.Decimal `gorm:"type:decimal(8,2)" json:"depth,omitempty"`
+	Width        *float32         `gorm:"type:decimal(8,2)" json:"width,omitempty"`
+	Height       *float32         `gorm:"type:decimal(8,2)" json:"height,omitempty"`
+	Depth        *float32         `gorm:"type:decimal(8,2)" json:"depth,omitempty"`
 	Pictures     []ArtPicture     `gorm:"foreignKey:ArtID" json:"pictures,omitempty"`
 	Translations []ArtTranslation `gorm:"foreignKey:ArtID" json:"translations,omitempty"`
 }
+
 type ArtTranslation struct {
 	Model
 	ArtID       int    `gorm:"foreignKey:ArtID;reference:ID;constraint:OnDelete:CASCADE;not null" json:"artID"`
