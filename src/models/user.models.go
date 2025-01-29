@@ -24,7 +24,7 @@ type UpdateUserRequest struct {
 	City        *string `json:"city"`
 	PostalCode  *string `json:"postal_code"`
 	Password    *string `json:"password"`
-	RoleID      *uint   `json:"roleID"`
+	RoleID      *int64  `json:"roleID"`
 }
 
 type ListUserRequest struct {

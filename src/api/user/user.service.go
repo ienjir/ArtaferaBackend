@@ -180,7 +180,7 @@ func UpdateUserService(requestUserID int64, requestUserRole string, targetUserID
 	}
 
 	if err = database.DB.Save(&user).Error; err != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to update user"}
 	}
 
 	return nil

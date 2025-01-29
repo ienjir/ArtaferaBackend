@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/api/language"
+	"github.com/ienjir/ArtaferaBackend/src/api/order"
 	"github.com/ienjir/ArtaferaBackend/src/api/role"
 	"github.com/ienjir/ArtaferaBackend/src/api/user"
 	"github.com/ienjir/ArtaferaBackend/src/middleware"
@@ -52,5 +53,11 @@ func RegisterRoutes(router *gin.Engine) {
 		languageRoutes.POST("/create", language.CreateLanguage)
 		languageRoutes.PUT("/update/:id", language.UpdateLanguage)
 		languageRoutes.DELETE("/delete/:id", language.DeleteLanguage)
+	}
+
+	orderRoutes := router.Group("/order")
+	orderRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
+	{
+		orderRoutes.POST("/create", order.CreateOrder)
 	}
 }

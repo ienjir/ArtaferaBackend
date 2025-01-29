@@ -74,8 +74,10 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
+		userIDInt := int64(userID)
+		
 		// Store user information in context for later use
-		c.Set("userID", userID)
+		c.Set("userID", userIDInt)
 		c.Set("userEmail", claims["email"])
 		c.Set("userRole", userRole)
 		c.Next()

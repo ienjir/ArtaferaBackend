@@ -30,7 +30,7 @@ const (
 )
 
 type Model struct {
-	ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID        int64          `gorm:"primaryKey;autoIncrement" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
@@ -49,7 +49,7 @@ type User struct {
 	Password    []byte     `gorm:"type:bytea;not null" json:"-"`
 	Salt        []byte     `gorm:"type:bytea;not null" json:"-"`
 	LastAccess  *time.Time `json:"last_access,omitempty"`
-	RoleID      uint       `gorm:"default:1;not null" json:"role_id"`
+	RoleID      int64      `gorm:"default:1;not null" json:"role_id"`
 	Role        *Role      `gorm:"foreignKey:RoleID;references:ID;constraint:OnDelete:SET DEFAULT" json:"role"`
 }
 type Role struct {
@@ -65,15 +65,15 @@ type Language struct {
 
 type Saved struct {
 	Model
-	UserID int `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;not null;index" json:"userID"`
-	ArtID  int `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:SET NULL" json:"artID"`
+	UserID int64 `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;not null;index" json:"userID"`
+	ArtID  int64 `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:SET NULL" json:"artID"`
 }
 
 type Order struct {
 	Model
-	UserID    int         `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;not null" json:"user_id"`
+	UserID    int64       `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;not null" json:"user_id"`
 	User      *User       `json:"user,omitempty"`
-	ArtID     int         `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE;not null" json:"art_id"`
+	ArtID     int64       `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE;not null" json:"art_id"`
 	Art       *Art        `json:"art,omitempty"`
 	OrderDate time.Time   `gorm:"not null;default:CURRENT_TIMESTAMP" json:"order_date"`
 	Status    OrderStatus `gorm:"size:50;not null;default:'pending'" json:"status"`
@@ -81,8 +81,8 @@ type Order struct {
 
 type Art struct {
 	Model
-	Price        int              `gorm:"not null;check:price >= 0" json:"price"`
-	CurrencyID   int              `gorm:"foreignKey:CurrencyID;references:ID;constraint:OnDelete:SET NULL;index" json:"currency_id"`
+	Price        int64            `gorm:"not null;check:price >= 0" json:"price"`
+	CurrencyID   int64            `gorm:"foreignKey:CurrencyID;references:ID;constraint:OnDelete:SET NULL;index" json:"currency_id"`
 	Currency     *Currency        `json:"currency,omitempty"`
 	CreationYear int              `gorm:"not null" json:"creation_year" binding:"required,min=1000,max=9999"`
 	Width        *float32         `gorm:"type:decimal(8,2)" json:"width,omitempty"`
@@ -90,11 +90,12 @@ type Art struct {
 	Depth        *float32         `gorm:"type:decimal(8,2)" json:"depth,omitempty"`
 	Pictures     []ArtPicture     `gorm:"foreignKey:ArtID" json:"pictures,omitempty"`
 	Translations []ArtTranslation `gorm:"foreignKey:ArtID" json:"translations,omitempty"`
+	Available    bool             `gorm:"default:true" json:"available"`
 }
 
 type ArtTranslation struct {
 	Model
-	ArtID       int    `gorm:"foreignKey:ArtID;reference:ID;constraint:OnDelete:CASCADE;not null" json:"artID"`
+	ArtID       int64  `gorm:"foreignKey:ArtID;reference:ID;constraint:OnDelete:CASCADE;not null" json:"artID"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Text        string `gorm:"type:text" json:"text"`
@@ -102,8 +103,8 @@ type ArtTranslation struct {
 
 type ArtPicture struct {
 	Model
-	ArtID     int    `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE;not null;index" json:"art_id"`
-	PictureID int    `gorm:"not null;index" json:"picture_id"`
+	ArtID     int64  `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE;not null;index" json:"art_id"`
+	PictureID int64  `gorm:"not null;index" json:"picture_id"`
 	Name      string `gorm:"not null" json:"name"`
 	Priority  *int   `json:"priority,omitempty"`
 }
@@ -123,8 +124,8 @@ type Currency struct {
 
 type Translation struct {
 	Model
-	EntityID   int    `gorm:"not null;index" json:"entity_id"`
-	LanguageID int    `gorm:"foreignKey:LanguageID;reference:ID;not null;index" json:"language_id"`
+	EntityID   int64  `gorm:"not null;index" json:"entity_id"`
+	LanguageID int64  `gorm:"foreignKey:LanguageID;reference:ID;not null;index" json:"language_id"`
 	Context    string `gorm:"size:50;not null" json:"context"`
 	Text       string `gorm:"type:text;not null" json:"text"`
 }

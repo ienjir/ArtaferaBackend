@@ -4,7 +4,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
-	"time"
 )
 
 func CreateSampleData() error {
@@ -92,6 +91,7 @@ func CreateSampleData() error {
 			Width:        &width,
 			Height:       &height,
 			Depth:        &depth,
+			Available:    true,
 		},
 		{
 			Model:        models.Model{ID: 2},
@@ -100,6 +100,7 @@ func CreateSampleData() error {
 			CreationYear: 2024,
 			Width:        &width,
 			Height:       &height,
+			Available:    false,
 		},
 	}
 	if err := database.DB.Create(&arts).Error; err != nil {
@@ -183,17 +184,10 @@ func CreateSampleData() error {
 		return err
 	}
 
-	// Create orders
+	/***reate orders
 	orders := []models.Order{
 		{
 			Model:     models.Model{ID: 1},
-			UserID:    1,
-			ArtID:     1,
-			OrderDate: time.Now(),
-			Status:    models.OrderStatusPaid,
-		},
-		{
-			Model:     models.Model{ID: 2},
 			UserID:    2,
 			ArtID:     2,
 			OrderDate: time.Now().Add(-24 * time.Hour),
@@ -203,6 +197,7 @@ func CreateSampleData() error {
 	if err := database.DB.Create(&orders).Error; err != nil {
 		return err
 	}
+	*/
 
 	// Create translations
 	translations := []models.Translation{

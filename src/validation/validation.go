@@ -104,3 +104,20 @@ func ValidateAddress(field *string, fieldName string) *models.ServiceError {
 
 	return nil
 }
+
+func ValidateStatusString(status string) (models.OrderStatus, *models.ServiceError) {
+	switch status {
+	case string(models.OrderStatusPending):
+		return models.OrderStatusPending, nil
+	case string(models.OrderStatusPaid):
+		return models.OrderStatusPaid, nil
+	case string(models.OrderStatusShipped):
+		return models.OrderStatusShipped, nil
+	case string(models.OrderStatusDelivered):
+		return models.OrderStatusDelivered, nil
+	case string(models.OrderStatusCancelled):
+		return models.OrderStatusCancelled, nil
+	default:
+		return "", &models.ServiceError{StatusCode: http.StatusBadRequest, Message: "Order status is invalid"}
+	}
+}
