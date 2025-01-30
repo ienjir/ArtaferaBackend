@@ -57,18 +57,25 @@ func verifyGetOrderByID(data models.GetOrderByIDRequest) *models.ServiceError {
 	return nil
 }
 
-func verifyGetOrdersForUser(data models.GetOrdersForUser) *models.ServiceError {
+func verifyGetOrdersForUser(data models.GetOrdersForUserRequest) *models.ServiceError {
 	if data.UserID < 1 {
 		return &models.ServiceError{
 			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
+			Message:    "UserID has to be at least 1",
 		}
 	}
 
 	if data.TargetUserID < 1 {
 		return &models.ServiceError{
 			StatusCode: http.StatusBadRequest,
-			Message:    "OrderID has to be over 1",
+			Message:    "OrderID has to be at least 1",
+		}
+	}
+
+	if data.Offset < 0 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Offset has to  be 0 or more",
 		}
 	}
 
@@ -78,6 +85,31 @@ func verifyGetOrdersForUser(data models.GetOrdersForUser) *models.ServiceError {
 				StatusCode: http.StatusForbidden,
 				Message:    "You can only see orders for your own user account",
 			}
+		}
+	}
+
+	return nil
+}
+
+func verifyListOrders(data models.ListOrdersRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.Offset < 0 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Offset has to be 0 or more",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed for this route",
 		}
 	}
 

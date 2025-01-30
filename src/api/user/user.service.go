@@ -84,7 +84,7 @@ func ListUsersService(offset int) (*[]models.User, *int64, *models.ServiceError)
 	var users []models.User
 	var count int64
 
-	if err := database.DB.Preload("Role").Limit(5).Offset(offset * 10).Find(&users).Error; err != nil {
+	if err := database.DB.Preload("Role").Limit(10).Offset(offset * 10).Find(&users).Error; err != nil {
 		return nil, nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Error while retrieving users from database",

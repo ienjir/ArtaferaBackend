@@ -105,7 +105,7 @@ func getOrderByIDService(data models.GetOrderByIDRequest) (*models.Order, *model
 	return &order, nil
 }
 
-func getOrdersForUserService(data models.GetOrdersForUser) (*[]models.Order, *models.User, *int64, *models.ServiceError) {
+func getOrdersForUserService(data models.GetOrdersForUserRequest) (*[]models.Order, *models.User, *int64, *models.ServiceError) {
 	var orders []models.Order
 	var user models.User
 	var count int64
@@ -121,7 +121,7 @@ func getOrdersForUserService(data models.GetOrdersForUser) (*[]models.Order, *mo
 		}
 	}
 
-	if err := database.DB.Preload("Art").Where("user_id = ?", data.TargetUserID).Find(&orders).Offset(int(data.Offset) * 10).Error; err != nil {
+	if err := database.DB.Preload("Art").Where("user_id = ?", data.TargetUserID).Find(&orders).Limit(5).Offset(int(data.Offset) * 5).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil, nil, &models.ServiceError{
 				StatusCode: http.StatusNotFound,
@@ -142,4 +142,26 @@ func getOrdersForUserService(data models.GetOrdersForUser) (*[]models.Order, *mo
 	}
 
 	return &orders, &user, &count, nil
+}
+
+func listOrderService(data models.ListOrdersRequest) (*[]models.Order, *int64, *models.ServiceError) {
+	var orders []models.Order
+	var count int64
+
+	if err := database.DB.Preload("Art").Preload("User").Limit(5).Offset(int(data.Offset * 5)).Find(&orders).Error; err != nil {
+
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving orders from database",
+		}
+	}
+
+	if err := database.DB.Model(&models.Order{}).Count(&count).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while counting orders in database",
+		}
+	}
+
+	return &orders, &count, nil
 }

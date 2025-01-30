@@ -60,6 +60,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		orderRoutes.GET("/getByID/:id", order.GetOrderByID)
 		orderRoutes.GET("/getOrderForUser/:id", order.GetOrdersForUser)
+		orderRoutes.GET("/list", order.ListOrder)
 		orderRoutes.POST("/create", order.CreateOrder)
 	}
 }

@@ -66,7 +66,7 @@ func GetOrderByID(c *gin.Context) {
 }
 
 func GetOrdersForUser(c *gin.Context) {
-	var json models.GetOrdersForUser
+	var json models.GetOrdersForUserRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -94,4 +94,31 @@ func GetOrdersForUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"count": count, "user": user, "orders": orders})
+	return
+}
+
+func ListOrder(c *gin.Context) {
+	var json models.ListOrdersRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyListOrders(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	orders, count, err := listOrderService(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count, "orders": orders})
+	return
 }
