@@ -149,7 +149,6 @@ func listOrderService(data models.ListOrdersRequest) (*[]models.Order, *int64, *
 	var count int64
 
 	if err := database.DB.Preload("Art").Preload("User").Limit(5).Offset(int(data.Offset * 5)).Find(&orders).Error; err != nil {
-
 		return nil, nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Error while retrieving orders from database",

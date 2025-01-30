@@ -4,19 +4,27 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
+	"strconv"
 )
 
 func GetRoleByID(c *gin.Context) {
-	requestUserID := c.GetInt64("userID")
-	requestUserRole := c.GetString("userRole")
-	targetRoleID := c.Param("id")
+	var json models.GetRoleByIDRequest
 
-	if err := verifyGetRoleByID(requestUserID, requestUserRole, targetRoleID); err != nil {
+	roleID, err2 := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err2 != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "RoleID is wrong"})
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.RoleID = roleID
+
+	if err := verifyGetRoleByID(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	role, err := getRoleByIDService(targetRoleID)
+	role, err := getRoleByIDService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -27,14 +35,22 @@ func GetRoleByID(c *gin.Context) {
 }
 
 func ListRoles(c *gin.Context) {
-	var Data models.ListRoleRequest
+	var json models.ListRoleRequest
 
-	if err := c.ShouldBindJSON(&Data); err != nil {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	roles, count, err := listRolesService(Data.Offset)
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyListRoles(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	roles, count, err := listRolesService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -45,14 +61,22 @@ func ListRoles(c *gin.Context) {
 }
 
 func CreateRole(c *gin.Context) {
-	var role models.CreateRoleRequest
+	var json models.CreateRoleRequest
 
-	if err := c.ShouldBindJSON(&role); err != nil {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	createdRole, err := createRoleService(role)
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyCreateRole(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.StatusCode})
+		return
+	}
+
+	createdRole, err := createRoleService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -63,16 +87,28 @@ func CreateRole(c *gin.Context) {
 }
 
 func UpdateRole(c *gin.Context) {
-	var role models.UpdateRoleRequest
+	var json models.UpdateRoleRequest
 
-	role.RoleID = c.Param("id")
-
-	if err := c.ShouldBindJSON(&role); err != nil {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	updatedRole, err := updateRoleService(role)
+	roleID, err2 := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err2 != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "RoleID is wrong"})
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.RoleID = roleID
+
+	if err := verifyUpdateRole(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	updatedRole, err := updateRoleService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -83,9 +119,23 @@ func UpdateRole(c *gin.Context) {
 }
 
 func DeleteRole(c *gin.Context) {
-	targetRoleID := c.Param("id")
+	var json models.DeleteRoleRequest
 
-	if err := deleteRoleService(targetRoleID); err != nil {
+	roleID, err2 := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err2 != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "RoleID is wrong"})
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.RoleID = roleID
+
+	if err := verifyDeleteRole(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	if err := deleteRoleService(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
