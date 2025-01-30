@@ -64,3 +64,34 @@ func GetOrderByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"order": order})
 	return
 }
+
+func GetOrdersForUser(c *gin.Context) {
+	var json models.GetOrdersForUser
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusInternalServerError, "Could not convert ID")
+		return
+	}
+
+	json.TargetUserID = targetID
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyGetOrdersForUser(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	orders, user, count, err := getOrdersForUserService(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count, "user": user, "orders": orders})
+}

@@ -80,7 +80,7 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 func getOrderByIDService(data models.GetOrderByIDRequest) (*models.Order, *models.ServiceError) {
 	var order models.Order
 
-	if err := database.DB.First(&order, data.OrderID).Error; err != nil {
+	if err := database.DB.Preload("User").Preload("Art").First(&order, data.OrderID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &models.ServiceError{
 				StatusCode: http.StatusNotFound,
@@ -103,4 +103,43 @@ func getOrderByIDService(data models.GetOrderByIDRequest) (*models.Order, *model
 	}
 
 	return &order, nil
+}
+
+func getOrdersForUserService(data models.GetOrdersForUser) (*[]models.Order, *models.User, *int64, *models.ServiceError) {
+	var orders []models.Order
+	var user models.User
+	var count int64
+
+	if err := database.DB.First(&user, data.TargetUserID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil, nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "User not found",
+			}
+		} else {
+			return nil, nil, nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while retrieving user"}
+		}
+	}
+
+	if err := database.DB.Preload("Art").Where("user_id = ?", data.TargetUserID).Find(&orders).Offset(int(data.Offset) * 10).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil, nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "Orders not found",
+			}
+		}
+		return nil, nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving orders",
+		}
+	}
+
+	if err := database.DB.Model(&models.Order{}).Where("user_id = ?", data.TargetUserID).Count(&count).Error; err != nil {
+		return nil, nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while counting orders in database",
+		}
+	}
+
+	return &orders, &user, &count, nil
 }

@@ -12,3 +12,10 @@ type GetOrderByIDRequest struct {
 	OrderID  int64  `json:"-"`
 	UserRole string `json:"-"`
 }
+
+type GetOrdersForUser struct {
+	TargetUserID int64  `json:"-"`
+	UserID       int64  `json:"-"`
+	UserRole     string `json:"-"`
+	Offset       int64  `json:"offset"`
+}
