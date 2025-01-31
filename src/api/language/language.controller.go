@@ -4,19 +4,27 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
+	"strconv"
 )
 
 func GetLanguageByID(c *gin.Context) {
-	requestUserID := c.GetInt64("userID")
-	requestUserRole := c.GetString("userRole")
-	targetLanguageID := c.Param("id")
+	var json models.GetLanguageByIDRequest
 
-	if err := verifyGetLanguageByID(requestUserID, requestUserRole, targetLanguageID); err != nil {
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OrderID is wrong"})
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.TargetID = targetID
+
+	if err := verifyGetLanguageByIDRequest(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	language, err := getLanguageByIDService(targetLanguageID)
+	language, err := getLanguageByIDService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -27,14 +35,22 @@ func GetLanguageByID(c *gin.Context) {
 }
 
 func ListLanguages(c *gin.Context) {
-	var Data models.ListLanguageRequest
+	var json models.ListLanguageRequest
 
-	if err := c.ShouldBindJSON(&Data); err != nil {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	languages, count, err := listLanguageService(Data.Offset)
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyListLanguagesRequest(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	languages, count, err := listLanguageService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -45,14 +61,22 @@ func ListLanguages(c *gin.Context) {
 }
 
 func CreateLanguage(c *gin.Context) {
-	var language models.CreateLanguageRequest
+	var json models.CreateLanguageRequest
 
-	if err := c.ShouldBindJSON(&language); err != nil {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	createdRole, err := createLanguageService(language)
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyCreateLanguageRequest(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	createdRole, err := createLanguageService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -63,21 +87,28 @@ func CreateLanguage(c *gin.Context) {
 }
 
 func UpdateLanguage(c *gin.Context) {
-	var language models.UpdateLanguageRequest
+	var json models.UpdateLanguageRequest
 
-	language.LanguageID = c.Param("id")
-
-	if err := c.ShouldBindJSON(&language); err != nil {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := verifyUpdateLanguage(language); err != nil {
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OrderID is wrong"})
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.TargetID = targetID
+
+	if err := verifyUpdateLanguageRequest(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.StatusCode})
 		return
 	}
 
-	updatedLanguage, err := updateRoleService(language)
+	updatedLanguage, err := updateRoleService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -88,9 +119,24 @@ func UpdateLanguage(c *gin.Context) {
 }
 
 func DeleteLanguage(c *gin.Context) {
-	targetLanguageID := c.Param("id")
+	var json models.DeleteLanguageRequest
 
-	if err := deleteLanguageService(targetLanguageID); err != nil {
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OrderID is wrong"})
+		return
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.TargetID = targetID
+
+	if err := verifyDeleteLanguageRequest(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	if err := deleteLanguageService(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}

@@ -10,14 +10,14 @@ import (
 func GetUserByID(c *gin.Context) {
 	var json models.GetUserByIDRequest
 
-	orderID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "OrderID is wrong"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OrderID is wrong"})
 	}
 
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
-	json.TargetID = orderID
+	json.TargetID = targetID
 
 	if err := verifyGetUserById(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
@@ -115,16 +115,16 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	orderID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "OrderID is wrong"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "TargetID is wrong"})
 	}
 
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
-	json.TargetID = orderID
+	json.TargetID = targetID
 
-	if err := ValidateUpdateUserRequest(json); err != nil {
+	if err := verifyUpdateUserRequest(json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Message})
 		return
 	}
@@ -141,14 +141,14 @@ func UpdateUser(c *gin.Context) {
 func DeleteUser(c *gin.Context) {
 	var json models.DeleteUserRequest
 
-	orderID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "OrderID is wrong"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "TargetID is wrong"})
 	}
 
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
-	json.TargetID = orderID
+	json.TargetID = targetID
 
 	if err := verifyDeleteUserRequest(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})

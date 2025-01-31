@@ -63,10 +63,10 @@ func verifyListUserData(data models.ListUserRequest) *models.ServiceError {
 		}
 	}
 
-	if data.UserID < 1 {
+	if data.UserRole != "admin" {
 		return &models.ServiceError{
 			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
+			Message:    "You are not allowed to see this route",
 		}
 	}
 
@@ -113,7 +113,7 @@ func verifyCreateUserData(data models.CreateUserRequest) *models.ServiceError {
 	return nil
 }
 
-func ValidateUpdateUserRequest(data models.UpdateUserRequest) *models.ServiceError {
+func verifyUpdateUserRequest(data models.UpdateUserRequest) *models.ServiceError {
 	if data.UserRole != "admin" {
 		if data.UserID != data.TargetID {
 			return &models.ServiceError{
@@ -228,7 +228,7 @@ func verifyDeleteUserRequest(data models.DeleteUserRequest) *models.ServiceError
 		if data.UserID != data.TargetID {
 			return &models.ServiceError{
 				StatusCode: http.StatusForbidden,
-				Message:    "You can only create orders for your own user account",
+				Message:    "You are not allowed to see this route",
 			}
 		}
 	}
