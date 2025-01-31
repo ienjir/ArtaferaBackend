@@ -6,99 +6,6 @@ import (
 	"net/http"
 )
 
-func verifyCreateUserData(data models.CreateUserRequest) *models.ServiceError {
-
-	if err := validation.ValidatePassword(data.Password); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateEmail(data.Email); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateName(data.Firstname, "Firstname"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateName(data.Lastname, "Lastname"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidatePhone(data.Phone, data.PhoneRegion); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateAddress(data.Address1, "Address1"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateAddress(data.Address2, "Address2"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateAddress(data.City, "City"); err != nil {
-		return err
-	}
-
-	if err := validation.ValidateAddress(data.PostalCode, "Postal code"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func verifyListUserData(data models.ListUserRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.Offset < 0 {
-		return &models.ServiceError{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    "Offset can't be less than 0",
-		}
-	}
-
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	return nil
-}
-
-func verifyDeleteUserRequest(data models.DeleteUserRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be at least 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		if data.UserID != data.TargetID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You can only create orders for your own user account",
-			}
-		}
-	}
-
-	return nil
-}
-
 func verifyGetUserById(data models.GetUserByIDRequest) *models.ServiceError {
 	if data.UserID < 1 {
 		return &models.ServiceError{
@@ -141,6 +48,71 @@ func verifyGetUserByEmail(data models.GetUserByEmailRequest) *models.ServiceErro
 	return nil
 }
 
+func verifyListUserData(data models.ListUserRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.Offset < 0 {
+		return &models.ServiceError{
+			StatusCode: http.StatusUnprocessableEntity,
+			Message:    "Offset can't be less than 0",
+		}
+	}
+
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	return nil
+}
+
+func verifyCreateUserData(data models.CreateUserRequest) *models.ServiceError {
+	if err := validation.ValidatePassword(data.Password); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateEmail(data.Email); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateName(data.Firstname, "Firstname"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateName(data.Lastname, "Lastname"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidatePhone(data.Phone, data.PhoneRegion); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateAddress(data.Address1, "Address1"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateAddress(data.Address2, "Address2"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateAddress(data.City, "City"); err != nil {
+		return err
+	}
+
+	if err := validation.ValidateAddress(data.PostalCode, "Postal code"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func ValidateUpdateUserRequest(data models.UpdateUserRequest) *models.ServiceError {
 	if data.UserRole != "admin" {
 		if data.UserID != data.TargetID {
@@ -150,7 +122,7 @@ func ValidateUpdateUserRequest(data models.UpdateUserRequest) *models.ServiceErr
 			}
 		}
 	}
-	
+
 	if data.UserID < 1 {
 		return &models.ServiceError{
 			StatusCode: http.StatusBadRequest,
@@ -230,6 +202,33 @@ func ValidateUpdateUserRequest(data models.UpdateUserRequest) *models.ServiceErr
 			return &models.ServiceError{
 				StatusCode: http.StatusBadRequest,
 				Message:    "RoleID has to be at least 1",
+			}
+		}
+	}
+
+	return nil
+}
+
+func verifyDeleteUserRequest(data models.DeleteUserRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.TargetID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "TargetID has to be at least 1",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		if data.UserID != data.TargetID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You can only create orders for your own user account",
 			}
 		}
 	}
