@@ -1,111 +1,238 @@
 package user
 
 import (
-	"errors"
-	"github.com/go-playground/validator/v10"
-	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
-	"gorm.io/gorm"
 	"net/http"
-	"strconv"
 )
 
-func VerifyCreateUserData(Data models.CreateUserRequest) *models.ServiceError {
-	if err := validation.ValidatePassword(Data.Password); err != nil {
+func verifyCreateUserData(data models.CreateUserRequest) *models.ServiceError {
+
+	if err := validation.ValidatePassword(data.Password); err != nil {
 		return err
 	}
 
-	if err := validation.ValidateEmail(Data.Email); err != nil {
+	if err := validation.ValidateEmail(data.Email); err != nil {
 		return err
 	}
 
-	if err := validation.ValidateName(Data.Firstname, "Firstname"); err != nil {
+	if err := validation.ValidateName(data.Firstname, "Firstname"); err != nil {
 		return err
 	}
 
-	if err := validation.ValidateName(Data.Lastname, "Lastname"); err != nil {
+	if err := validation.ValidateName(data.Lastname, "Lastname"); err != nil {
 		return err
 	}
 
-	if err := validation.ValidatePhone(Data.Phone, Data.PhoneRegion); err != nil {
+	if err := validation.ValidatePhone(data.Phone, data.PhoneRegion); err != nil {
 		return err
 	}
 
-	if err := validation.ValidateAddress(Data.Address1, "Address1"); err != nil {
+	if err := validation.ValidateAddress(data.Address1, "Address1"); err != nil {
 		return err
 	}
 
-	if err := validation.ValidateAddress(Data.Address2, "Address2"); err != nil {
+	if err := validation.ValidateAddress(data.Address2, "Address2"); err != nil {
 		return err
 	}
 
-	if err := validation.ValidateAddress(Data.City, "City"); err != nil {
+	if err := validation.ValidateAddress(data.City, "City"); err != nil {
 		return err
 	}
 
-	if err := validation.ValidateAddress(Data.PostalCode, "Postal code"); err != nil {
+	if err := validation.ValidateAddress(data.PostalCode, "Postal code"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func VerifyListUserData(Data models.ListUserRequest) *models.ServiceError {
-
-	if Data.Offset < 0 {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Offset can't be less than 0"}
-	}
-
-	return nil
-}
-
-func VerifyDeleteUserRequest(requestUserID int64, requestUserRole, targetUserID string) *models.ServiceError {
-	var user models.User
-
-	targetUserIDInt, err := strconv.ParseInt(targetUserID, 10, 64)
-	if err != nil {
-		return &models.ServiceError{StatusCode: http.StatusBadRequest, Message: "Invalid target user ID"}
-	}
-
-	if err := database.DB.First(&user, targetUserIDInt).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
-		} else {
-			return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while checking if user exists"}
+func verifyListUserData(data models.ListUserRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
 		}
 	}
 
-	if requestUserRole != "admin" && requestUserID != targetUserIDInt {
-		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "You can only delete your own account"}
+	if data.Offset < 0 {
+		return &models.ServiceError{
+			StatusCode: http.StatusUnprocessableEntity,
+			Message:    "Offset can't be less than 0",
+		}
+	}
+
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
 	}
 
 	return nil
 }
 
-func VerifyGetUserById(requestUserID int64, requestUserRole, targetUserID string) *models.ServiceError {
-	targetUserIDFloat, err := strconv.ParseInt(targetUserID, 10, 64)
-	if err != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while parsing userID"}
+func verifyDeleteUserRequest(data models.DeleteUserRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
 	}
 
-	if requestUserRole != "admin" && requestUserID != targetUserIDFloat {
-		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "You can only see your own account"}
+	if data.TargetID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "TargetID has to be at least 1",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		if data.UserID != data.TargetID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You can only create orders for your own user account",
+			}
+		}
 	}
 
 	return nil
 }
 
-func VerifyGetUserByEmail(Data models.GetUserByEmail) *models.ServiceError {
+func verifyGetUserById(data models.GetUserByIDRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
 
-	if err := validation.ValidateEmail(Data.Email); err != nil {
-		return &models.ServiceError{StatusCode: err.StatusCode, Message: err.Message}
+	if data.TargetID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "TargetID has to be at least 1",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		if data.UserID != data.TargetID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You are not allowed to see this route",
+			}
+		}
 	}
 
 	return nil
 }
 
-func ValidateUpdateUserRequest(req models.UpdateUserRequest) error {
-	validate := validator.New()
-	return validate.Struct(req)
+func verifyGetUserByEmail(data models.GetUserByEmailRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if err := validation.ValidateEmail(data.Email); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateUpdateUserRequest(data models.UpdateUserRequest) *models.ServiceError {
+	if data.UserRole != "admin" {
+		if data.UserID != data.TargetID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You are not allowed to see this route",
+			}
+		}
+	}
+	
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.TargetID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "TargetID has to be at least 1",
+		}
+	}
+
+	if data.Firstname != nil {
+		if err := validation.ValidateName(*data.Firstname, "Firstname"); err != nil {
+			return err
+		}
+	}
+
+	if data.Lastname != nil {
+		if err := validation.ValidateName(*data.Lastname, "Lastname"); err != nil {
+			return err
+		}
+	}
+
+	if data.Password != nil {
+		if err := validation.ValidatePassword(*data.Password); err != nil {
+			return err
+		}
+	}
+
+	if data.Email != nil {
+		if err := validation.ValidateEmail(*data.Email); err != nil {
+			return err
+		}
+	}
+
+	if data.Phone != nil {
+		if err := validation.ValidatePhone(data.Phone, data.PhoneRegion); err != nil {
+			return err
+		}
+	}
+
+	if data.Address1 != nil {
+		if err := validation.ValidateAddress(data.Address1, "Address1"); err != nil {
+			return err
+		}
+	}
+
+	if data.Address2 != nil {
+		if err := validation.ValidateAddress(data.Address2, "Address2"); err != nil {
+			return err
+		}
+	}
+
+	if data.City != nil {
+		if err := validation.ValidateAddress(data.City, "City"); err != nil {
+			return err
+		}
+	}
+
+	if data.PostalCode != nil {
+		if err := validation.ValidateAddress(data.PostalCode, "Postal code"); err != nil {
+			return err
+		}
+	}
+
+	if data.Password != nil {
+		if err := validation.ValidatePassword(*data.Password); err != nil {
+			return err
+		}
+	}
+
+	if data.RoleID != nil {
+		if data.TargetID < 1 {
+			return &models.ServiceError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "RoleID has to be at least 1",
+			}
+		}
+	}
+
+	return nil
 }

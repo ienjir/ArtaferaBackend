@@ -39,8 +39,8 @@ func GetOrderByID(c *gin.Context) {
 	var order *models.Order
 	var err *models.ServiceError
 
-	orderID, err2 := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err2 != nil {
+	orderID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "OrderID is wrong"})
 	}
 

@@ -14,6 +14,9 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
+	UserID      int64   `json:"-"`
+	UserRole    string  `json:"-"`
+	TargetID    int64   `json:"-"`
 	Firstname   *string `json:"firstname"`
 	Lastname    *string `json:"lastname"`
 	Email       *string `json:"email"`
@@ -28,11 +31,25 @@ type UpdateUserRequest struct {
 }
 
 type ListUserRequest struct {
-	Offset int `json:"offset"`
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	Offset   int64  `json:"offset"`
 }
 
-type GetUserByEmail struct {
-	Email       string  `json:"email"`
-	RequestID   float64 `json:"-"`
-	RequestRole string  `json:"-"`
+type GetUserByEmailRequest struct {
+	UserID   float64 `json:"-"`
+	UserRole string  `json:"-"`
+	Email    string  `json:"email"`
+}
+
+type DeleteUserRequest struct {
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	TargetID int64  `json:"-"`
+}
+
+type GetUserByIDRequest struct {
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	TargetID int64  `json:"-"`
 }

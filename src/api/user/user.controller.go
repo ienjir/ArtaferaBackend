@@ -5,32 +5,29 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
+	"strconv"
 )
 
 func CreateUser(c *gin.Context) {
 	var json models.CreateUserRequest
 
-	// Validate the input
-	err := c.ShouldBindJSON(&json)
-	if err != nil {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err2 := VerifyCreateUserData(json)
-	if err2 != nil {
-		c.JSON(err2.StatusCode, err2.Message)
+	if err := verifyCreateUserData(json); err != nil {
+		c.JSON(err.StatusCode, err.Message)
 		return
 	}
 
-	// Call the service to handle user creation
-	user, err3 := CreateUserService(json)
-	if err3 != nil {
-		c.JSON(err3.StatusCode, gin.H{"error": err3.Message})
+	user, err := CreateUserService(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully", "user": user})
+	c.JSON(http.StatusCreated, gin.H{"user": user})
 }
 
 func ListAllUsers(c *gin.Context) {
@@ -41,12 +38,15 @@ func ListAllUsers(c *gin.Context) {
 		return
 	}
 
-	if err := VerifyListUserData(json); err != nil {
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyListUserData(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	users, count, err := ListUsersService(json.Offset)
+	users, count, err := ListUsersService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -57,36 +57,50 @@ func ListAllUsers(c *gin.Context) {
 }
 
 func DeleteUser(c *gin.Context) {
-	requestUserID := c.GetInt64("userID")
-	requestUserRole := c.GetString("userRole")
-	targetUserID := c.Param("id")
+	var json models.DeleteUserRequest
 
-	if err := VerifyDeleteUserRequest(requestUserID, requestUserRole, targetUserID); err != nil {
+	orderID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "OrderID is wrong"})
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.TargetID = orderID
+
+	if err := verifyDeleteUserRequest(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	if err := DeleteUserService(targetUserID); err != nil {
+	if err := DeleteUserService(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User successfully deleted"})
+	return
 }
 
 func GetUserByID(c *gin.Context) {
-	var user *models.User
-	var err *models.ServiceError
-	requestUserID := c.GetInt64("userID")
-	requestUserRole := c.GetString("userRole")
-	targetUserID := c.Param("id")
+	var json models.GetUserByIDRequest
 
-	if err := VerifyGetUserById(requestUserID, requestUserRole, targetUserID); err != nil {
+	orderID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "OrderID is wrong"})
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.TargetID = orderID
+
+	if err := verifyGetUserById(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	if user, err = GetUserByIDService(targetUserID); err != nil {
+	user, err := GetUserByIDService(json)
+	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
@@ -96,24 +110,23 @@ func GetUserByID(c *gin.Context) {
 }
 
 func GetUserByEmail(c *gin.Context) {
-	var user *models.User
-	var err *models.ServiceError
-	var Data models.GetUserByEmail
+	var json models.GetUserByEmailRequest
 
-	Data.RequestID = c.GetFloat64("userID")
-	Data.RequestRole = c.GetString("userRole")
+	json.UserID = c.GetFloat64("userID")
+	json.UserRole = c.GetString("userRole")
 
-	if err := c.ShouldBindJSON(&Data); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := VerifyGetUserByEmail(Data); err != nil {
+	if err := verifyGetUserByEmail(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	if user, err = GetUserByEmailService(Data); err != nil {
+	user, err := GetUserByEmailService(json)
+	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
@@ -122,28 +135,32 @@ func GetUserByEmail(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
-	requestUserID := c.GetInt64("userID")
-	requestUserRole := c.GetString("userRole")
-	targetUserID := c.Param("id")
+	var json models.UpdateUserRequest
 
-	var req models.UpdateUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := ValidateUpdateUserRequest(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	orderID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "OrderID is wrong"})
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.TargetID = orderID
+
+	if err := ValidateUpdateUserRequest(json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Message})
 		return
 	}
 
-	fmt.Printf("RequestID: %d, RequestRole: %s, TargetId: %s \n", requestUserID, requestUserRole, targetUserID)
-
-	// Attempt to update user
-	if err := UpdateUserService(requestUserID, requestUserRole, targetUserID, req); err != nil {
+	if err := UpdateUserService(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
+	return
 }

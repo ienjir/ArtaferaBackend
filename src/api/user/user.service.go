@@ -7,49 +7,57 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"gorm.io/gorm"
 	"net/http"
-	"strconv"
 )
 
-func CreateUserService(request models.CreateUserRequest) (*models.User, *models.ServiceError) {
-	var existingUser models.User
+func CreateUserService(data models.CreateUserRequest) (*models.User, *models.ServiceError) {
+	var user models.User
+	var newUser models.User
 
-	// Check if email already exists
-	if err := database.DB.Where("email = ?", request.Email).First(&existingUser).Error; err == nil {
-		return nil, &models.ServiceError{StatusCode: http.StatusConflict, Message: "Email already in use"}
+	if err := database.DB.Where("email = ?", data.Email).First(&user).Error; err == nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusConflict,
+			Message:    "Email already in use",
+		}
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Database error"}
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Database error",
+		}
 	}
 
-	// Hash the password
-	hashedPassword, err := auth.HashPassword(request.Password)
+	hashedPassword, err := auth.HashPassword(data.Password)
 	if err != nil {
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to hash password"}
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to hash password",
+		}
 	}
 
-	// Create user model
-	user := &models.User{
-		Firstname:   request.Firstname,
-		Lastname:    request.Lastname,
-		Email:       request.Email,
-		Phone:       request.Phone,
-		PhoneRegion: request.PhoneRegion,
-		Address1:    request.Address1,
-		Address2:    request.Address2,
-		City:        request.City,
-		PostalCode:  request.PostalCode,
+	newUser = models.User{
+		Firstname:   data.Firstname,
+		Lastname:    data.Lastname,
+		Email:       data.Email,
+		Phone:       data.Phone,
+		PhoneRegion: data.PhoneRegion,
+		Address1:    data.Address1,
+		Address2:    data.Address2,
+		City:        data.City,
+		PostalCode:  data.PostalCode,
 		Password:    hashedPassword.Hash,
 		Salt:        hashedPassword.Salt,
 	}
 
-	// Save user to the database
-	if err := database.DB.Create(user).Error; err != nil {
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to save user"}
+	if err := database.DB.Create(&newUser).Error; err != nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to save user",
+		}
 	}
 
-	return user, nil
+	return &newUser, nil
 }
 
-func GetUserByEmailService(Data models.GetUserByEmail) (*models.User, *models.ServiceError) {
+func GetUserByEmailService(Data models.GetUserByEmailRequest) (*models.User, *models.ServiceError) {
 	var user models.User
 
 	if err := database.DB.Preload("Role").Where("email = ?", Data.Email).First(&user).Error; err != nil {
@@ -59,32 +67,43 @@ func GetUserByEmailService(Data models.GetUserByEmail) (*models.User, *models.Se
 		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
-	if Data.RequestRole != "admin" && int(Data.RequestID) != int(user.ID) {
-		return nil, &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "You can only see your own account"}
-	}
-
-	return &user, nil
-}
-
-func GetUserByIDService(userID string) (*models.User, *models.ServiceError) {
-	var user models.User
-
-	if err := database.DB.Preload("Role").First(&user, userID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
-		} else {
-			return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while retrieving user"}
+	if Data.UserRole != "admin" {
+		if int(Data.UserID) != int(user.ID) {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusUnauthorized,
+				Message:    "You can only see your own account",
+			}
 		}
 	}
 
 	return &user, nil
 }
 
-func ListUsersService(offset int) (*[]models.User, *int64, *models.ServiceError) {
+func GetUserByIDService(data models.GetUserByIDRequest) (*models.User, *models.ServiceError) {
+	var user models.User
+
+	if err := database.DB.Preload("Role").First(&user, data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "User not found",
+			}
+		} else {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Error while retrieving user",
+			}
+		}
+	}
+
+	return &user, nil
+}
+
+func ListUsersService(data models.ListUserRequest) (*[]models.User, *int64, *models.ServiceError) {
 	var users []models.User
 	var count int64
 
-	if err := database.DB.Preload("Role").Limit(10).Offset(offset * 10).Find(&users).Error; err != nil {
+	if err := database.DB.Preload("Role").Limit(10).Offset(int(data.Offset * 10)).Find(&users).Error; err != nil {
 		return nil, nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Error while retrieving users from database",
@@ -101,77 +120,72 @@ func ListUsersService(offset int) (*[]models.User, *int64, *models.ServiceError)
 	return &users, &count, nil
 }
 
-func DeleteUserService(userID string) *models.ServiceError {
-	parsedUserID, err := strconv.ParseInt(userID, 10, 64)
-	if err != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Invalid user ID"}
+func DeleteUserService(data models.DeleteUserRequest) *models.ServiceError {
+	var user models.User
+
+	if err := database.DB.First(&user, "id = ?", data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "User not found",
+			}
+		}
+		return &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
 	}
 
-	if result := database.DB.Delete(&models.User{}, parsedUserID); result.Error != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error occurred while deleting user"}
+	if result := database.DB.Delete(&models.Role{}, data.TargetID); result.Error != nil {
+		return &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error occurred while deleting user",
+		}
 	}
 
 	return nil
 }
 
-func UpdateUserService(requestUserID int64, requestUserRole string, targetUserID string, req models.UpdateUserRequest) *models.ServiceError {
-	targetUserIDInt64, err := strconv.ParseInt(targetUserID, 10, 64)
-	if err != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Could not parse numbers"}
-	}
-
-	if requestUserRole != "admin" && requestUserID != targetUserIDInt64 {
-		return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "You can only update your account"}
-	}
-
-	// Find the target user
+func UpdateUserService(data models.UpdateUserRequest) *models.ServiceError {
 	var user models.User
-	if err := database.DB.First(&user, "id = ?", targetUserID).Error; err != nil {
+
+	if err := database.DB.First(&user, "id = ?", data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 		}
 		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
-	// Update fields that are provided
-	if req.Firstname != nil {
-		user.Firstname = *req.Firstname
+	if data.Firstname != nil {
+		user.Firstname = *data.Firstname
 	}
-	if req.Lastname != nil {
-		user.Lastname = *req.Lastname
+	if data.Lastname != nil {
+		user.Lastname = *data.Lastname
 	}
-	if req.Email != nil {
-		user.Email = *req.Email
+	if data.Email != nil {
+		user.Email = *data.Email
 	}
-	if req.Phone != nil {
-		user.Phone = req.Phone
+	if data.Phone != nil {
+		user.Phone = data.Phone
 	}
-	if req.PhoneRegion != nil {
-		user.PhoneRegion = req.PhoneRegion
+	if data.PhoneRegion != nil {
+		user.PhoneRegion = data.PhoneRegion
 	}
-	if req.Address1 != nil {
-		user.Address1 = req.Address1
+	if data.Address1 != nil {
+		user.Address1 = data.Address1
 	}
-	if req.Address2 != nil {
-		user.Address2 = req.Address2
+	if data.Address2 != nil {
+		user.Address2 = data.Address2
 	}
-	if req.City != nil {
-		user.City = req.City
+	if data.City != nil {
+		user.City = data.City
 	}
-	if req.PostalCode != nil {
-		user.PostalCode = req.PostalCode
-	}
-
-	if req.RoleID != nil {
-		if requestUserRole != "admin" {
-			return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "You are not authorized to change the role of a user"}
-		}
-		user.RoleID = *req.RoleID
+	if data.PostalCode != nil {
+		user.PostalCode = data.PostalCode
 	}
 
-	// Handle password update with hashing
-	if req.Password != nil {
-		password, err := auth.HashPassword(*req.Password)
+	if data.Password != nil {
+		password, err := auth.HashPassword(*data.Password)
 		if err != nil {
 			return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 		}
@@ -179,7 +193,7 @@ func UpdateUserService(requestUserID int64, requestUserRole string, targetUserID
 		user.Salt = password.Salt
 	}
 
-	if err = database.DB.Save(&user).Error; err != nil {
+	if err := database.DB.Save(&user).Error; err != nil {
 		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to update user"}
 	}
 

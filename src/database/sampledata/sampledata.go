@@ -41,7 +41,6 @@ func CreateSampleData() error {
 
 	users := []models.User{
 		{
-			Model:       models.Model{ID: 1},
 			Firstname:   "User1",
 			Lastname:    "User1",
 			Email:       "User1@example.com",
@@ -55,7 +54,6 @@ func CreateSampleData() error {
 			RoleID:      1,
 		},
 		{
-			Model:     models.Model{ID: 2},
 			Firstname: "User2",
 			Lastname:  "User2",
 			Email:     "User2@example.com",
@@ -64,7 +62,6 @@ func CreateSampleData() error {
 			RoleID:    2,
 		},
 		{
-			Model:     models.Model{ID: 3},
 			Firstname: "User3",
 			Lastname:  "User3",
 			Email:     "User3@example.com",
@@ -84,7 +81,6 @@ func CreateSampleData() error {
 
 	arts := []models.Art{
 		{
-			Model:        models.Model{ID: 1},
 			Price:        1000,
 			CurrencyID:   1,
 			CreationYear: 2023,
@@ -94,7 +90,6 @@ func CreateSampleData() error {
 			Available:    true,
 		},
 		{
-			Model:        models.Model{ID: 2},
 			Price:        2000,
 			CurrencyID:   2,
 			CreationYear: 2024,
@@ -110,14 +105,12 @@ func CreateSampleData() error {
 	// Create art translations
 	artTranslations := []models.ArtTranslation{
 		{
-			Model:       models.Model{ID: 1},
 			ArtID:       1,
 			Title:       "Sunset",
 			Description: "A beautiful sunset painting",
 			Text:        "This artwork captures the essence of a summer sunset.",
 		},
 		{
-			Model:       models.Model{ID: 2},
 			ArtID:       1,
 			Title:       "Puesta del sol",
 			Description: "Una hermosa pintura del atardecer",
@@ -131,12 +124,10 @@ func CreateSampleData() error {
 	// Create pictures
 	pictures := []models.Picture{
 		{
-			Model:       models.Model{ID: 1},
 			Name:        "sunset_main",
 			PictureLink: "https://storage.example.com/artworks/sunset_main.jpg",
 		},
 		{
-			Model:       models.Model{ID: 2},
 			Name:        "sunset_detail",
 			PictureLink: "https://storage.example.com/artworks/sunset_detail.jpg",
 		},
@@ -149,14 +140,12 @@ func CreateSampleData() error {
 	priority := 1
 	artPictures := []models.ArtPicture{
 		{
-			Model:     models.Model{ID: 1},
 			ArtID:     1,
 			PictureID: 1,
 			Name:      "Main View",
 			Priority:  &priority,
 		},
 		{
-			Model:     models.Model{ID: 2},
 			ArtID:     1,
 			PictureID: 2,
 			Name:      "Detail View",
@@ -170,12 +159,10 @@ func CreateSampleData() error {
 	// Create saved items
 	saved := []models.Saved{
 		{
-			Model:  models.Model{ID: 1},
 			UserID: 1,
 			ArtID:  1,
 		},
 		{
-			Model:  models.Model{ID: 2},
 			UserID: 2,
 			ArtID:  2,
 		},
@@ -202,14 +189,12 @@ func CreateSampleData() error {
 	// Create translations
 	translations := []models.Translation{
 		{
-			Model:      models.Model{ID: 1},
 			EntityID:   1,
 			LanguageID: 1,
 			Context:    "art_description",
 			Text:       "A beautiful sunset painting in oil",
 		},
 		{
-			Model:      models.Model{ID: 2},
 			EntityID:   1,
 			LanguageID: 2,
 			Context:    "art_description",
