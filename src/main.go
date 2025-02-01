@@ -44,7 +44,7 @@ func main() {
 	}
 
 	// Generate fake data to
-	err = sampledata.CreateSampleData()
+	err = sampledata.SeedDatabase()
 	if err != nil {
 		return
 	}
