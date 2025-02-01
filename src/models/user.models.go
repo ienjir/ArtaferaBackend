@@ -7,9 +7,9 @@ type GetUserByIDRequest struct {
 }
 
 type GetUserByEmailRequest struct {
-	UserID   float64 `json:"-"`
-	UserRole string  `json:"-"`
-	Email    string  `json:"email"`
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	Email    string `json:"email"`
 }
 
 type ListUserRequest struct {

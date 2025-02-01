@@ -12,7 +12,8 @@ func GetUserByID(c *gin.Context) {
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "OrderID is wrong"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not convert ID"})
+		return
 	}
 
 	json.UserID = c.GetInt64("userID")
@@ -37,7 +38,7 @@ func GetUserByID(c *gin.Context) {
 func GetUserByEmail(c *gin.Context) {
 	var json models.GetUserByEmailRequest
 
-	json.UserID = c.GetFloat64("userID")
+	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
 
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -94,7 +95,7 @@ func CreateUser(c *gin.Context) {
 	}
 
 	if err := verifyCreateUserData(json); err != nil {
-		c.JSON(err.StatusCode, err.Message)
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
@@ -129,12 +130,13 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	if err := updateUserService(json); err != nil {
+	user, err := updateUserService(json)
+	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
+	c.JSON(http.StatusOK, gin.H{"user": user})
 	return
 }
 

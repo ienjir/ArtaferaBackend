@@ -32,8 +32,8 @@ const (
 // SoftDeleteModel Base model with soft delete
 type SoftDeleteModel struct {
 	ID        int64          `gorm:"primaryKey;autoIncrement" json:"id"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
@@ -59,7 +59,7 @@ type User struct {
 	Password    []byte     `gorm:"type:bytea;not null" json:"-"`
 	Salt        []byte     `gorm:"type:bytea;not null" json:"-"`
 	LastAccess  *time.Time `json:"last_access,omitempty"`
-	RoleID      int64      `gorm:"not null" json:"role_id"`
+	RoleID      int64      `gorm:"not null;default:1" json:"role_id"`
 	Role        *Role      `gorm:"foreignKey:RoleID;references:ID" json:"role"`
 	Orders      []Order    `gorm:"foreignKey:UserID" json:"orders,omitempty"`
 	Saved       []Saved    `gorm:"foreignKey:UserID" json:"saved,omitempty"`

@@ -7,6 +7,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"gorm.io/gorm"
 	"net/http"
+	"strings"
 )
 
 func getUserByIDService(data models.GetUserByIDRequest) (*models.User, *models.ServiceError) {
@@ -29,18 +30,20 @@ func getUserByIDService(data models.GetUserByIDRequest) (*models.User, *models.S
 	return &user, nil
 }
 
-func getUserByEmailService(Data models.GetUserByEmailRequest) (*models.User, *models.ServiceError) {
+func getUserByEmailService(data models.GetUserByEmailRequest) (*models.User, *models.ServiceError) {
 	var user models.User
 
-	if err := database.DB.Preload("Role").Where("email = ?", Data.Email).First(&user).Error; err != nil {
+	data.Email = strings.ToLower(data.Email)
+
+	if err := database.DB.Preload("Role").Where("email = ?", data.Email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 		}
 		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
-	if Data.UserRole != "admin" {
-		if int(Data.UserID) != int(user.ID) {
+	if data.UserRole != "admin" {
+		if int(data.UserID) != int(user.ID) {
 			return nil, &models.ServiceError{
 				StatusCode: http.StatusUnauthorized,
 				Message:    "You can only see your own account",
@@ -75,6 +78,8 @@ func listUsersService(data models.ListUserRequest) (*[]models.User, *int64, *mod
 func createUserService(data models.CreateUserRequest) (*models.User, *models.ServiceError) {
 	var user models.User
 	var newUser models.User
+
+	data.Email = strings.ToLower(data.Email)
 
 	if err := database.DB.Where("email = ?", data.Email).First(&user).Error; err == nil {
 		return nil, &models.ServiceError{
@@ -120,14 +125,14 @@ func createUserService(data models.CreateUserRequest) (*models.User, *models.Ser
 	return &newUser, nil
 }
 
-func updateUserService(data models.UpdateUserRequest) *models.ServiceError {
+func updateUserService(data models.UpdateUserRequest) (*models.User, *models.ServiceError) {
 	var user models.User
 
-	if err := database.DB.First(&user, "id = ?", data.TargetID).Error; err != nil {
+	if err := database.DB.Preload("Role").First(&user, "id = ?", data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 		}
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	if data.Firstname != nil {
@@ -161,17 +166,17 @@ func updateUserService(data models.UpdateUserRequest) *models.ServiceError {
 	if data.Password != nil {
 		password, err := auth.HashPassword(*data.Password)
 		if err != nil {
-			return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+			return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 		}
 		user.Password = password.Hash
 		user.Salt = password.Salt
 	}
 
 	if err := database.DB.Save(&user).Error; err != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to update user"}
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to update user"}
 	}
 
-	return nil
+	return &user, nil
 }
 
 func deleteUserService(data models.DeleteUserRequest) *models.ServiceError {
