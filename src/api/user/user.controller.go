@@ -24,7 +24,7 @@ func GetUserByID(c *gin.Context) {
 		return
 	}
 
-	user, err := GetUserByIDService(json)
+	user, err := getUserByIDService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -50,7 +50,7 @@ func GetUserByEmail(c *gin.Context) {
 		return
 	}
 
-	user, err := GetUserByEmailService(json)
+	user, err := getUserByEmailService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -75,7 +75,7 @@ func ListAllUsers(c *gin.Context) {
 		return
 	}
 
-	users, count, err := ListUsersService(json)
+	users, count, err := listUsersService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -98,7 +98,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := CreateUserService(json)
+	user, err := createUserService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -129,7 +129,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	if err := UpdateUserService(json); err != nil {
+	if err := updateUserService(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
@@ -155,7 +155,7 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	if err := DeleteUserService(json); err != nil {
+	if err := deleteUserService(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}

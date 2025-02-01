@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"gorm.io/gorm"
 	"net/http"
 	"time"
@@ -35,7 +36,7 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 
 	order = models.Order{
 		OrderDate: time.Now(),
-		UserID:    int64(int(*data.UserID)),
+		UserID:    int64(int(*data.TargetUserID)),
 		ArtID:     int64(int(art.ID)),
 		Status:    models.OrderStatusPending,
 	}
@@ -163,4 +164,64 @@ func listOrderService(data models.ListOrdersRequest) (*[]models.Order, *int64, *
 	}
 
 	return &orders, &count, nil
+}
+
+func updateOrderService(data models.UpdateOrderRequest) (*models.Order, *models.ServiceError) {
+	var order models.Order
+
+	if err := database.DB.First(&order, "id = ?", data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+		}
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	if data.TargetUserID != nil {
+		order.UserID = *data.TargetUserID
+	}
+
+	if data.ArtID != nil {
+		order.ArtID = *data.ArtID
+	}
+
+	if data.Status != nil {
+		// Already gets validated in the validation file
+		status, _ := validation.ValidateStatusString(*data.Status)
+		order.Status = status
+	}
+
+	if err := database.DB.Save(&order).Error; err != nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to update order",
+		}
+	}
+
+	return &order, nil
+}
+
+func deleteOrderService(data models.DeleteOrderRequest) *models.ServiceError {
+	var order models.Order
+
+	if err := database.DB.First(&order, "id = ?", data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "Order not found",
+			}
+		}
+		return &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
+
+	if result := database.DB.Delete(&models.Order{}, data.TargetID); result.Error != nil {
+		return &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error occurred while deleting order",
+		}
+	}
+
+	return nil
 }

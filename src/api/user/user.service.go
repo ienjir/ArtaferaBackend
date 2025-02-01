@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func GetUserByIDService(data models.GetUserByIDRequest) (*models.User, *models.ServiceError) {
+func getUserByIDService(data models.GetUserByIDRequest) (*models.User, *models.ServiceError) {
 	var user models.User
 
 	if err := database.DB.Preload("Role").First(&user, data.TargetID).Error; err != nil {
@@ -29,7 +29,7 @@ func GetUserByIDService(data models.GetUserByIDRequest) (*models.User, *models.S
 	return &user, nil
 }
 
-func GetUserByEmailService(Data models.GetUserByEmailRequest) (*models.User, *models.ServiceError) {
+func getUserByEmailService(Data models.GetUserByEmailRequest) (*models.User, *models.ServiceError) {
 	var user models.User
 
 	if err := database.DB.Preload("Role").Where("email = ?", Data.Email).First(&user).Error; err != nil {
@@ -51,7 +51,7 @@ func GetUserByEmailService(Data models.GetUserByEmailRequest) (*models.User, *mo
 	return &user, nil
 }
 
-func ListUsersService(data models.ListUserRequest) (*[]models.User, *int64, *models.ServiceError) {
+func listUsersService(data models.ListUserRequest) (*[]models.User, *int64, *models.ServiceError) {
 	var users []models.User
 	var count int64
 
@@ -72,7 +72,7 @@ func ListUsersService(data models.ListUserRequest) (*[]models.User, *int64, *mod
 	return &users, &count, nil
 }
 
-func CreateUserService(data models.CreateUserRequest) (*models.User, *models.ServiceError) {
+func createUserService(data models.CreateUserRequest) (*models.User, *models.ServiceError) {
 	var user models.User
 	var newUser models.User
 
@@ -120,7 +120,7 @@ func CreateUserService(data models.CreateUserRequest) (*models.User, *models.Ser
 	return &newUser, nil
 }
 
-func UpdateUserService(data models.UpdateUserRequest) *models.ServiceError {
+func updateUserService(data models.UpdateUserRequest) *models.ServiceError {
 	var user models.User
 
 	if err := database.DB.First(&user, "id = ?", data.TargetID).Error; err != nil {
@@ -174,7 +174,7 @@ func UpdateUserService(data models.UpdateUserRequest) *models.ServiceError {
 	return nil
 }
 
-func DeleteUserService(data models.DeleteUserRequest) *models.ServiceError {
+func deleteUserService(data models.DeleteUserRequest) *models.ServiceError {
 	var user models.User
 
 	if err := database.DB.First(&user, "id = ?", data.TargetID).Error; err != nil {

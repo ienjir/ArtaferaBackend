@@ -62,5 +62,7 @@ func RegisterRoutes(router *gin.Engine) {
 		orderRoutes.GET("/getOrderForUser/:id", order.GetOrdersForUser)
 		orderRoutes.GET("/list", order.ListOrder)
 		orderRoutes.POST("/create", order.CreateOrder)
+		orderRoutes.PUT("/update/:id", order.UpdateOrder)
+		orderRoutes.DELETE("/delete/:id", order.DeleteOrder)
 	}
 }

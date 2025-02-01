@@ -1,38 +1,12 @@
 package order
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
 	"strconv"
 )
-
-func CreateOrder(c *gin.Context) {
-	var json models.CreateOrderRequest
-
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	json.AuthID = c.GetInt64("userID")
-	json.UserRole = c.GetString("userRole")
-
-	// Verify the order creation request
-	if err := verifyCreateOrder(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
-		return
-	}
-
-	// Create the order
-	order, err := createOrderService(json)
-	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"order": order})
-}
 
 func GetOrderByID(c *gin.Context) {
 	var json models.GetOrderByIDRequest
@@ -51,7 +25,7 @@ func GetOrderByID(c *gin.Context) {
 	json.UserID = userID
 	json.UserRole = userRole
 
-	if err = verifyGetOrderByID(json); err != nil {
+	if err = verifyGetOrderByIDRequest(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
@@ -83,7 +57,7 @@ func GetOrdersForUser(c *gin.Context) {
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
 
-	if err := verifyGetOrdersForUser(json); err != nil {
+	if err := verifyGetOrdersForUserRequest(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
@@ -108,7 +82,7 @@ func ListOrder(c *gin.Context) {
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
 
-	if err := verifyListOrders(json); err != nil {
+	if err := verifyListOrdersRequest(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
@@ -121,4 +95,90 @@ func ListOrder(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"count": count, "orders": orders})
 	return
+}
+
+func CreateOrder(c *gin.Context) {
+	var json models.CreateOrderRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	fmt.Printf("tset: %d", json.UserID)
+
+	if err := verifyCreateOrder(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	order, err := createOrderService(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"order": order})
+}
+
+func UpdateOrder(c *gin.Context) {
+	var json models.UpdateOrderRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusInternalServerError, "Could not convert ID")
+		return
+	}
+
+	json.TargetID = targetID
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyUpdateOrderRequest(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	order, err := updateOrderService(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"order": order})
+	return
+}
+
+func DeleteOrder(c *gin.Context) {
+	var json models.DeleteOrderRequest
+
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusInternalServerError, "Could not convert ID")
+		return
+	}
+
+	json.TargetID = targetID
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyDeleteOrderRequest(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	if err := deleteOrderService(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Order2 successfully deleted"})
 }

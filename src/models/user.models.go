@@ -1,5 +1,23 @@
 package models
 
+type GetUserByIDRequest struct {
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	TargetID int64  `json:"-"`
+}
+
+type GetUserByEmailRequest struct {
+	UserID   float64 `json:"-"`
+	UserRole string  `json:"-"`
+	Email    string  `json:"email"`
+}
+
+type ListUserRequest struct {
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	Offset   int64  `json:"offset"`
+}
+
 type CreateUserRequest struct {
 	Firstname   string  `json:"firstname" binding:"required"`
 	Lastname    string  `json:"lastname" binding:"required"`
@@ -30,25 +48,7 @@ type UpdateUserRequest struct {
 	RoleID      *int64  `json:"roleID"`
 }
 
-type ListUserRequest struct {
-	UserID   int64  `json:"-"`
-	UserRole string `json:"-"`
-	Offset   int64  `json:"offset"`
-}
-
-type GetUserByEmailRequest struct {
-	UserID   float64 `json:"-"`
-	UserRole string  `json:"-"`
-	Email    string  `json:"email"`
-}
-
 type DeleteUserRequest struct {
-	UserID   int64  `json:"-"`
-	UserRole string `json:"-"`
-	TargetID int64  `json:"-"`
-}
-
-type GetUserByIDRequest struct {
 	UserID   int64  `json:"-"`
 	UserRole string `json:"-"`
 	TargetID int64  `json:"-"`
