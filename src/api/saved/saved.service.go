@@ -1,4 +1,4 @@
-package art
+package saved
 
 import (
 	"errors"
@@ -8,22 +8,22 @@ import (
 	"net/http"
 )
 
-func getArtByIDService(data models.GetArtByIDRequest) (*models.Art, *models.ServiceError) {
-	var art models.Art
+func getSavedByIDService(data models.GetSavedByID) (*models.Saved, *models.ServiceError) {
+	var saved models.Saved
 
-	if err := database.DB.First(&art, data.TargetID).Error; err != nil {
+	if err := database.DB.Preload("Art").Preload("User").First(&saved, data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &models.ServiceError{
 				StatusCode: http.StatusNotFound,
-				Message:    "Art not found",
+				Message:    "Saved not found",
 			}
 		} else {
 			return nil, &models.ServiceError{
 				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving user",
+				Message:    "Error while retrieving saved",
 			}
 		}
 	}
 
-	return &user, nil
+	return &saved, nil
 }

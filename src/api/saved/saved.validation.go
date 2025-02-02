@@ -1,11 +1,11 @@
-package art
+package saved
 
 import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
 )
 
-func verifyGetArtById(data models.GetArtByIDRequest) *models.ServiceError {
+func verifyGetSavedById(data models.GetSavedByID) *models.ServiceError {
 	if data.UserID < 1 {
 		return &models.ServiceError{
 			StatusCode: http.StatusBadRequest,

@@ -6,6 +6,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/api/language"
 	"github.com/ienjir/ArtaferaBackend/src/api/order"
 	"github.com/ienjir/ArtaferaBackend/src/api/role"
+	"github.com/ienjir/ArtaferaBackend/src/api/saved"
 	"github.com/ienjir/ArtaferaBackend/src/api/user"
 	"github.com/ienjir/ArtaferaBackend/src/middleware"
 )
@@ -63,6 +64,17 @@ func RegisterRoutes(router *gin.Engine) {
 		orderRoutes.GET("/list", order.ListOrder)
 		orderRoutes.POST("/create", order.CreateOrder)
 		orderRoutes.PUT("/update/:id", order.UpdateOrder)
-		orderRoutes.DELETE("/delete/:id", order.DeleteOrder)
+
+		orderAdminRoutes := orderRoutes.Group("")
+		orderAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
+		{
+			orderAdminRoutes.DELETE("/delete/:id", order.DeleteOrder)
+		}
+	}
+
+	savedRoutes := router.Group("/saved")
+	savedRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
+	{
+		savedRoutes.GET("/getByID/:id", saved.GetSavedByID)
 	}
 }
