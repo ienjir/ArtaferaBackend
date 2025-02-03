@@ -69,3 +69,24 @@ func getSavedForUserService(data models.GetSavedForUserRequest) (*[]models.Saved
 
 	return &saved, &user, &count, nil
 }
+
+func listSavedService(data models.ListSavedRequest) (*[]models.Saved, *int64, *models.ServiceError) {
+	var saved []models.Saved
+	var count int64
+
+	if err := database.DB.Preload("Art").Preload("User").Limit(5).Offset(int(data.Offset * 5)).Find(&saved).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving saved from database",
+		}
+	}
+
+	if err := database.DB.Model(&models.Saved{}).Count(&count).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while counting saved in database",
+		}
+	}
+
+	return &saved, &count, nil
+}

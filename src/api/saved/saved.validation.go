@@ -65,3 +65,28 @@ func verifyGetSavedForUserRequest(data models.GetSavedForUserRequest) *models.Se
 
 	return nil
 }
+
+func verifyListSavedRequest(data models.ListSavedRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.Offset < 0 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Offset has to be 0 or more",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed for this route",
+		}
+	}
+
+	return nil
+}

@@ -12,3 +12,9 @@ type GetSavedForUserRequest struct {
 	TargetUserID int64  `json:"-"`
 	Offset       int64  `json:"offset"`
 }
+
+type ListSavedRequest struct {
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	Offset   int64  `jsoǹ:"offset"`
+}
