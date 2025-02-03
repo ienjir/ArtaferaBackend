@@ -90,3 +90,37 @@ func verifyListSavedRequest(data models.ListSavedRequest) *models.ServiceError {
 
 	return nil
 }
+
+func verifyCreateSaved(data models.CreateSavedRequest) *models.ServiceError {
+	if data.TargetUserID == nil {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID is required",
+		}
+	}
+
+	if *data.TargetUserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be over 1",
+		}
+	}
+
+	if data.ArtID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "ArtID has to be over 1",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		if *data.TargetUserID != data.UserID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You can only create orders for your own user account",
+			}
+		}
+	}
+
+	return nil
+}

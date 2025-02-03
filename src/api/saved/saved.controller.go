@@ -86,12 +86,37 @@ func ListOrder(c *gin.Context) {
 		return
 	}
 
-	orders, count, err := listSavedService(json)
+	saved, count, err := listSavedService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"count": count, "orders": orders})
+	c.JSON(http.StatusOK, gin.H{"count": count, "saved": saved})
 	return
+}
+
+func CreateSaved(c *gin.Context) {
+	var json models.CreateSavedRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyCreateSaved(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	saved, err := createSavedService(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"saved": saved})
 }

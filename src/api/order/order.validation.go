@@ -6,40 +6,6 @@ import (
 	"net/http"
 )
 
-func verifyCreateOrder(data models.CreateOrderRequest) *models.ServiceError {
-	if data.TargetUserID == nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID is required",
-		}
-	}
-
-	if *data.TargetUserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
-	}
-
-	if data.ArtID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "ArtID has to be over 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		if *data.TargetUserID != data.UserID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You can only create orders for your own user account",
-			}
-		}
-	}
-
-	return nil
-}
-
 func verifyGetOrderByIDRequest(data models.GetOrderByIDRequest) *models.ServiceError {
 	if data.UserID < 1 {
 		return &models.ServiceError{
@@ -111,6 +77,40 @@ func verifyListOrdersRequest(data models.ListOrdersRequest) *models.ServiceError
 		return &models.ServiceError{
 			StatusCode: http.StatusForbidden,
 			Message:    "You are not allowed for this route",
+		}
+	}
+
+	return nil
+}
+
+func verifyCreateOrder(data models.CreateOrderRequest) *models.ServiceError {
+	if data.TargetUserID == nil {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID is required",
+		}
+	}
+
+	if *data.TargetUserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be over 1",
+		}
+	}
+
+	if data.ArtID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "ArtID has to be over 1",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		if *data.TargetUserID != data.UserID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You can only create orders for your own user account",
+			}
 		}
 	}
 

@@ -10,74 +10,6 @@ import (
 	"time"
 )
 
-func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.ServiceError) {
-	var art models.Art
-	var order models.Order
-
-	if err := database.DB.First(&art, data.ArtID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Art not found",
-			}
-		}
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving art",
-		}
-	}
-
-	if art.Available == false {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusConflict,
-			Message:    "Art is not available",
-		}
-	}
-
-	order = models.Order{
-		OrderDate: time.Now(),
-		UserID:    int64(int(*data.TargetUserID)),
-		ArtID:     int64(int(art.ID)),
-		Status:    models.OrderStatusPending,
-	}
-
-	// Start transaction
-	tx := database.DB.Begin()
-	if tx.Error != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to start transaction",
-		}
-	}
-
-	art.Available = false
-	if err := tx.Save(&art).Error; err != nil {
-		tx.Rollback()
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to update corresponding art",
-		}
-	}
-
-	if err := tx.Create(&order).Error; err != nil {
-		tx.Rollback()
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to save order",
-		}
-	}
-
-	// Commit transaction
-	if err := tx.Commit().Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to commit transaction",
-		}
-	}
-
-	return &order, nil
-}
-
 func getOrderByIDService(data models.GetOrderByIDRequest) (*models.Order, *models.ServiceError) {
 	var order models.Order
 
@@ -167,6 +99,74 @@ func listOrderService(data models.ListOrdersRequest) (*[]models.Order, *int64, *
 	}
 
 	return &orders, &count, nil
+}
+
+func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.ServiceError) {
+	var art models.Art
+	var order models.Order
+
+	if err := database.DB.First(&art, data.ArtID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "Art not found",
+			}
+		}
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving art",
+		}
+	}
+
+	if art.Available == false {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusConflict,
+			Message:    "Art is not available",
+		}
+	}
+
+	order = models.Order{
+		OrderDate: time.Now(),
+		UserID:    int64(int(*data.TargetUserID)),
+		ArtID:     int64(int(art.ID)),
+		Status:    models.OrderStatusPending,
+	}
+
+	// Start transaction
+	tx := database.DB.Begin()
+	if tx.Error != nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to start transaction",
+		}
+	}
+
+	art.Available = false
+	if err := tx.Save(&art).Error; err != nil {
+		tx.Rollback()
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to update corresponding art",
+		}
+	}
+
+	if err := tx.Create(&order).Error; err != nil {
+		tx.Rollback()
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to save order",
+		}
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to commit transaction",
+		}
+	}
+
+	return &order, nil
 }
 
 func updateOrderService(data models.UpdateOrderRequest) (*models.Order, *models.ServiceError) {

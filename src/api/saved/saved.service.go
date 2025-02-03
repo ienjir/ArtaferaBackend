@@ -90,3 +90,62 @@ func listSavedService(data models.ListSavedRequest) (*[]models.Saved, *int64, *m
 
 	return &saved, &count, nil
 }
+
+func createSavedService(data models.CreateSavedRequest) (*models.Saved, *models.ServiceError) {
+	var art models.Art
+	var user models.User
+	var saved models.Saved
+
+	if err := database.DB.First(&art, data.ArtID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "Art not found",
+			}
+		}
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving art",
+		}
+	}
+
+	if err := database.DB.First(&user, data.TargetUserID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "User not found",
+			}
+		}
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving user",
+		}
+	}
+
+	if err := database.DB.Where("user_id = ? AND art_id = ?", user.ID, data.ArtID).First(&saved).Error; err == nil {
+		// Record already exists
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusConflict,
+			Message:    "Art is already saved for this user",
+		}
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while checking existing saved record",
+		}
+	}
+
+	newSaved := models.Saved{
+		UserID: user.ID,
+		ArtID:  data.ArtID,
+	}
+
+	if err := database.DB.Create(&newSaved).Error; err != nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to save record",
+		}
+	}
+
+	return &newSaved, nil
+}
