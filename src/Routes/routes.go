@@ -60,7 +60,7 @@ func RegisterRoutes(router *gin.Engine) {
 	orderRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
 		orderRoutes.GET("/getByID/:id", order.GetOrderByID)
-		orderRoutes.GET("/getOrderForUser/:id", order.GetOrdersForUser)
+		orderRoutes.GET("/getForUser/:id", order.GetOrdersForUser)
 		orderRoutes.GET("/list", order.ListOrder)
 		orderRoutes.POST("/create", order.CreateOrder)
 		orderRoutes.PUT("/update/:id", order.UpdateOrder)
@@ -76,5 +76,6 @@ func RegisterRoutes(router *gin.Engine) {
 	savedRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
 		savedRoutes.GET("/getByID/:id", saved.GetSavedByID)
+		savedRoutes.GET("/getForUser/:id", saved.GetSavedForUser)
 	}
 }

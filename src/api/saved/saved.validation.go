@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func verifyGetSavedById(data models.GetSavedByID) *models.ServiceError {
+func verifyGetSavedById(data models.GetSavedByIDRequest) *models.ServiceError {
 	if data.UserID < 1 {
 		return &models.ServiceError{
 			StatusCode: http.StatusBadRequest,
@@ -25,6 +25,40 @@ func verifyGetSavedById(data models.GetSavedByID) *models.ServiceError {
 			return &models.ServiceError{
 				StatusCode: http.StatusForbidden,
 				Message:    "You are not allowed to see this route",
+			}
+		}
+	}
+
+	return nil
+}
+
+func verifyGetSavedForUserRequest(data models.GetSavedForUserRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.TargetUserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "OrderID has to be at least 1",
+		}
+	}
+
+	if data.Offset < 0 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Offset has to  be 0 or more",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		if data.UserID != data.TargetUserID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You can only see orders for your own user account",
 			}
 		}
 	}

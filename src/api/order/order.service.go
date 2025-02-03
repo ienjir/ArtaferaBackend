@@ -118,7 +118,10 @@ func getOrdersForUserService(data models.GetOrdersForUserRequest) (*[]models.Ord
 				Message:    "User not found",
 			}
 		} else {
-			return nil, nil, nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while retrieving user"}
+			return nil, nil, nil, &models.ServiceError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Error while retrieving user",
+			}
 		}
 	}
 
