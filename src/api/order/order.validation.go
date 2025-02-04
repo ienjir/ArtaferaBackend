@@ -140,6 +140,15 @@ func verifyUpdateOrderRequest(data models.UpdateOrderRequest) *models.ServiceErr
 			}
 		}
 	}
+	
+	if data.UserRole != "admin" {
+		if data.UserID != *data.TargetUserID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You can only see saved for your own user account",
+			}
+		}
+	}
 
 	if data.ArtID != nil {
 		if *data.ArtID < 1 {

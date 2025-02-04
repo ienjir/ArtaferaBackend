@@ -61,12 +61,12 @@ func GetSavedForUser(c *gin.Context) {
 		return
 	}
 
-	orders, user, count, err := getSavedForUserService(json)
+	saved, user, count, err := getSavedForUserService(json)
 	if err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"count": count, "user": user, "orders": orders})
+	c.JSON(http.StatusOK, gin.H{"count": count, "user": user, "saved": saved})
 	return
 }
 
@@ -119,4 +119,37 @@ func CreateSaved(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"saved": saved})
+}
+
+func UpdateSaved(c *gin.Context) {
+	var json models.UpdateSavedRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusInternalServerError, "Could not convert ID")
+		return
+	}
+
+	json.TargetID = targetID
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyUpdateSavedRequest(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	saved, err := updateSavedService(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"saved": saved})
+	return
 }

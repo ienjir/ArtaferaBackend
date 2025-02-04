@@ -149,3 +149,31 @@ func createSavedService(data models.CreateSavedRequest) (*models.Saved, *models.
 
 	return &newSaved, nil
 }
+
+func updateSavedService(data models.UpdateSavedRequest) (*models.Saved, *models.ServiceError) {
+	var saved models.Saved
+
+	if err := database.DB.First(&saved, "id = ?", data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Saved not found"}
+		}
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	if data.TargetUserID != nil {
+		saved.UserID = *data.TargetUserID
+	}
+
+	if data.ArtID != nil {
+		saved.ArtID = *data.ArtID
+	}
+
+	if err := database.DB.Save(&saved).Error; err != nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to update saved",
+		}
+	}
+
+	return &saved, nil
+}

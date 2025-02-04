@@ -58,7 +58,7 @@ func verifyGetSavedForUserRequest(data models.GetSavedForUserRequest) *models.Se
 		if data.UserID != data.TargetUserID {
 			return &models.ServiceError{
 				StatusCode: http.StatusForbidden,
-				Message:    "You can only see orders for your own user account",
+				Message:    "You can only see saved for your own user account",
 			}
 		}
 	}
@@ -117,7 +117,52 @@ func verifyCreateSaved(data models.CreateSavedRequest) *models.ServiceError {
 		if *data.TargetUserID != data.UserID {
 			return &models.ServiceError{
 				StatusCode: http.StatusForbidden,
-				Message:    "You can only create orders for your own user account",
+				Message:    "You can only create saved for your own user account",
+			}
+		}
+	}
+
+	return nil
+}
+
+func verifyUpdateSavedRequest(data models.UpdateSavedRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.TargetID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "TargetID has to be at least 1",
+		}
+	}
+
+	if data.TargetUserID != nil {
+		if *data.TargetUserID < 1 {
+			return &models.ServiceError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "TargetUserID has to be at least 1",
+			}
+		}
+	}
+
+	if data.ArtID != nil {
+		if *data.ArtID < 1 {
+			return &models.ServiceError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "ArtID has to be over 1",
+			}
+		}
+	}
+
+	if data.UserRole != "admin" {
+		if data.UserID != *data.TargetUserID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You can only see saved for your own user account",
 			}
 		}
 	}
