@@ -2,6 +2,7 @@ package saved
 
 import (
 	"errors"
+	"fmt"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"gorm.io/gorm"
@@ -176,4 +177,41 @@ func updateSavedService(data models.UpdateSavedRequest) (*models.Saved, *models.
 	}
 
 	return &saved, nil
+}
+
+func deleteSavedService(data models.DeleteSavedRequest) *models.ServiceError {
+	var saved models.Saved
+
+	if err := database.DB.First(&saved, "id = ?", data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "Saved not found",
+			}
+		}
+		return &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
+
+	fmt.Printf("UserID: %d, TargetID: %d\n", data.UserID, saved.UserID)
+
+	if data.UserRole != "admin" {
+		if saved.UserID != data.UserID {
+			return &models.ServiceError{
+				StatusCode: http.StatusForbidden,
+				Message:    "You are not allowed to see this route",
+			}
+		}
+	}
+
+	if result := database.DB.Delete(&models.Saved{}, saved.ID); result.Error != nil {
+		return &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error occurred while deleting saved",
+		}
+	}
+
+	return nil
 }

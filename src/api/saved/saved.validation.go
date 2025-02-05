@@ -169,3 +169,21 @@ func verifyUpdateSavedRequest(data models.UpdateSavedRequest) *models.ServiceErr
 
 	return nil
 }
+
+func verifyDeleteSavedRequest(data models.DeleteSavedRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.TargetID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "TargetID has to be at least 1",
+		}
+	}
+
+	return nil
+}

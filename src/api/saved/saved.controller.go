@@ -153,3 +153,29 @@ func UpdateSaved(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"saved": saved})
 	return
 }
+
+func DeleteSaved(c *gin.Context) {
+	var json models.DeleteSavedRequest
+
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusInternalServerError, "Could not convert ID")
+		return
+	}
+
+	json.TargetID = targetID
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyDeleteSavedRequest(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	if err := deleteSavedService(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Saved successfully deleted"})
+}

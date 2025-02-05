@@ -79,6 +79,7 @@ func RegisterRoutes(router *gin.Engine) {
 		savedRoutes.GET("/getForUser/:id", saved.GetSavedForUser)
 		savedRoutes.POST("/create", saved.CreateSaved)
 		savedRoutes.PUT("/update/:id", saved.UpdateSaved)
+		savedRoutes.DELETE("/delete/:id", saved.DeleteSaved)
 
 		savedAdminRoutes := savedRoutes.Group("")
 		savedAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
