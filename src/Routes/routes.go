@@ -2,6 +2,7 @@ package Routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/api/artPicture"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/api/language"
 	"github.com/ienjir/ArtaferaBackend/src/api/order"
@@ -17,6 +18,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		authRoutes.POST("/login", auth.Login)
 		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
+		authRoutes.POST("/create", artPicture.UploadFile)
 	}
 
 	// User routes
@@ -86,5 +88,10 @@ func RegisterRoutes(router *gin.Engine) {
 		{
 			savedAdminRoutes.GET("/list", saved.ListOrder)
 		}
+	}
+
+	artPictureRoutes := router.Group("/artPicture")
+	artPictureRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
+	{
 	}
 }

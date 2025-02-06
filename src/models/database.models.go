@@ -44,7 +44,7 @@ type Model struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// User Entities that should be soft deleted
+// User Done
 type User struct {
 	SoftDeleteModel
 	Firstname   string     `gorm:"size:255;not null" json:"firstname" binding:"required"`
@@ -82,13 +82,14 @@ type Art struct {
 	Visible      bool             `gorm:"default:true" json:"-"`
 }
 
-// Role Entities that should be hard deleted
+// Role Done
 type Role struct {
 	Model
 	Name  string `gorm:"column:name;size:255;not null;uniqueIndex" json:"name"`
 	Users []User `gorm:"foreignKey:RoleID" json:"users,omitempty"`
 }
 
+// Language Done
 type Language struct {
 	Model
 	LanguageName    string           `gorm:"size:50;not null;unique" json:"language_name"`
@@ -97,6 +98,7 @@ type Language struct {
 	ArtTranslations []ArtTranslation `gorm:"foreignKey:LanguageID" json:"art_translations,omitempty"`
 }
 
+// Saved Done
 type Saved struct {
 	Model
 	UserID int64 `gorm:"not null;index" json:"user_id"`
@@ -105,6 +107,7 @@ type Saved struct {
 	Art    *Art  `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE" json:"art,omitempty"`
 }
 
+// Order Done
 type Order struct {
 	Model
 	UserID    int64       `gorm:"not null;index" json:"user_id"`
