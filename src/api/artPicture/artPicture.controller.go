@@ -1,34 +1,72 @@
 package artPicture
 
 import (
+	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"log"
+	mino "github.com/ienjir/ArtaferaBackend/src/minio"
 	"net/http"
-	"os"
+	"path/filepath"
+
+	"github.com/gin-gonic/gin"
+	"github.com/minio/minio-go/v7"
 )
 
-const UploadDir = "uploads/"
+const (
+	UploadDir  = "./uploads"
+	BucketName = "artpictures"
+)
 
-func UploadFile(c *gin.Context) {
+func Upload(c *gin.Context) {
+	// Initialize MinIO client
+	minioClient, err := mino.InitMinIO()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize MinIO client"})
+		return
+	}
+
+	// Get the file from the request
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.String(http.StatusBadRequest, "File upload failed")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file"})
 		return
 	}
 
-	// Ensure the upload directory exists
-	if err := os.MkdirAll(UploadDir, os.ModePerm); err != nil {
-		c.String(http.StatusInternalServerError, "Could not create upload directory")
+	// Open the file
+	src, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open file"})
+		return
+	}
+	defer src.Close()
+
+	// Ensure the bucket exists
+	ctx := context.Background()
+	exists, err := minioClient.BucketExists(ctx, BucketName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking bucket existence"})
+		return
+	}
+	if !exists {
+		err = minioClient.MakeBucket(ctx, BucketName, minio.MakeBucketOptions{})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create bucket"})
+			return
+		}
+	}
+
+	// Upload the file to MinIO
+	objectName := filepath.Base(file.Filename)
+	_, err = minioClient.PutObject(ctx, BucketName, objectName, src, file.Size, minio.PutObjectOptions{ContentType: file.Header.Get("Content-Type")})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload file to MinIO"})
 		return
 	}
 
-	dst := UploadDir + file.Filename
-	if err := c.SaveUploadedFile(file, dst); err != nil {
-		c.String(http.StatusInternalServerError, "Failed to save file")
-		return
-	}
-
-	log.Println("File uploaded:", file.Filename)
-	c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
+	// Return the file URL
+	fileURL := fmt.Sprintf("http://%s/%s/%s", minioClient.EndpointURL().Host, BucketName, objectName)
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "File uploaded successfully",
+		"url":      fileURL,
+		"filename": objectName,
+	})
 }

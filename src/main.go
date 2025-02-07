@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/Routes"
+	"github.com/ienjir/ArtaferaBackend/src/api/artPicture"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/database/sampledata"
@@ -48,6 +49,8 @@ func main() {
 	if err != nil {
 		return
 	}
+
+	router.Static("/files", artPicture.UploadDir)
 
 	// Register routes
 	Routes.RegisterRoutes(router)
