@@ -13,8 +13,8 @@ services:
     image: minio/minio:latest
     container_name: minio
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: S3Admin
+      MINIO_ROOT_PASSWORD: AVerySecurePassword
       MINIO_CONSOLE_ADDRESS: ":9001"
     command: server /data --console-address ":9001"
     ports:

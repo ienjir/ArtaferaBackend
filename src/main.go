@@ -7,6 +7,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/database/sampledata"
+	plsthisisjustappackge "github.com/ienjir/ArtaferaBackend/src/minio"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"github.com/joho/godotenv"
 	"log"
@@ -46,6 +47,12 @@ func main() {
 
 	// Generate fake data to
 	err = sampledata.SeedDatabase()
+	if err != nil {
+		return
+	}
+
+	// Initialize the MINIO service
+	err = plsthisisjustappackge.InitMinIO()
 	if err != nil {
 		return
 	}

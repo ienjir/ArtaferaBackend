@@ -1,23 +1,29 @@
-package mino
+package miniobucket
 
 import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"os"
+	"strconv"
 )
 
-func InitMinIO() (*minio.Client, error) {
-	endpoint := "localhost:9000"
-	accessKeyID := "minioadmin"
-	secretAccessKey := "minioadmin"
-	useSSL := false
+var MinioClient *minio.Client
 
-	minioClient, err := minio.New(endpoint, &minio.Options{
+func InitMinIO() error {
+	var err error
+
+	endpoint := os.Getenv("MINIO_ENDPOINT")
+	accessKeyID := os.Getenv("MINIO_ACCESS_KEY_ID")
+	secretAccessKey := os.Getenv("MINIO_SECRET_ACCESS_KEY")
+	useSSL, _ := strconv.ParseBool(os.Getenv("MINIO_USE_SSL"))
+
+	MinioClient, err = minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
 		Secure: useSSL,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return minioClient, nil
+	return nil
 }

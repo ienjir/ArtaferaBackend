@@ -3,7 +3,7 @@ package artPicture
 import (
 	"context"
 	"fmt"
-	mino "github.com/ienjir/ArtaferaBackend/src/minio"
+	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
 	"net/http"
 	"path/filepath"
 
@@ -17,13 +17,6 @@ const (
 )
 
 func Upload(c *gin.Context) {
-	// Initialize MinIO client
-	minioClient, err := mino.InitMinIO()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize MinIO client"})
-		return
-	}
-
 	// Get the file from the request
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -41,13 +34,13 @@ func Upload(c *gin.Context) {
 
 	// Ensure the bucket exists
 	ctx := context.Background()
-	exists, err := minioClient.BucketExists(ctx, BucketName)
+	exists, err := miniobucket.MinioClient.BucketExists(ctx, BucketName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking bucket existence"})
 		return
 	}
 	if !exists {
-		err = minioClient.MakeBucket(ctx, BucketName, minio.MakeBucketOptions{})
+		err = miniobucket.MinioClient.MakeBucket(ctx, BucketName, minio.MakeBucketOptions{})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create bucket"})
 			return
@@ -56,14 +49,14 @@ func Upload(c *gin.Context) {
 
 	// Upload the file to MinIO
 	objectName := filepath.Base(file.Filename)
-	_, err = minioClient.PutObject(ctx, BucketName, objectName, src, file.Size, minio.PutObjectOptions{ContentType: file.Header.Get("Content-Type")})
+	_, err = miniobucket.MinioClient.PutObject(ctx, BucketName, objectName, src, file.Size, minio.PutObjectOptions{ContentType: file.Header.Get("Content-Type")})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload file to MinIO"})
 		return
 	}
 
 	// Return the file URL
-	fileURL := fmt.Sprintf("http://%s/%s/%s", minioClient.EndpointURL().Host, BucketName, objectName)
+	fileURL := fmt.Sprintf("http://%s/%s/%s", miniobucket.MinioClient.EndpointURL().Host, BucketName, objectName)
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "File uploaded successfully",
 		"url":      fileURL,
