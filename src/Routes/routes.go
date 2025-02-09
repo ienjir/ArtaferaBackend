@@ -6,6 +6,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/api/language"
 	"github.com/ienjir/ArtaferaBackend/src/api/order"
+	picture "github.com/ienjir/ArtaferaBackend/src/api/picutre"
 	"github.com/ienjir/ArtaferaBackend/src/api/role"
 	"github.com/ienjir/ArtaferaBackend/src/api/saved"
 	"github.com/ienjir/ArtaferaBackend/src/api/user"
@@ -18,7 +19,6 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		authRoutes.POST("/login", auth.Login)
 		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
-		authRoutes.POST("/create", artPicture.CreateArtPicture)
 	}
 
 	// User routes
@@ -90,8 +90,13 @@ func RegisterRoutes(router *gin.Engine) {
 		}
 	}
 
-	artPictureRoutes := router.Group("/artPicture")
-	artPictureRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
+	pictureRoutes := router.Group("/picture")
 	{
+		pictureRoutes.POST("/create", picture.CreatePicture)
+	}
+
+	artPictureRoutes := router.Group("/artPicture")
+	{
+		artPictureRoutes.POST("/create", artPicture.CreateArtPicture)
 	}
 }

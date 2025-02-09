@@ -23,46 +23,38 @@ func main() {
 		return
 	}
 
-	// Set vars in the packages
 	auth.LoadAuthEnvs()
 	validation.LoadsValidationEnvs()
 
-	// Generate Argon2idHash for password hashing
 	err = auth.GenerateNewArgon2idHash()
 	if err != nil {
 		return
 	}
 
-	// Set proxies
 	err = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 	if err != nil {
 		return
 	}
 
-	// Initialize the database
 	err = database.ConnectDatabase()
 	if err != nil {
 		return
 	}
 
-	// Generate fake data to
-	err = sampledata.SeedDatabase()
+	err = plsthisisjustappackge.InitMinIO()
 	if err != nil {
 		return
 	}
 
-	// Initialize the MINIO service
-	err = plsthisisjustappackge.InitMinIO()
+	err = sampledata.SeedDatabase()
 	if err != nil {
 		return
 	}
 
 	router.Static("/files", artPicture.UploadDir)
 
-	// Register routes
 	Routes.RegisterRoutes(router)
 
-	// Start the server
 	err = router.Run(":8080")
 	if err != nil {
 		return

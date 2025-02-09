@@ -5,6 +5,7 @@ import (
 	"github.com/nyaruka/phonenumbers"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/mail"
 	"os"
@@ -120,4 +121,15 @@ func ValidateStatusString(status string) (models.OrderStatus, *models.ServiceErr
 	default:
 		return "", &models.ServiceError{StatusCode: http.StatusBadRequest, Message: "Order status is invalid"}
 	}
+}
+
+func IsValidImage(file *multipart.FileHeader) bool {
+	allowedExtensions := []string{".jpg", ".jpeg", ".png", ".gif"}
+	ext := strings.ToLower(file.Filename[strings.LastIndex(file.Filename, "."):])
+	for _, validExt := range allowedExtensions {
+		if ext == validExt {
+			return true
+		}
+	}
+	return false
 }
