@@ -1,14 +1,10 @@
 package artPicture
 
 import (
-	"context"
-	"fmt"
-	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
-	"net/http"
-	"path/filepath"
-
 	"github.com/gin-gonic/gin"
-	"github.com/minio/minio-go/v7"
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"net/http"
+	"strconv"
 )
 
 const (
@@ -16,50 +12,38 @@ const (
 	BucketName = "artpictures"
 )
 
-func Upload(c *gin.Context) {
-	// Get the file from the request
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file"})
+func CreateArtPicture(c *gin.Context) {
+	if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form data"})
 		return
 	}
 
-	// Open the file
-	src, err := file.Open()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open file"})
-		return
-	}
-	defer src.Close()
+	artID := c.PostForm("artID")
 
-	// Ensure the bucket exists
-	ctx := context.Background()
-	exists, err := miniobucket.MinioClient.BucketExists(ctx, BucketName)
+	parsedArtID, err := strconv.ParseInt(artID, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking bucket existence"})
-		return
-	}
-	if !exists {
-		err = miniobucket.MinioClient.MakeBucket(ctx, BucketName, minio.MakeBucketOptions{})
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create bucket"})
-			return
-		}
-	}
-
-	// Upload the file to MinIO
-	objectName := filepath.Base(file.Filename)
-	_, err = miniobucket.MinioClient.PutObject(ctx, BucketName, objectName, src, file.Size, minio.PutObjectOptions{ContentType: file.Header.Get("Content-Type")})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload file to MinIO"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid artID format"})
 		return
 	}
 
-	// Return the file URL
-	fileURL := fmt.Sprintf("http://%s/%s/%s", miniobucket.MinioClient.EndpointURL().Host, BucketName, objectName)
-	c.JSON(http.StatusOK, gin.H{
-		"message":  "File uploaded successfully",
-		"url":      fileURL,
-		"filename": objectName,
-	})
+	json := models.CreateArtPictureRequest{
+		ArtID:     parsedArtID,
+		ImageName: c.PostForm("imageName"),
+		UserID:    c.GetInt64("userID"),
+		UserRole:  c.GetString("userRole"),
+	}
+
+	if err := verifyCreateArtPicture(json, c); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	artPicture, err2 := createArtPictureService(json, c)
+	if err2 != nil {
+		c.JSON(err2.StatusCode, gin.H{"error": err2.Message})
+		return
+	}
+
+	// Return success response
+	c.JSON(http.StatusOK, gin.H{"art_picture": artPicture})
 }

@@ -18,7 +18,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		authRoutes.POST("/login", auth.Login)
 		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
-		authRoutes.POST("/create", artPicture.Upload)
+		authRoutes.POST("/create", artPicture.CreateArtPicture)
 	}
 
 	// User routes
