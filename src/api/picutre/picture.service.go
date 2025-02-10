@@ -20,7 +20,6 @@ func createPictureService(data models.CreatePictureRequest, c *gin.Context) (*mo
 		}
 	}
 
-	// Generate new unique file name if name is not provided
 	fileExt := filepath.Ext(file.Filename)
 	imageName := data.ImageName
 	if imageName == "" {
@@ -51,4 +50,8 @@ func createPictureService(data models.CreatePictureRequest, c *gin.Context) (*mo
 	}
 
 	return &picture, nil
+}
+
+func CreatePictureFromRequest(c *gin.Context, requestData models.CreatePictureRequest) (*models.Picture, *models.ServiceError) {
+	return createPictureService(requestData, c)
 }

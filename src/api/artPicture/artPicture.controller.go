@@ -1,10 +1,12 @@
 package artPicture
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	picture "github.com/ienjir/ArtaferaBackend/src/api/picutre"
+	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
-	"strconv"
 )
 
 const (
@@ -13,24 +15,20 @@ const (
 )
 
 func CreateArtPicture(c *gin.Context) {
-	if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form data"})
+	var json models.CreateArtPictureRequest
+	if err := c.ShouldBind(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 		return
 	}
 
-	artID := c.PostForm("artID")
+	fmt.Printf("ArtID: %d \n", json.ArtID)
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
 
-	parsedArtID, err := strconv.ParseInt(artID, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid artID format"})
-		return
-	}
-
-	json := models.CreateArtPictureRequest{
-		ArtID:     parsedArtID,
-		ImageName: c.PostForm("imageName"),
-		UserID:    c.GetInt64("userID"),
-		UserRole:  c.GetString("userRole"),
+	pictureRequest := models.CreatePictureRequest{
+		UserID:    json.UserID,
+		UserRole:  json.UserRole,
+		ImageName: json.ImageName,
 	}
 
 	if err := verifyCreateArtPicture(json, c); err != nil {
@@ -38,12 +36,24 @@ func CreateArtPicture(c *gin.Context) {
 		return
 	}
 
-	artPicture, err2 := createArtPictureService(json, c)
-	if err2 != nil {
-		c.JSON(err2.StatusCode, gin.H{"error": err2.Message})
+	createdPicture, err := picture.CreatePictureFromRequest(c, pictureRequest)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	// Return success response
-	c.JSON(http.StatusOK, gin.H{"art_picture": artPicture})
+	artPicture := models.ArtPicture{
+		ArtID:     json.ArtID,
+		PictureID: createdPicture.ID,
+	}
+
+	if err := database.DB.Create(&artPicture).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create art picture association"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"picture":     createdPicture,
+		"art_picture": artPicture,
+	})
 }

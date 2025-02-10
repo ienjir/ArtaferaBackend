@@ -1,7 +1,6 @@
 package picture
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
@@ -19,8 +18,6 @@ func CreatePicture(c *gin.Context) {
 	}
 
 	priority := c.PostForm("priority")
-
-	fmt.Printf("Priority: %s \n", priority)
 
 	if priority != "" {
 		parsedPriority, err := strconv.Atoi(priority)
