@@ -2,11 +2,9 @@ package Routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/ienjir/ArtaferaBackend/src/api/artPicture"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/api/language"
 	"github.com/ienjir/ArtaferaBackend/src/api/order"
-	picture "github.com/ienjir/ArtaferaBackend/src/api/picutre"
 	"github.com/ienjir/ArtaferaBackend/src/api/role"
 	"github.com/ienjir/ArtaferaBackend/src/api/saved"
 	"github.com/ienjir/ArtaferaBackend/src/api/user"
@@ -91,12 +89,7 @@ func RegisterRoutes(router *gin.Engine) {
 	}
 
 	pictureRoutes := router.Group("/picture")
+	pictureRoutes.Use()
 	{
-		pictureRoutes.POST("/create", picture.CreatePicture)
-	}
-
-	artPictureRoutes := router.Group("/artPicture")
-	{
-		artPictureRoutes.POST("/create", artPicture.CreateArtPicture)
 	}
 }

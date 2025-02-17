@@ -21,10 +21,6 @@ func createPictureService(data models.CreatePictureRequest, c *gin.Context) (*mo
 	}
 
 	fileExt := filepath.Ext(file.Filename)
-	imageName := data.ImageName
-	if imageName == "" {
-		imageName = fmt.Sprintf("picture_%d%s", time.Now().Unix(), fileExt)
-	}
 
 	// Upload image to MinIO
 	filePath, err := utils.UploadToMinio(file, imageName)

@@ -8,7 +8,6 @@ import (
 	"mime/multipart"
 )
 
-// UploadToMinio uploads a file to MinIO and returns the file path.
 func UploadToMinio(file *multipart.FileHeader, fileName string) (string, error) {
 	bucketName := "art-pictures"
 	ctx := context.Background()

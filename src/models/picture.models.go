@@ -1,8 +1,8 @@
 package models
 
 type CreatePictureRequest struct {
-	UserID    int64  `json:"-"`
-	UserRole  string `json:"-"`
-	ImageName string `json:"imageName"`
-	Priority  *int   `json:"priority,omitempty"`
+	Name     string `json:"name" binding:"required"`
+	Priority *int   `json:"priority"`
+	IsPublic bool   `json:"is_public"`
+	Image    []byte `json:"-"`
 }

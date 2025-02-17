@@ -141,10 +141,11 @@ type ArtPicture struct {
 
 type Picture struct {
 	Model
-	Name        string       `gorm:"size:255;not null" json:"name"`
-	Priority    *int         `json:"priority,omitempty"`
-	PictureLink string       `gorm:"size:255;not null" json:"picture_link"`
-	ArtPictures []ArtPicture `gorm:"foreignKey:PictureID" json:"art_pictures,omitempty"`
+	Name        string `gorm:"size:255;not null" json:"name"`
+	Priority    *int   `json:"priority,omitempty"`
+	PictureLink string `gorm:"size:255;not null" json:"picture_link"`
+	IsPublic    bool   `gorm:"default:false" json:"is_public"`
+	BucketPath  string `gorm:"size:255;not null" json:"bucket_path"`
 }
 
 type Currency struct {

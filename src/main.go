@@ -3,11 +3,10 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/Routes"
-	"github.com/ienjir/ArtaferaBackend/src/api/artPicture"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/database/sampledata"
-	plsthisisjustappackge "github.com/ienjir/ArtaferaBackend/src/minio"
+	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"github.com/joho/godotenv"
 	"log"
@@ -41,8 +40,12 @@ func main() {
 		return
 	}
 
-	err = plsthisisjustappackge.InitMinIO()
+	err = miniobucket.InitMinIO()
 	if err != nil {
+		return
+	}
+
+	if err := miniobucket.CreateMinioBuckets(); err != nil {
 		return
 	}
 
@@ -50,8 +53,6 @@ func main() {
 	if err != nil {
 		return
 	}
-
-	router.Static("/files", artPicture.UploadDir)
 
 	Routes.RegisterRoutes(router)
 
