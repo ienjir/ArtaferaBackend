@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -30,10 +31,12 @@ func ConnectDatabase() error {
 	}
 
 	// Drop all tables
-	for _, model := range models.AllModels {
-		err := DB.Migrator().DropTable(model)
-		if err != nil {
-			log.Printf("Failed to drop table: %v", err)
+	if utils.GinMode != 2 {
+		for _, model := range models.AllModels {
+			err := DB.Migrator().DropTable(model)
+			if err != nil {
+				log.Printf("Failed to drop table: %v", err)
+			}
 		}
 	}
 

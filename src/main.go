@@ -1,26 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/Routes"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/database/sampledata"
 	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"github.com/joho/godotenv"
 	"log"
 )
 
 func main() {
-	router := gin.Default()
-
 	// Load env's from .env file
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 		return
 	}
+
+	utils.SetGinMode()
+
+	router := gin.Default()
 
 	auth.LoadAuthEnvs()
 	validation.LoadsValidationEnvs()
@@ -49,9 +53,10 @@ func main() {
 		return
 	}
 
-	err = sampledata.SeedDatabase()
-	if err != nil {
-		return
+	if utils.GinMode != 2 {
+		if err := sampledata.SeedDatabase(); err != nil {
+			fmt.Printf("Error while seeding database: %s", err.Error())
+		}
 	}
 
 	Routes.RegisterRoutes(router)
