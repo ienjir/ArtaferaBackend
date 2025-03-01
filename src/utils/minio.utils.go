@@ -1,38 +1,33 @@
 package utils
 
 import (
-	"context"
-	"fmt"
+	"github.com/gin-gonic/gin"
 	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
+	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/minio/minio-go/v7"
 	"mime/multipart"
+	"net/http"
 )
 
-func UploadToMinio(file *multipart.FileHeader, fileName string) (string, error) {
-	bucketName := "art-pictures"
-	ctx := context.Background()
-
-	// Ensure the bucket exists
-	exists, err := miniobucket.MinioClient.BucketExists(ctx, bucketName)
+func UploadFileToMinio(file multipart.FileHeader, bucketName string, fileName string, context *gin.Context) (*minio.UploadInfo, *models.ServiceError) {
+	openFile, err := file.Open()
 	if err != nil {
-		return "", err
+		return nil,
+			&models.ServiceError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Error while opening file",
+			}
 	}
-	if !exists {
-		_ = miniobucket.MinioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
-	}
+	defer openFile.Close()
 
-	// Open the file
-	src, err := file.Open()
+	info, err := miniobucket.MinioClient.PutObject(context, bucketName, fileName, openFile, file.Size, minio.PutObjectOptions{ContentType: file.Header.Get("Content-Type")})
 	if err != nil {
-		return "", err
-	}
-	defer src.Close()
-
-	// Upload file
-	_, err = miniobucket.MinioClient.PutObject(ctx, bucketName, fileName, src, -1, minio.PutObjectOptions{ContentType: "image/jpeg"})
-	if err != nil {
-		return "", err
+		return nil,
+			&models.ServiceError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Error while saving file",
+			}
 	}
 
-	return fmt.Sprintf("http://localhost:9000/%s/%s", bucketName, fileName), nil
+	return &info, nil
 }

@@ -1,13 +1,12 @@
 package picture
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"net/http"
 )
 
-func verifyCreatePicture(data models.CreatePictureRequest, c *gin.Context) *models.ServiceError {
+func verifyCreatePicture(data models.CreatePictureRequest) *models.ServiceError {
 	if data.Priority != nil {
 		if *data.Priority < 1 {
 			return &models.ServiceError{
@@ -26,18 +25,17 @@ func verifyCreatePicture(data models.CreatePictureRequest, c *gin.Context) *mode
 		}
 	*/
 
-	file, err := c.FormFile("image")
-	if err != nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "No image file uploaded",
-		}
-	}
-
-	if !validation.IsValidImage(file) {
+	if !validation.IsValidImage(&data.Picture) {
 		return &models.ServiceError{
 			StatusCode: http.StatusBadRequest,
 			Message:    "Invalid image format. Allowed formats: jpg, jpeg, png, gif",
+		}
+	}
+
+	if data.BucketName != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
 		}
 	}
 

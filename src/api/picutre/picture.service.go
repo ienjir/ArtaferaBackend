@@ -1,53 +1,39 @@
 package picture
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"net/http"
-	"path/filepath"
-	"time"
+	"strconv"
 )
 
-func createPictureService(data models.CreatePictureRequest, c *gin.Context) (*models.Picture, *models.ServiceError) {
-	file, err := c.FormFile("image")
-	if err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "File upload failed",
-		}
+func createPictureService(data models.CreatePictureRequest, context *gin.Context) (*models.Picture, *models.ServiceError) {
+	if data.Name != "" {
+		data.Name = data.Picture.Filename
 	}
 
-	fileExt := filepath.Ext(file.Filename)
-
-	// Upload image to MinIO
-	filePath, err := utils.UploadToMinio(file, imageName)
-	if err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to upload image",
-		}
-	}
-
-	// Create Picture record in the database
 	picture := models.Picture{
-		Name:        imageName,
-		Priority:    data.Priority,
-		PictureLink: filePath,
+		Name:     data.Name,
+		Priority: data.Priority,
+		IsPublic: data.IsPublic,
 	}
 
-	if err := database.DB.Create(&picture).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to save Picture in the database",
-		}
+	if db := database.DB.Create(&picture); db.Error != nil {
+		return nil,
+			&models.ServiceError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Failed to save picture",
+			}
+	}
+
+	bucketFileName := strconv.Itoa(int(picture.ID))
+
+	_, err := utils.UploadFileToMinio(data.Picture, data.BucketName, bucketFileName, context)
+	if err != nil {
+		return nil, err
 	}
 
 	return &picture, nil
-}
-
-func CreatePictureFromRequest(c *gin.Context, requestData models.CreatePictureRequest) (*models.Picture, *models.ServiceError) {
-	return createPictureService(requestData, c)
 }

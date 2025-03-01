@@ -210,11 +210,11 @@ func SeedDatabase() error {
 
 	// Pictures
 	pictures := []models.Picture{
-		{Name: "sunset_main", Priority: intPtr(1), PictureLink: "/images/sunset_1.jpg"},
-		{Name: "sunset_detail", Priority: intPtr(2), PictureLink: "/images/sunset_2.jpg"},
-		{Name: "mountain_main", Priority: intPtr(1), PictureLink: "/images/mountain_1.jpg"},
-		{Name: "forest_main", Priority: intPtr(1), PictureLink: "/images/forest_1.jpg"},
-		{Name: "city_main", Priority: intPtr(1), PictureLink: "/images/city_1.jpg"},
+		{Name: "sunset_main", Priority: intPtr(1)},
+		{Name: "sunset_detail", Priority: intPtr(2)},
+		{Name: "mountain_main", Priority: intPtr(1)},
+		{Name: "forest_main", Priority: intPtr(1)},
+		{Name: "city_main", Priority: intPtr(1)},
 	}
 	if err := database.DB.Create(&pictures).Error; err != nil {
 		return err
