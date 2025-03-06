@@ -9,15 +9,21 @@ import (
 	"strconv"
 )
 
+var wrong = false
+
 func createPictureService(data models.CreatePictureRequest, context *gin.Context) (*models.Picture, *models.ServiceError) {
-	if data.Name != "" {
-		data.Name = data.Picture.Filename
+	if data.Name != nil {
+		data.Name = &data.Picture.Filename
+	}
+
+	if data.IsPublic == nil {
+		data.IsPublic = &wrong
 	}
 
 	picture := models.Picture{
-		Name:     data.Name,
+		Name:     *data.Name,
 		Priority: data.Priority,
-		IsPublic: data.IsPublic,
+		IsPublic: *data.IsPublic,
 	}
 
 	if db := database.DB.Create(&picture); db.Error != nil {

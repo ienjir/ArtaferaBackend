@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/ienjir/ArtaferaBackend/src/Routes"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/database/sampledata"
 	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
+	"github.com/ienjir/ArtaferaBackend/src/routes"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"github.com/joho/godotenv"
@@ -59,7 +59,7 @@ func main() {
 		}
 	}
 
-	Routes.RegisterRoutes(router)
+	routes.RegisterRoutes(router)
 
 	err = router.Run(":8080")
 	if err != nil {

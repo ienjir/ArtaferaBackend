@@ -142,7 +142,7 @@ type ArtPicture struct {
 type Picture struct {
 	Model
 	Name     string `gorm:"size:255;not null" json:"name"`
-	Priority *int   `json:"priority,omitempty"`
+	Priority *int64 `json:"priority,omitempty"`
 	IsPublic bool   `gorm:"default:false" json:"is_public"`
 }
 

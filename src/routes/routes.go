@@ -1,11 +1,11 @@
-package Routes
+package routes
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/api/language"
 	"github.com/ienjir/ArtaferaBackend/src/api/order"
-	picture "github.com/ienjir/ArtaferaBackend/src/api/picutre"
+	picture "github.com/ienjir/ArtaferaBackend/src/api/picture"
 	"github.com/ienjir/ArtaferaBackend/src/api/role"
 	"github.com/ienjir/ArtaferaBackend/src/api/saved"
 	"github.com/ienjir/ArtaferaBackend/src/api/user"

@@ -1,7 +1,6 @@
 package order
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
@@ -107,8 +106,6 @@ func CreateOrder(c *gin.Context) {
 
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
-
-	fmt.Printf("tset: %d", json.UserID)
 
 	if err := verifyCreateOrder(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
