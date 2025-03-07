@@ -90,8 +90,9 @@ func RegisterRoutes(router *gin.Engine) {
 	}
 
 	pictureRoutes := router.Group("/picture")
-	pictureRoutes.Use()
+	pictureRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
+		pictureRoutes.GET("/get/:id", picture.GetPictureByID)
 		pictureRoutes.POST("/create", picture.CreatePicture)
 	}
 }
