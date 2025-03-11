@@ -17,6 +17,7 @@ var wrong = false
 func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Context) (*models.Picture, *minio.Object, *models.ServiceError) {
 	var picture models.Picture
 	var returnMinioFile *minio.Object
+	var bucketName string
 
 	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -32,7 +33,13 @@ func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Conte
 		}
 	}
 
-	if minioFile, err := utils.GetFileFromMinio(data.BucketName, strconv.FormatInt(picture.ID, 10), context); err != nil {
+	if picture.IsPublic {
+		bucketName = data.PublicBucket
+	} else {
+		bucketName = data.PrivateBucket
+	}
+
+	if minioFile, err := utils.GetFileFromMinio(bucketName, strconv.FormatInt(picture.ID, 10), context); err != nil {
 		return nil, nil, err
 	} else {
 		returnMinioFile = minioFile
@@ -42,18 +49,31 @@ func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Conte
 }
 
 func createPictureService(data models.CreatePictureRequest, context *gin.Context) (*models.Picture, *models.ServiceError) {
+	var isPublic bool
+	var bucketName string
+
 	if data.Name != nil {
 		data.Name = &data.Picture.Filename
 	}
 
-	if data.IsPublic == nil {
-		data.IsPublic = &wrong
+	switch {
+	case data.IsPublic == nil:
+		isPublic = false
+		bucketName = data.PrivateBucket
+
+	case *data.IsPublic:
+		isPublic = true
+		bucketName = data.PublicBucket
+
+	default:
+		isPublic = false
+		bucketName = data.PrivateBucket
 	}
 
 	picture := models.Picture{
 		Name:     *data.Name,
 		Priority: data.Priority,
-		IsPublic: *data.IsPublic,
+		IsPublic: isPublic,
 	}
 
 	if db := database.DB.Create(&picture); db.Error != nil {
@@ -66,7 +86,7 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 
 	bucketFileName := strconv.Itoa(int(picture.ID))
 
-	_, err := utils.UploadFileToMinio(data.Picture, data.BucketName, bucketFileName, context)
+	_, err := utils.UploadFileToMinio(data.Picture, bucketName, bucketFileName, context)
 	if err != nil {
 		return nil, err
 	}

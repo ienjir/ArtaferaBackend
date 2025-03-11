@@ -21,7 +21,14 @@ func verifyGetPictureByIDRequest(data models.GetPictureByIDRequest) *models.Serv
 		}
 	}
 
-	if data.BucketName != "" {
+	if data.PublicBucket != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
+		}
+	}
+
+	if data.PrivateBucket != "" {
 		return &models.ServiceError{
 			StatusCode: http.StatusForbidden,
 			Message:    "You are not allowed to send with a bucket name",
@@ -39,7 +46,14 @@ func verifyGetPictureByIDRequest(data models.GetPictureByIDRequest) *models.Serv
 }
 
 func verifyGetPictureByNameRequest(data models.GetPictureByNameRequest) *models.ServiceError {
-	if data.BucketName != "" {
+	if data.PublicBucket != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
+		}
+	}
+
+	if data.PrivateBucket != "" {
 		return &models.ServiceError{
 			StatusCode: http.StatusForbidden,
 			Message:    "You are not allowed to send with a bucket name",
@@ -82,7 +96,14 @@ func verifyCreatePicture(data models.CreatePictureRequest) *models.ServiceError 
 		}
 	}
 
-	if data.BucketName != "" {
+	if data.PublicBucket != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
+		}
+	}
+
+	if data.PrivateBucket != "" {
 		return &models.ServiceError{
 			StatusCode: http.StatusForbidden,
 			Message:    "You are not allowed to send with a bucket name",

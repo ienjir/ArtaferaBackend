@@ -3,23 +3,26 @@ package models
 import "mime/multipart"
 
 type GetPictureByIDRequest struct {
-	UserID     int64  `json:"-"`
-	UserRole   string `json:"-"`
-	TargetID   int64  `json:"-"`
-	BucketName string `json:"-"`
+	UserID        int64  `json:"-"`
+	UserRole      string `json:"-"`
+	TargetID      int64  `json:"-"`
+	PublicBucket  string `json:"-"`
+	PrivateBucket string `json:"-"`
 }
 
 type GetPictureByNameRequest struct {
-	UserID     int64  `json:"-"`
-	UserRole   string `json:"-"`
-	Name       string `json:"name"`
-	BucketName string `json:"-"`
+	UserID        int64  `json:"-"`
+	UserRole      string `json:"-"`
+	Name          string `json:"name"`
+	PublicBucket  string `json:"-"`
+	PrivateBucket string `json:"-"`
 }
 
 type CreatePictureRequest struct {
-	Name       *string              `json:"name" form:"name"`
-	Priority   *int64               `json:"priority" from:"priority"`
-	IsPublic   *bool                `json:"isPublic;default:false" form:"isPublic"`
-	Picture    multipart.FileHeader `json:"-"`
-	BucketName string               `json:"-"`
+	Name          *string              `json:"name" form:"name"`
+	Priority      *int64               `json:"priority" from:"priority"`
+	IsPublic      *bool                `json:"isPublic;default:false" form:"isPublic"`
+	Picture       multipart.FileHeader `json:"-"`
+	PublicBucket  string               `json:"-"`
+	PrivateBucket string               `json:"-"`
 }

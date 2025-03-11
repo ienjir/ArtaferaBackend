@@ -10,7 +10,8 @@ import (
 	"strconv"
 )
 
-var bucketName = "pictures"
+var publicBucket = "pictures"
+var privateBucket = "pictures-p"
 
 func GetPictureByID(c *gin.Context) {
 	var json models.GetPictureByIDRequest
@@ -30,7 +31,8 @@ func GetPictureByID(c *gin.Context) {
 		return
 	}
 
-	json.BucketName = bucketName
+	json.PublicBucket = publicBucket
+	json.PrivateBucket = privateBucket
 
 	picture, minioFile, err := getPictureByIDService(json, c)
 	if err != nil {
@@ -66,7 +68,7 @@ func GetPictureByName(c *gin.Context) {
 		return
 	}
 
-	json.BucketName = bucketName
+	json.PublicBucket = publicBucket
 
 }
 
@@ -114,7 +116,8 @@ func CreatePicture(c *gin.Context) {
 		return
 	}
 
-	json.BucketName = bucketName
+	json.PublicBucket = publicBucket
+	json.PrivateBucket = privateBucket
 
 	pictureDB, srvErr := createPictureService(json, c)
 	if srvErr != nil {
