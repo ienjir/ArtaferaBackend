@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
@@ -42,6 +43,7 @@ func GetUserByEmail(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := c.ShouldBindJSON(&json); err != nil {
+		fmt.Printf("Email: %s \n", json.Email)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

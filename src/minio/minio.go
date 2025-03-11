@@ -33,6 +33,7 @@ func InitMinIO() error {
 		return err
 	}
 
+	log.Println("Successfully initialized minio client")
 	return nil
 }
 
@@ -57,5 +58,6 @@ func CreateMinioBuckets() error {
 		}
 	}
 
+	log.Println("Successfully created minio buckets")
 	return nil
 }

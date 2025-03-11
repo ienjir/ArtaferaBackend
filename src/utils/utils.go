@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"os"
 )
 
@@ -34,4 +35,19 @@ func SetGinMode() {
 		os.Exit(1)
 	}
 
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*") // Allow all domains
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+
+		c.Next()
+	}
 }

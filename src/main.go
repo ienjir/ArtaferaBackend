@@ -25,6 +25,7 @@ func main() {
 	utils.SetGinMode()
 
 	router := gin.Default()
+	router.Use(utils.CORSMiddleware())
 
 	auth.LoadAuthEnvs()
 	validation.LoadsValidationEnvs()

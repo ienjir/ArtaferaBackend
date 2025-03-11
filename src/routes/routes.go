@@ -25,7 +25,7 @@ func RegisterRoutes(router *gin.Engine) {
 	userRoutes.Use(middleware.RoleAuthMiddleware("admin", "user"))
 	{
 		userRoutes.GET("/getByID/:id", user.GetUserByID)
-		userRoutes.GET("/getByEmail", user.GetUserByEmail)
+		userRoutes.POST("/getByEmail", user.GetUserByEmail)
 		userRoutes.POST("/create", user.CreateUser)
 		userRoutes.PUT("/update/:id", user.UpdateUser)
 		userRoutes.DELETE("/delete/:id", user.DeleteUser)

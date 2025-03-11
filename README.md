@@ -12,7 +12,7 @@ To start the Artafera backend you the following things:
 - Go 1.23.2
 - Docker
 
-Run `go mod tidy` to install all dependency's. Then run `docker compose up -d` to start the postgres and minio services, but only if you are not in production. <br>ä
+Run `go mod tidy` to install all dependency's. Then run `docker compose up -d` to start the postgres and minio services, but only if you are not in production. <br>
 Afterwards go to <a href="localhost:9000">`localhost:9000`</a>, log in with the credentials and generate an access/private token and put them in the `.env` file.
 
 #### Database
@@ -26,7 +26,7 @@ Afterwards go to <a href="localhost:9000">`localhost:9000`</a>, log in with the 
 ### MinIO
 - Port: `9000`
 - Admin page: `localhost:9001`
-- User: `MinIOAdmin`
+- User: `S3Admin`
 - Password: `AVerySecurePassword`
 
 ## Production

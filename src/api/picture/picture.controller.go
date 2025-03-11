@@ -41,7 +41,6 @@ func GetPictureByID(c *gin.Context) {
 		return
 	}
 
-	// Read the MinIO file content into memory
 	buf := new(bytes.Buffer)
 	_, err2 := io.Copy(buf, minioFile)
 	if err2 != nil {
@@ -49,10 +48,8 @@ func GetPictureByID(c *gin.Context) {
 		return
 	}
 
-	// Encode the file content to Base64
 	base64File := base64.StdEncoding.EncodeToString(buf.Bytes())
 
-	// Return JSON with picture and file content
 	c.JSON(http.StatusOK, gin.H{
 		"data":    picture,
 		"picture": base64File,
