@@ -50,14 +50,21 @@ func main() {
 		return
 	}
 
-	if err := miniobucket.CreateMinioBuckets(); err != nil {
-		return
-	}
-
 	if utils.GinMode != 2 {
 		if err := sampledata.SeedDatabase(); err != nil {
 			fmt.Printf("Error while seeding database: %s", err.Error())
 		}
+	}
+
+	if utils.GinMode != 2 {
+		log.Println("Deleting all buckets")
+		if err := miniobucket.DeleteAllBuckets(); err != nil {
+			return
+		}
+	}
+
+	if err := miniobucket.CreateMinioBuckets(); err != nil {
+		return
 	}
 
 	routes.RegisterRoutes(router)

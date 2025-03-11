@@ -2,7 +2,6 @@ package picture
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
@@ -26,8 +25,6 @@ func GetPictureByID(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 	json.TargetID = targetID
 
-	fmt.Println(json.UserID)
-
 	if err := verifyGetPictureByIDRequest(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
@@ -48,12 +45,29 @@ func GetPictureByID(c *gin.Context) {
 		return
 	}
 
-	base64File := base64.StdEncoding.EncodeToString(buf.Bytes())
-
-	c.JSON(http.StatusOK, gin.H{
-		"data":    picture,
-		"picture": base64File,
+	c.JSONP(http.StatusOK, gin.H{
+		"data": picture,
 	})
+}
+
+func GetPictureByName(c *gin.Context) {
+	var json models.GetPictureByNameRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyGetPictureByNameRequest(json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Message})
+		return
+	}
+
+	json.BucketName = bucketName
+
 }
 
 func CreatePicture(c *gin.Context) {

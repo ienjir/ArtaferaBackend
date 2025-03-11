@@ -21,10 +21,35 @@ func verifyGetPictureByIDRequest(data models.GetPictureByIDRequest) *models.Serv
 		}
 	}
 
+	if data.BucketName != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
+		}
+	}
+
 	if data.UserRole != "admin" {
 		return &models.ServiceError{
 			StatusCode: http.StatusForbidden,
 			Message:    "You are not allowed to see this route",
+		}
+	}
+
+	return nil
+}
+
+func verifyGetPictureByNameRequest(data models.GetPictureByNameRequest) *models.ServiceError {
+	if data.BucketName != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
+		}
+	}
+
+	if data.Name == "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Name is required",
 		}
 	}
 

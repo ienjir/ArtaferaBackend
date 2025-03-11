@@ -11,9 +11,17 @@ import (
 
 func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Check for all
+		for _, role := range allowedRoles {
+			if role == "all" {
+				c.Next()
+			}
+		}
+
 		// Get the Authorization header
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+		isEmpty := isValidBearer(authHeader)
+		if authHeader == "" || !isEmpty {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
 				StatusCode: http.StatusUnauthorized,
 				Message:    "Authorization header is required",
@@ -82,4 +90,14 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		c.Set("userRole", userRole)
 		c.Next()
 	}
+}
+
+func isValidBearer(token string) bool {
+	if !strings.HasPrefix(token, "Bearer") {
+		return false
+	}
+
+	remainder := token[6:]
+
+	return strings.TrimSpace(remainder) == ""
 }

@@ -8,6 +8,14 @@ type GetPictureByIDRequest struct {
 	TargetID   int64  `json:"-"`
 	BucketName string `json:"-"`
 }
+
+type GetPictureByNameRequest struct {
+	UserID     int64  `json:"-"`
+	UserRole   string `json:"-"`
+	Name       string `json:"name"`
+	BucketName string `json:"-"`
+}
+
 type CreatePictureRequest struct {
 	Name       *string              `json:"name" form:"name"`
 	Priority   *int64               `json:"priority" from:"priority"`
