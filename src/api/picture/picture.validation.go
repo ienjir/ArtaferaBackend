@@ -7,20 +7,6 @@ import (
 )
 
 func verifyGetPictureByIDRequest(data models.GetPictureByIDRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be at least 1",
-		}
-	}
-
 	if data.PublicBucket != "" {
 		return &models.ServiceError{
 			StatusCode: http.StatusForbidden,
@@ -32,13 +18,6 @@ func verifyGetPictureByIDRequest(data models.GetPictureByIDRequest) *models.Serv
 		return &models.ServiceError{
 			StatusCode: http.StatusForbidden,
 			Message:    "You are not allowed to send with a bucket name",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to see this route",
 		}
 	}
 
@@ -47,13 +26,6 @@ func verifyGetPictureByIDRequest(data models.GetPictureByIDRequest) *models.Serv
 
 func verifyGetPictureByNameRequest(data models.GetPictureByNameRequest) *models.ServiceError {
 	if data.PublicBucket != "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to send with a bucket name",
-		}
-	}
-
-	if data.PrivateBucket != "" {
 		return &models.ServiceError{
 			StatusCode: http.StatusForbidden,
 			Message:    "You are not allowed to send with a bucket name",
@@ -80,14 +52,12 @@ func verifyCreatePicture(data models.CreatePictureRequest) *models.ServiceError 
 		}
 	}
 
-	/*
-		if data.UserRole != "admin" {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "Only admins can upload pictures",
-			}
+	if data.UserRole != "admin" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "Only admins can upload pictures",
 		}
-	*/
+	}
 
 	if !validation.IsValidImage(&data.Picture) {
 		return &models.ServiceError{

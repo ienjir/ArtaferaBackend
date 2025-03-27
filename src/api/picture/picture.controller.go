@@ -22,8 +22,8 @@ func GetPictureByID(c *gin.Context) {
 		return
 	}
 
-	json.UserID = c.GetInt64("userID")
-	json.UserRole = c.GetString("userRole")
+	// json.UserID = c.GetInt64("userID")
+	// json.UserRole = c.GetString("userRole")
 	json.TargetID = targetID
 
 	if err := verifyGetPictureByIDRequest(json); err != nil {

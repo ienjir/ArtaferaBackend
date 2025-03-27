@@ -1,52 +1,39 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	jwt2 "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
-	"strings"
 )
 
 func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Check for all
 		for _, role := range allowedRoles {
 			if role == "all" {
+				fmt.Println("Access granted to all")
 				c.Next()
+				return
 			}
 		}
 
-		// Get the Authorization header
-		authHeader := c.GetHeader("Authorization")
-		isEmpty := isValidBearer(authHeader)
-		if authHeader == "" || !isEmpty {
+		accessToken, err := c.Cookie("access_token")
+		if err != nil || accessToken == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
 				StatusCode: http.StatusUnauthorized,
-				Message:    "Authorization header is required",
+				Message:    "Access token is required",
 			})
 			return
 		}
 
-		// Check if the header starts with "Bearer "
-		bearerToken := strings.Split(authHeader, " ")
-		if len(bearerToken) != 2 || bearerToken[0] != "Bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
-				StatusCode: http.StatusUnauthorized,
-				Message:    "Invalid authorization header format",
-			})
-			return
-		}
-
-		// Verify the access token
-		token, serviceErr := auth.VerifyAccessToken(bearerToken[1])
+		token, serviceErr := auth.VerifyAccessToken(accessToken)
 		if serviceErr != nil {
 			c.AbortWithStatusJSON(serviceErr.StatusCode, gin.H{"error": serviceErr.Message})
 			return
 		}
 
-		// Extract claims
 		claims, ok := token.Claims.(jwt2.MapClaims)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
@@ -56,7 +43,6 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
-		// Get user role from claims
 		userRole, ok := claims["role"].(string)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
@@ -68,7 +54,6 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		userID, ok := claims["id"].(float64)
 
-		// Check if user role is in allowed roles
 		roleAllowed := false
 		for _, role := range allowedRoles {
 			if role == userRole {
@@ -84,20 +69,10 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		userIDInt := int64(userID)
 
-		// Store user information in context for later use
+		// Store user info in context
 		c.Set("userID", userIDInt)
 		c.Set("userEmail", claims["email"])
 		c.Set("userRole", userRole)
 		c.Next()
 	}
-}
-
-func isValidBearer(token string) bool {
-	if !strings.HasPrefix(token, "Bearer") {
-		return false
-	}
-
-	remainder := token[6:]
-
-	return strings.TrimSpace(remainder) == ""
 }

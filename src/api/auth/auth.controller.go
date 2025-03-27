@@ -5,6 +5,7 @@ import (
 	_ "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
+	"time"
 )
 
 var Argon2IDHash Argon2idHash
@@ -42,7 +43,10 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": jwt})
+	c.SetCookie("access_token", jwt.AccessToken, int(time.Minute*30/time.Second), "/", "", false, true)
+	c.SetCookie("refresh_token", jwt.RefreshToken, int(time.Hour*24*7/time.Second), "/", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
 }
 
 func RefreshTokenHandler(c *gin.Context) {
