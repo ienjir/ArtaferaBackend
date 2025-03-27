@@ -18,6 +18,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		authRoutes.POST("/login", auth.Login)
 		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
+    authRoutes.GET("/me", auth.Me)
 	}
 
 	// User routes
