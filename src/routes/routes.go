@@ -34,7 +34,7 @@ func RegisterRoutes(router *gin.Engine) {
 		userAdminRoutes := userRoutes.Group("")
 		userAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 		{
-			userAdminRoutes.GET("/list", user.ListAllUsers)
+			userAdminRoutes.POST("/list", user.ListAllUsers)
 		}
 	}
 
