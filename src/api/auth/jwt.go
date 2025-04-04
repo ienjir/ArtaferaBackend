@@ -30,14 +30,23 @@ func LoadAuthEnvs() {
 	}
 }
 
-func GenerateTokenPair(user models.User) (*TokenPair, *models.ServiceError) {
-	// Generate access token
+func GenerateTokenPair(user models.User, rememberMe bool) (*TokenPair, *models.ServiceError) {
+	var accessTokenExpiry, refreshTokenExpiry time.Duration
+
+	if rememberMe {
+		accessTokenExpiry = time.Hour * 24 * 30
+		refreshTokenExpiry = time.Hour * 24 * 30
+	} else {
+		accessTokenExpiry = time.Hour
+		refreshTokenExpiry = time.Hour * 24
+	}
+
 	accessToken := jwt2.NewWithClaims(jwt2.SigningMethodHS256, jwt2.MapClaims{
 		"email": user.Email,
 		"id":    user.ID,
 		"role":  user.Role.Name,
 		"type":  "access",
-		"exp":   time.Now().Add(30 * time.Minute).Unix(),
+		"exp":   time.Now().Add(accessTokenExpiry).Unix(),
 	})
 
 	accessTokenString, err := accessToken.SignedString(JWTAccessSecret)
@@ -48,11 +57,10 @@ func GenerateTokenPair(user models.User) (*TokenPair, *models.ServiceError) {
 		}
 	}
 
-	// Generate refresh token
 	refreshToken := jwt2.NewWithClaims(jwt2.SigningMethodHS256, jwt2.MapClaims{
 		"id":   user.ID,
 		"type": "refresh",
-		"exp":  time.Now().Add(168 * time.Hour).Unix(), // 7 days
+		"exp":  time.Now().Add(refreshTokenExpiry).Unix(),
 	})
 
 	refreshTokenString, err := refreshToken.SignedString(JWTRefreshSecret)
@@ -126,5 +134,5 @@ func RefreshTokens(refreshToken string) (*TokenPair, *models.ServiceError) {
 	if err := database.DB.Preload("Role").Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 	}
-	return GenerateTokenPair(user)
+	return GenerateTokenPair(user, false)
 }

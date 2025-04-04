@@ -23,13 +23,8 @@ func HashPassword(password string) (*HashSalt, error) {
 
 func Login(c *gin.Context) {
 	var json models.LoginRequest
-	if jsonErr := c.ShouldBindJSON(&json); jsonErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": jsonErr.Error()})
-		return
-	}
-
-	if err := VerifyLoginData(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -39,16 +34,35 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	jwt, err2 := GenerateTokenPair(*user)
-	if err2 != nil {
-		c.JSON(err2.StatusCode, gin.H{"error": err2.Message})
+	rememberMe := json.RememberMe
+	var jwt *TokenPair
+
+	if rememberMe {
+		jwt, err = GenerateTokenPair(*user, true)
+	} else {
+		jwt, err = GenerateTokenPair(*user, false)
+	}
+
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
 		return
 	}
 
-	c.SetCookie("access_token", jwt.AccessToken, int(time.Minute*30/time.Second), "/", "", false, true)
-	c.SetCookie("refresh_token", jwt.RefreshToken, int(time.Hour*24*7/time.Second), "/", "", false, true)
+	var accessTokenExpiry, refreshTokenExpiry time.Duration
+	if rememberMe {
+		accessTokenExpiry = time.Hour * 24 * 30
+		refreshTokenExpiry = time.Hour * 24 * 30
+	} else {
+		accessTokenExpiry = time.Hour
+		refreshTokenExpiry = time.Hour * 24
+	}
+	c.SetCookie("access_token", jwt.AccessToken, int(accessTokenExpiry/time.Second), "/", "", false, true)
+	c.SetCookie("refresh_token", jwt.RefreshToken, int(refreshTokenExpiry/time.Second), "/", "", false, true)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  jwt.AccessToken,
+		"refresh_token": jwt.RefreshToken,
+	})
 }
 
 func RefreshTokenHandler(c *gin.Context) {
