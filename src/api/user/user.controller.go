@@ -6,6 +6,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func GetUserByID(c *gin.Context) {
@@ -47,6 +48,8 @@ func GetUserByEmail(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	json.Email = strings.ToLower(json.Email)
 
 	if err := verifyGetUserByEmail(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})
@@ -95,6 +98,8 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	json.Email = strings.ToLower(json.Email)
 
 	if err := verifyCreateUserData(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})

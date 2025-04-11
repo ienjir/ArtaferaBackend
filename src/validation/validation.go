@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 var MinEntropyBits float64
@@ -50,6 +51,10 @@ func ValidatePasswordWithoutEntropy(password string) *models.ServiceError {
 func ValidateEmail(email string) *models.ServiceError {
 	if email == "" {
 		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Email can't be empty"}
+	}
+
+	if IsLower(email) == false {
+		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Email has to be lowercase"}
 	}
 
 	_, err := mail.ParseAddress(email)
@@ -132,4 +137,22 @@ func IsValidImage(file *multipart.FileHeader) bool {
 		}
 	}
 	return false
+}
+
+func IsUpper(s string) bool {
+	for _, r := range s {
+		if !unicode.IsUpper(r) && unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func IsLower(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLower(r) && unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
 }
