@@ -9,7 +9,6 @@ type Argon2idHash struct {
 }
 
 type LoginRequest struct {
-	Email      string `json:"email" binding:"required"`
-	Password   string `json:"password" binding:"required"`
-	RememberMe bool   `json:"rememberMe"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
