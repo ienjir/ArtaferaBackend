@@ -2,7 +2,6 @@ package picture
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"io"
@@ -82,7 +81,6 @@ func CreatePicture(c *gin.Context) {
 
 	picture, err := c.FormFile("picture")
 	if err != nil {
-		fmt.Println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Image is required"})
 		return
 	}

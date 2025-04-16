@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	jwt2 "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
@@ -14,7 +13,6 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		for _, role := range allowedRoles {
 			if role == "all" {
-				fmt.Println("Access granted to all")
 				c.Next()
 				return
 			}

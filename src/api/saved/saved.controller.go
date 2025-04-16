@@ -1,7 +1,6 @@
 package saved
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
@@ -20,8 +19,6 @@ func GetSavedByID(c *gin.Context) {
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
 	json.TargetID = targetID
-
-	fmt.Printf("userID: %d", c.GetInt64("userID"))
 
 	if err := verifyGetSavedById(json); err != nil {
 		c.JSON(err.StatusCode, gin.H{"error": err.Message})

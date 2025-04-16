@@ -2,7 +2,6 @@ package saved
 
 import (
 	"errors"
-	"fmt"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"gorm.io/gorm"
@@ -194,8 +193,6 @@ func deleteSavedService(data models.DeleteSavedRequest) *models.ServiceError {
 			Message:    err.Error(),
 		}
 	}
-
-	fmt.Printf("UserID: %d, TargetID: %d\n", data.UserID, saved.UserID)
 
 	if data.UserRole != "admin" {
 		if saved.UserID != data.UserID {
