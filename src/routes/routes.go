@@ -20,7 +20,6 @@ func RegisterRoutes(router *gin.Engine) {
 		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
 	}
 
-	// User routes
 	userRoutes := router.Group("/user")
 	userRoutes.Use(middleware.RoleAuthMiddleware("admin", "user"))
 	{
@@ -90,7 +89,7 @@ func RegisterRoutes(router *gin.Engine) {
 	}
 
 	pictureRoutes := router.Group("/picture")
-	pictureRoutes.Use(middleware.RoleAuthMiddleware("all", "user", "admin"))
+	pictureRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
 		pictureRoutes.GET("/getByID/:id", picture.GetPictureByID)
 		pictureRoutes.POST("/getByName", picture.GetPictureByName)

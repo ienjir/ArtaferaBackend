@@ -12,25 +12,24 @@ import (
 
 func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Check for all
 		for _, role := range allowedRoles {
 			if role == "all" {
+				fmt.Println("Access granted to all")
 				c.Next()
+				return
 			}
 		}
 
-		// Get the Authorization header
 		authHeader := c.GetHeader("Authorization")
-		isEmpty := isValidBearer(authHeader)
-		if authHeader == "" || !isEmpty {
+		if authHeader == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
 				StatusCode: http.StatusUnauthorized,
-				Message:    "Authorization header is required",
+				Message:    "Access token is required",
 			})
 			return
 		}
 
-		// Check if the header starts with "Bearer "
+		// Check if the header starts with "Bearer"
 		bearerToken := strings.Split(authHeader, " ")
 		if len(bearerToken) != 2 || bearerToken[0] != "Bearer" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
@@ -40,14 +39,12 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
-		// Verify the access token
 		token, serviceErr := auth.VerifyAccessToken(bearerToken[1])
 		if serviceErr != nil {
 			c.AbortWithStatusJSON(serviceErr.StatusCode, gin.H{"error": serviceErr.Message})
 			return
 		}
 
-		// Extract claims
 		claims, ok := token.Claims.(jwt2.MapClaims)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
@@ -57,7 +54,6 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
-		// Get user role from claims
 		userRole, ok := claims["role"].(string)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
@@ -69,7 +65,6 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		userID, ok := claims["id"].(float64)
 
-		// Check if user role is in allowed roles
 		roleAllowed := false
 		for _, role := range allowedRoles {
 			if role == userRole {
@@ -78,6 +73,8 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			}
 		}
 
+		fmt.Println(userRole)
+
 		if !roleAllowed {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "User is not authorized for this route"})
 			return
@@ -85,21 +82,12 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		userIDInt := int64(userID)
 
-		// Store user information in context for later use
+		fmt.Printf("Middleware role: " + userRole)
+
+		// Store user info in context
 		c.Set("userID", userIDInt)
 		c.Set("userEmail", claims["email"])
 		c.Set("userRole", userRole)
 		c.Next()
 	}
-}
-
-func isValidBearer(token string) bool {
-	if !strings.HasPrefix(token, "Bearer") {
-		return false
-	}
-
-	remainder := token[6:]
-
-	fmt.Printf("Token" + token)
-	return strings.TrimSpace(remainder) != ""
 }

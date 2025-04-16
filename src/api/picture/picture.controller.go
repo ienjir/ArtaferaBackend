@@ -88,6 +88,10 @@ func CreatePicture(c *gin.Context) {
 	}
 
 	json.Picture = *picture
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	fmt.Printf("\n Role: " + json.UserRole + "\n")
 
 	if priority := c.PostForm("priority"); priority != "" {
 		if priorityInt, err := strconv.ParseInt(priority, 10, 8); err == nil {
