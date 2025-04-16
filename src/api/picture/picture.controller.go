@@ -91,8 +91,6 @@ func CreatePicture(c *gin.Context) {
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
 
-	fmt.Printf("\n Role: " + json.UserRole + "\n")
-
 	if priority := c.PostForm("priority"); priority != "" {
 		if priorityInt, err := strconv.ParseInt(priority, 10, 8); err == nil {
 			json.Priority = &priorityInt
@@ -104,6 +102,8 @@ func CreatePicture(c *gin.Context) {
 
 	if name := c.PostForm("name"); name != "" {
 		json.Name = &name
+	} else {
+		json.Name = &json.Picture.Filename
 	}
 
 	if isPublic := c.PostForm("isPublic"); isPublic != "" {

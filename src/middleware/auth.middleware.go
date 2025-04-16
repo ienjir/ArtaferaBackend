@@ -73,16 +73,12 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			}
 		}
 
-		fmt.Println(userRole)
-
 		if !roleAllowed {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "User is not authorized for this route"})
 			return
 		}
 
 		userIDInt := int64(userID)
-
-		fmt.Printf("Middleware role: " + userRole)
 
 		// Store user info in context
 		c.Set("userID", userIDInt)

@@ -2,6 +2,7 @@ package picture
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
@@ -76,6 +77,8 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 		IsPublic: isPublic,
 	}
 
+	fmt.Printf("1")
+
 	if db := database.DB.Create(&picture); db.Error != nil {
 		return nil,
 			&models.ServiceError{
@@ -84,6 +87,7 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 			}
 	}
 
+	fmt.Printf("2")
 	bucketFileName := strconv.Itoa(int(picture.ID))
 
 	_, err := utils.UploadFileToMinio(data.Picture, bucketName, bucketFileName, context)
@@ -91,5 +95,6 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 		return nil, err
 	}
 
+	fmt.Printf("3")
 	return &picture, nil
 }
