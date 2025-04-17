@@ -2,6 +2,7 @@ package picture
 
 import (
 	"bytes"
+	"encoding/base64"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"io"
@@ -9,8 +10,8 @@ import (
 	"strconv"
 )
 
-var publicBucket = "pictures"
-var privateBucket = "pictures-p"
+var PublicBucket = "pictures"
+var PrivateBucket = "pictures-p"
 
 func GetPictureByID(c *gin.Context) {
 	var json models.GetPictureByIDRequest
@@ -30,8 +31,8 @@ func GetPictureByID(c *gin.Context) {
 		return
 	}
 
-	json.PublicBucket = publicBucket
-	json.PrivateBucket = privateBucket
+	json.PublicBucket = PublicBucket
+	json.PrivateBucket = PrivateBucket
 
 	picture, minioFile, err := getPictureByIDService(json, c)
 	if err != nil {
@@ -46,8 +47,12 @@ func GetPictureByID(c *gin.Context) {
 		return
 	}
 
-	c.JSONP(http.StatusOK, gin.H{
-		"data": picture,
+	// Encode the image as base64
+	base64Image := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	c.JSON(http.StatusOK, gin.H{
+		"metadata": picture,
+		"image":    base64Image,
 	})
 }
 
@@ -67,7 +72,7 @@ func GetPictureByName(c *gin.Context) {
 		return
 	}
 
-	json.PublicBucket = publicBucket
+	json.PublicBucket = PublicBucket
 
 }
 
@@ -118,8 +123,8 @@ func CreatePicture(c *gin.Context) {
 		return
 	}
 
-	json.PublicBucket = publicBucket
-	json.PrivateBucket = privateBucket
+	json.PublicBucket = PublicBucket
+	json.PrivateBucket = PrivateBucket
 
 	pictureDB, srvErr := createPictureService(json, c)
 	if srvErr != nil {

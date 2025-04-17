@@ -1,9 +1,16 @@
 package sampledata
 
 import (
+	"context"
+	"fmt"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
+	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/minio/minio-go/v7"
+	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 )
 
@@ -210,14 +217,53 @@ func SeedDatabase() error {
 
 	// Pictures
 	pictures := []models.Picture{
-		{Name: "sunset_main"},
-		{Name: "sunset_detail"},
-		{Name: "mountain_main"},
-		{Name: "forest_main"},
-		{Name: "city_main"},
+		{Name: "slide_1", Priority: int64Ptr(1), IsPublic: true},
+		{Name: "privateImage", IsPublic: false},
+		{Name: "slide_2", Priority: int64Ptr(2), IsPublic: true},
+		{Name: "slide_3"},
+		{Name: "privateImage2", IsPublic: false, Priority: int64Ptr(4)},
 	}
 	if err := database.DB.Create(&pictures).Error; err != nil {
 		return err
+	}
+
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return fmt.Errorf("failed to get current file path")
+	}
+	currentDir := filepath.Dir(filename)
+	imagesDir := filepath.Join(currentDir, "images")
+	
+	for i, picture := range pictures {
+		srcPath := filepath.Join(imagesDir, fmt.Sprintf("%d.jpg", i+1))
+
+		// Determine destination bucket based on IsPublic flag
+		bucketName := "pictures-p"
+		if picture.IsPublic {
+			bucketName = "pictures"
+		}
+
+		// Open the image file
+		file, err := os.Open(srcPath)
+		if err != nil {
+			return fmt.Errorf("failed to open image file %s: %w \n", srcPath, err)
+		}
+		defer file.Close()
+
+		// Get file stats to determine size
+		fileInfo, err := file.Stat()
+		if err != nil {
+			return fmt.Errorf("failed to get file stats for %s: %w \n", srcPath, err)
+		}
+
+		// Upload file to MinIO
+		objectName := fmt.Sprintf("%s.jpg", picture.Name)
+		_, err = miniobucket.MinioClient.PutObject(context.Background(), bucketName, objectName, file, fileInfo.Size(), minio.PutObjectOptions{
+			ContentType: "image/jpeg",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to upload image to MinIO: %w \n", err)
+		}
 	}
 
 	// Art Pictures
@@ -320,4 +366,11 @@ func intPtr(i int) *int {
 
 func float32Ptr(f float32) *float32 {
 	return &f
+}
+
+func int64Ptr(f int64) *int64 {
+	return &f
+}
+
+func seedMinioPictures(pictures []models.Picture) {
 }
