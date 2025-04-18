@@ -7,7 +7,9 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 var PublicBucket = "pictures"
@@ -22,8 +24,8 @@ func GetPictureByID(c *gin.Context) {
 		return
 	}
 
-	// json.UserID = c.GetInt64("userID")
-	// json.UserRole = c.GetString("userRole")
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
 	json.TargetID = targetID
 
 	if err := verifyGetPictureByIDRequest(json); err != nil {
@@ -106,7 +108,8 @@ func CreatePicture(c *gin.Context) {
 	if name := c.PostForm("name"); name != "" {
 		json.Name = &name
 	} else {
-		json.Name = &json.Picture.Filename
+		filenameWithoutExt := strings.TrimSuffix(json.Picture.Filename, filepath.Ext(json.Picture.Filename))
+		json.Name = &filenameWithoutExt
 	}
 
 	if isPublic := c.PostForm("isPublic"); isPublic != "" {

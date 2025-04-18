@@ -144,6 +144,7 @@ type Picture struct {
 	Name     string `gorm:"size:255;not null" json:"name"`
 	Priority *int64 `json:"priority,omitempty"`
 	IsPublic bool   `gorm:"default:false" json:"is_public"`
+	Type     string `gorm:"not null"`
 }
 
 type Currency struct {

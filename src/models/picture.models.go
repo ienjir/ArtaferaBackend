@@ -3,6 +3,8 @@ package models
 import "mime/multipart"
 
 type GetPictureByIDRequest struct {
+	UserID        int64  `json:"-"`
+	UserRole      string `json:"-"`
 	TargetID      int64  `json:"-"`
 	PublicBucket  string `json:"-"`
 	PrivateBucket string `json:"-"`

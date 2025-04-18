@@ -9,6 +9,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
 	"net/http"
+	"path/filepath"
 	"strconv"
 )
 
@@ -23,7 +24,7 @@ func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Conte
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil, &models.ServiceError{
 				StatusCode: http.StatusNotFound,
-				Message:    "Picture not found",
+				Message:    "Picture not found test",
 			}
 		} else {
 			return nil, nil, &models.ServiceError{
@@ -39,7 +40,9 @@ func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Conte
 		bucketName = data.PrivateBucket
 	}
 
-	if minioFile, err := utils.GetFileFromMinio(bucketName, strconv.FormatInt(picture.ID, 10), context); err != nil {
+	fileName := picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
+
+	if minioFile, err := utils.GetFileFromMinio(bucketName, fileName, context); err != nil {
 		return nil, nil, err
 	} else {
 		returnMinioFile = minioFile
@@ -51,10 +54,6 @@ func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Conte
 func createPictureService(data models.CreatePictureRequest, context *gin.Context) (*models.Picture, *models.ServiceError) {
 	var isPublic bool
 	var bucketName string
-
-	if data.Name != nil {
-		data.Name = &data.Picture.Filename
-	}
 
 	switch {
 	case data.IsPublic == nil:
@@ -76,6 +75,8 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 		IsPublic: isPublic,
 	}
 
+	picture.Type = filepath.Ext(data.Picture.Filename)
+
 	if db := database.DB.Create(&picture); db.Error != nil {
 		return nil,
 			&models.ServiceError{
@@ -84,7 +85,8 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 			}
 	}
 
-	bucketFileName := strconv.Itoa(int(picture.ID))
+	fileExt := filepath.Ext(data.Picture.Filename)
+	bucketFileName := *data.Name + "__" + strconv.Itoa(int(picture.ID)) + fileExt
 
 	_, err := utils.UploadFileToMinio(data.Picture, bucketName, bucketFileName, context)
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"time"
 )
 
@@ -217,11 +218,11 @@ func SeedDatabase() error {
 
 	// Pictures
 	pictures := []models.Picture{
-		{Name: "slide_1", Priority: int64Ptr(1), IsPublic: true},
-		{Name: "privateImage", IsPublic: false},
-		{Name: "slide_2", Priority: int64Ptr(2), IsPublic: true},
-		{Name: "slide_3"},
-		{Name: "privateImage2", IsPublic: false, Priority: int64Ptr(4)},
+		{Name: "slide_1", Priority: int64Ptr(1), IsPublic: true, Type: ".jpg"},
+		{Name: "privateImage", IsPublic: false, Type: ".jpg"},
+		{Name: "slide_2", Priority: int64Ptr(2), IsPublic: true, Type: ".jpg"},
+		{Name: "slide_3", Type: ".jpg"},
+		{Name: "privateImage2", IsPublic: false, Priority: int64Ptr(4), Type: ".jpg"},
 	}
 	if err := database.DB.Create(&pictures).Error; err != nil {
 		return err
@@ -233,9 +234,12 @@ func SeedDatabase() error {
 	}
 	currentDir := filepath.Dir(filename)
 	imagesDir := filepath.Join(currentDir, "images")
-	
+
 	for i, picture := range pictures {
 		srcPath := filepath.Join(imagesDir, fmt.Sprintf("%d.jpg", i+1))
+
+		picture.Name = picture.Name + "__" + strconv.Itoa(int(picture.ID))
+		fmt.Printf("PictureName: %s \n", picture.Name)
 
 		// Determine destination bucket based on IsPublic flag
 		bucketName := "pictures-p"
