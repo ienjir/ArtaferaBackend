@@ -49,12 +49,12 @@ func GetPictureByID(c *gin.Context) {
 		return
 	}
 
-	// Encode the image as base64
-	base64Image := base64.StdEncoding.EncodeToString(buf.Bytes())
+	// Encode the picture as base64
+	base64Picture := base64.StdEncoding.EncodeToString(buf.Bytes())
 
 	c.JSON(http.StatusOK, gin.H{
 		"metadata": picture,
-		"image":    base64Image,
+		"picture":  base64Picture,
 	})
 }
 
@@ -91,13 +91,62 @@ func GetPictureByName(c *gin.Context) {
 		return
 	}
 
-	// Encode the image as base64
-	base64Image := base64.StdEncoding.EncodeToString(buf.Bytes())
+	// Encode the picture as base64
+	base64Picture := base64.StdEncoding.EncodeToString(buf.Bytes())
 
 	c.JSON(http.StatusOK, gin.H{
 		"metadata": picture,
-		"image":    base64Image,
+		"picture":  base64Picture,
 	})
+}
+
+func ListPicture(c *gin.Context) {
+	var json models.ListPictureRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyListPicture(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	json.PublicBucket = PublicBucket
+	json.PrivateBucket = PrivateBucket
+
+	pictures, minioFiles, count, err := listPictureService(json, c)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	var base64Pictures []string
+
+	for _, minioFile := range *minioFiles {
+		buf := new(bytes.Buffer)
+		_, err2 := io.Copy(buf, &minioFile)
+		if err2 != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
+			return
+		}
+
+		// Encode the pictures as base64
+		base64Picture := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+		base64Pictures = append(base64Pictures, base64Picture)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"metadata": pictures,
+		"count":    count,
+		"picture":  base64Pictures,
+	})
+	return
 }
 
 func CreatePicture(c *gin.Context) {
@@ -110,7 +159,7 @@ func CreatePicture(c *gin.Context) {
 
 	picture, err := c.FormFile("picture")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Image is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Picture is required"})
 		return
 	}
 

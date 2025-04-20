@@ -3,7 +3,7 @@
 ### The backend for the <a href="Artafera.ch">Artafera Website</a>
 
 ## ToDo
-- Uncomment admin verification in `picture.validation.go`
+- Uncomment admin verification in `pictures.validation.go`
 
 ## Development
 

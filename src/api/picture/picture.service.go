@@ -87,6 +87,45 @@ func getPictureByNameService(data models.GetPictureByNameRequest, context *gin.C
 	return &picture, returnMinioFile, nil
 }
 
+func listPictureService(data models.ListPictureRequest, context *gin.Context) (*[]models.Picture, *[]minio.Object, *int64, *models.ServiceError) {
+	var pictures []models.Picture
+	var returnMinioFiles []minio.Object
+	var count int64
+
+	if err := database.DB.Limit(5).Offset(int(data.Offset * 5)).Find(&pictures).Error; err != nil {
+		return nil, nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving orders from pictures",
+		}
+	}
+
+	if err := database.DB.Model(&models.Picture{}).Count(&count).Error; err != nil {
+		return nil, nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while counting pictures in database",
+		}
+	}
+
+	for _, picture := range pictures {
+		var bucketName string
+		fileName := picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
+
+		if picture.IsPublic {
+			bucketName = data.PublicBucket
+		} else {
+			bucketName = data.PrivateBucket
+		}
+
+		if minioFile, err := utils.GetFileFromMinio(bucketName, fileName, context); err != nil {
+			return nil, nil, nil, err
+		} else {
+			returnMinioFiles = append(returnMinioFiles, *minioFile)
+		}
+	}
+
+	return &pictures, &returnMinioFiles, &count, nil
+}
+
 func createPictureService(data models.CreatePictureRequest, context *gin.Context) (*models.Picture, *models.ServiceError) {
 	var isPublic bool
 	var bucketName string

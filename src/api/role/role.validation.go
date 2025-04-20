@@ -16,7 +16,7 @@ func verifyGetRoleByID(data models.GetRoleByIDRequest) *models.ServiceError {
 	if data.RoleID < 1 {
 		return &models.ServiceError{
 			StatusCode: http.StatusBadRequest,
-			Message:    "OrderID has to be over 1",
+			Message:    "RoleID has to be over 1",
 		}
 	}
 

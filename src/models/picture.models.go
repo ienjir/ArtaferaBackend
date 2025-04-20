@@ -18,6 +18,14 @@ type GetPictureByNameRequest struct {
 	PrivateBucket string `json:"-"`
 }
 
+type ListPictureRequest struct {
+	UserID        int64  `json:"-"`
+	UserRole      string `json:"-"`
+	Offset        int64  `jsoǹ:"offset"`
+	PublicBucket  string `json:"-"`
+	PrivateBucket string `json:"-"`
+}
+
 type CreatePictureRequest struct {
 	UserID        int64                `json:"-"`
 	UserRole      string               `json:"-"`

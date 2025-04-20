@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
 	"github.com/ienjir/ArtaferaBackend/src/models"
@@ -35,6 +36,7 @@ func UploadFileToMinio(file multipart.FileHeader, bucketName string, fileName st
 func GetFileFromMinio(bucketName string, fileName string, context *gin.Context) (*minio.Object, *models.ServiceError) {
 	_, err := miniobucket.MinioClient.StatObject(context, bucketName, fileName, minio.StatObjectOptions{})
 	if err != nil {
+		fmt.Printf("Error: %s \n", err.Error())
 		if minio.ToErrorResponse(err).Code == "NoSuchKey" {
 			return nil, &models.ServiceError{
 				StatusCode: http.StatusNotFound,
