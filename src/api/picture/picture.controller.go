@@ -75,7 +75,29 @@ func GetPictureByName(c *gin.Context) {
 	}
 
 	json.PublicBucket = PublicBucket
+	json.PrivateBucket = PrivateBucket
+	json.Name = strings.TrimSuffix(json.Name, filepath.Ext(json.Name))
 
+	picture, minioFile, err := getPictureByNameService(json, c)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	buf := new(bytes.Buffer)
+	_, err2 := io.Copy(buf, minioFile)
+	if err2 != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
+		return
+	}
+
+	// Encode the image as base64
+	base64Image := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	c.JSON(http.StatusOK, gin.H{
+		"metadata": picture,
+		"image":    base64Image,
+	})
 }
 
 func CreatePicture(c *gin.Context) {
@@ -106,7 +128,8 @@ func CreatePicture(c *gin.Context) {
 	}
 
 	if name := c.PostForm("name"); name != "" {
-		json.Name = &name
+		trimmedName := strings.TrimSuffix(*json.Name, filepath.Ext(json.Picture.Filename))
+		json.Name = &trimmedName
 	} else {
 		filenameWithoutExt := strings.TrimSuffix(json.Picture.Filename, filepath.Ext(json.Picture.Filename))
 		json.Name = &filenameWithoutExt

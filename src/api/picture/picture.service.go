@@ -24,7 +24,43 @@ func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Conte
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil, &models.ServiceError{
 				StatusCode: http.StatusNotFound,
-				Message:    "Picture not found test",
+				Message:    "Picture not found",
+			}
+		} else {
+			return nil, nil, &models.ServiceError{
+				StatusCode: http.StatusInternalServerError,
+				Message:    "Error while retrieving picture",
+			}
+		}
+	}
+
+	if picture.IsPublic {
+		bucketName = data.PublicBucket
+	} else {
+		bucketName = data.PrivateBucket
+	}
+
+	fileName := picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
+
+	if minioFile, err := utils.GetFileFromMinio(bucketName, fileName, context); err != nil {
+		return nil, nil, err
+	} else {
+		returnMinioFile = minioFile
+	}
+
+	return &picture, returnMinioFile, nil
+}
+
+func getPictureByNameService(data models.GetPictureByNameRequest, context *gin.Context) (*models.Picture, *minio.Object, *models.ServiceError) {
+	var picture models.Picture
+	var returnMinioFile *minio.Object
+	var bucketName string
+
+	if err := database.DB.Where("Name = ?", data.Name).First(&picture).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "Picture not found",
 			}
 		} else {
 			return nil, nil, &models.ServiceError{

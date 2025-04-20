@@ -11,10 +11,11 @@ type GetPictureByIDRequest struct {
 }
 
 type GetPictureByNameRequest struct {
-	UserID       int64  `json:"-"`
-	UserRole     string `json:"-"`
-	Name         string `json:"name"`
-	PublicBucket string `json:"-"`
+	UserID        int64  `json:"-"`
+	UserRole      string `json:"-"`
+	Name          string `json:"name"`
+	PublicBucket  string `json:"-"`
+	PrivateBucket string `json:"-"`
 }
 
 type CreatePictureRequest struct {
