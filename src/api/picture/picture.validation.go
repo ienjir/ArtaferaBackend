@@ -39,6 +39,20 @@ func verifyGetPictureByNameRequest(data models.GetPictureByNameRequest) *models.
 		}
 	}
 
+	if data.PublicBucket != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
+		}
+	}
+
+	if data.PrivateBucket != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
+		}
+	}
+
 	return nil
 }
 
