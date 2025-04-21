@@ -59,3 +59,22 @@ func GetFileFromMinio(bucketName string, fileName string, context *gin.Context) 
 
 	return object, nil
 }
+
+func DeleteFile(context *gin.Context, item string, bucketname string) (*string, *models.ServiceError) {
+	err := miniobucket.MinioClient.RemoveObject(context, bucketname, item, minio.RemoveObjectOptions{})
+	if err != nil {
+		if minio.ToErrorResponse(err).Code == "NoSuchKey" {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "File not found",
+			}
+		}
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while deleting file",
+		}
+	}
+
+	success := "File successfully deleted"
+	return &success, nil
+}
