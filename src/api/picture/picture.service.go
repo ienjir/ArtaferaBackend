@@ -170,3 +170,37 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 
 	return &picture, nil
 }
+func updatePictureService(data models.UpdatePictureRequest) (*models.Picture, *models.ServiceError) {
+	var picture models.Picture
+
+	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Picture not found"}
+		}
+		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	if data.Name != nil {
+		picture.Name = *data.Name
+	}
+
+	if data.Priority != nil {
+		picture.Priority = data.Priority
+	}
+
+	if data.IsPublic != nil {
+		if *data.IsPublic != picture.IsPublic {
+			picture.IsPublic = *data.IsPublic
+
+		}
+	}
+
+	if err := database.DB.Save(&picture).Error; err != nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to update picture",
+		}
+	}
+
+	return &picture, nil
+}

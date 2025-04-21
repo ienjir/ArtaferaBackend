@@ -36,3 +36,14 @@ type CreatePictureRequest struct {
 	PublicBucket  string               `json:"-"`
 	PrivateBucket string               `json:"-"`
 }
+
+type UpdatePictureRequest struct {
+	UserID        int64   `json:"-"`
+	UserRole      string  `json:"-"`
+	TargetID      int64   `json:"-"`
+	Name          *string `json:"name"`
+	Priority      *int64  `json:"priority"`
+	IsPublic      *bool   `json:"isPublic;default:false"`
+	PublicBucket  string  `json:"-"`
+	PrivateBucket string  `json:"-"`
+}

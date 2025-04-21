@@ -135,3 +135,61 @@ func verifyCreatePicture(data models.CreatePictureRequest) *models.ServiceError 
 
 	return nil
 }
+
+func verifyUpdatePicture(data models.UpdatePictureRequest) *models.ServiceError {
+
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.TargetID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "TargetID has to be at least 1",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You can only update pictures as an admin",
+		}
+	}
+
+	if data.Name != nil {
+		if *data.Name == "" {
+			return &models.ServiceError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "Name can not be empty",
+			}
+		}
+	}
+
+	if data.Priority != nil {
+		if *data.Priority <= 0 {
+			return &models.ServiceError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "Priority has to be 0 or more",
+			}
+		}
+	}
+	
+	if data.PublicBucket != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
+		}
+	}
+
+	if data.PrivateBucket != "" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "You are not allowed to send with a bucket name",
+		}
+	}
+
+	return nil
+}

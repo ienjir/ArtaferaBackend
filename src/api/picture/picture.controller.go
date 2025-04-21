@@ -209,3 +209,30 @@ func CreatePicture(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"picture": pictureDB})
 }
+
+func UpdatePicture(c *gin.Context) {
+	var json models.UpdatePictureRequest
+
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not convert ID"})
+		return
+	}
+
+	json.TargetID = targetID
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyUpdatePicture(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	picture, err := updatePictureService(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"picture": picture})
+}
