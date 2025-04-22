@@ -95,5 +95,6 @@ func RegisterRoutes(router *gin.Engine) {
 		pictureRoutes.POST("/getByName", picture.GetPictureByName)
 		pictureRoutes.POST("/list", picture.ListPicture)
 		pictureRoutes.POST("/create", picture.CreatePicture)
+		pictureRoutes.PUT("/update/:id", picture.UpdatePicture)
 	}
 }

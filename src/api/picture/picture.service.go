@@ -2,6 +2,7 @@ package picture
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
@@ -163,14 +164,15 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 	fileExt := filepath.Ext(data.Picture.Filename)
 	bucketFileName := *data.Name + "__" + strconv.Itoa(int(picture.ID)) + fileExt
 
-	_, err := utils.UploadFileToMinio(data.Picture, bucketName, bucketFileName, context)
+	_, err := utils.UploadMultipartFileToMinio(data.Picture, bucketName, bucketFileName, context)
 	if err != nil {
 		return nil, err
 	}
 
 	return &picture, nil
 }
-func updatePictureService(data models.UpdatePictureRequest) (*models.Picture, *models.ServiceError) {
+
+func updatePictureService(data models.UpdatePictureRequest, context *gin.Context) (*models.Picture, *models.ServiceError) {
 	var picture models.Picture
 
 	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
@@ -184,14 +186,23 @@ func updatePictureService(data models.UpdatePictureRequest) (*models.Picture, *m
 		picture.Name = *data.Name
 	}
 
+	fmt.Printf("Priority: %s \n", data.Name)
 	if data.Priority != nil {
 		picture.Priority = data.Priority
+		fmt.Printf("Priority: %n \n", data.Priority)
 	}
 
 	if data.IsPublic != nil {
 		if *data.IsPublic != picture.IsPublic {
 			picture.IsPublic = *data.IsPublic
 
+			bucketFileName := picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
+
+			if picture.IsPublic {
+				utils.TransferFileBetweenBuckets(bucketFileName, data.PrivateBucket, data.PublicBucket, context)
+			} else {
+				utils.TransferFileBetweenBuckets(bucketFileName, data.PublicBucket, data.PrivateBucket, context)
+			}
 		}
 	}
 
