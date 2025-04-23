@@ -218,7 +218,9 @@ func UpdatePicture(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
+	fmt.Printf("Ispublic: %s \n", json.IsPublic)
+
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
 		fmt.Printf("Error: %s \n", parseErr.Error())

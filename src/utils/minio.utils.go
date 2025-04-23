@@ -93,35 +93,40 @@ func DeleteFile(filename string, bucketName string, context *gin.Context) (*stri
 	return &success, nil
 }
 
-func TransferFileBetweenBuckets(filename string, originalBucketName string, targetBucketName string, context *gin.Context) (*string, *models.ServiceError) {
-
-	// Get file from original bucket
-	originalFile, errRetrieve := GetFileFromMinio(originalBucketName, filename, context)
-	if errRetrieve != nil {
-		return nil, errRetrieve
+func TransferAndRenameFile(originalFileName string, targetFileName string, originalBucketName string, targetBucketName string, context *gin.Context) *models.ServiceError {
+	// Define the source object
+	src := minio.CopySrcOptions{
+		Bucket: originalBucketName,
+		Object: originalFileName,
 	}
 
-	// Read object info to get content type and size
-	stat, errStat := originalFile.Stat()
-	if errStat != nil {
-		return nil, &models.ServiceError{
+	fmt.Printf("Original: %s \n", src.Bucket)
+
+	// Define the destination object
+	dst := minio.CopyDestOptions{
+		Bucket: targetBucketName,
+		Object: targetFileName,
+	}
+
+	_, err := miniobucket.MinioClient.CopyObject(context, dst, src)
+	if err != nil {
+		fmt.Printf("Error: %s \n", err.Error())
+		if minio.ToErrorResponse(err).Code == "NoSuchKey" {
+			return &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "File not found",
+			}
+		}
+		return &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to stat object",
+			Message:    "Error while getting file",
 		}
 	}
 
-	// Upload file to new bucket
-	_, errUpload := UploadReaderToMinio(originalFile, stat.Size, stat.ContentType, targetBucketName, filename, context)
-	if errUpload != nil {
-		return nil, errUpload
-	}
-
-	// Delete file from original bucket
-	_, errDelete := DeleteFile(filename, originalBucketName, context)
+	_, errDelete := DeleteFile(originalFileName, originalBucketName, context)
 	if errDelete != nil {
-		return nil, errDelete
+		return errDelete
 	}
 
-	success := "File successfully transferred"
-	return &success, nil
+	return nil
 }

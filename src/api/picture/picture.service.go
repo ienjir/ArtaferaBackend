@@ -182,28 +182,51 @@ func updatePictureService(data models.UpdatePictureRequest, context *gin.Context
 		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
+	var originalFileName string
+	var newFileName string
+	var originalBucketName string
+	var newBucketName string
+
+	originalFileName = picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
+
 	if data.Name != nil {
 		picture.Name = *data.Name
+		newFileName = *data.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
+	} else {
+		newFileName = picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
 	}
 
-	fmt.Printf("Priority: %s \n", data.Name)
-	if data.Priority != nil {
-		picture.Priority = data.Priority
-		fmt.Printf("Priority: %n \n", data.Priority)
-	}
+	fmt.Printf("Ispublic: %s \n", data.IsPublic)
 
 	if data.IsPublic != nil {
-		if *data.IsPublic != picture.IsPublic {
-			picture.IsPublic = *data.IsPublic
-
-			bucketFileName := picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
-
-			if picture.IsPublic {
-				utils.TransferFileBetweenBuckets(bucketFileName, data.PrivateBucket, data.PublicBucket, context)
-			} else {
-				utils.TransferFileBetweenBuckets(bucketFileName, data.PublicBucket, data.PrivateBucket, context)
-			}
+		if *data.IsPublic == true {
+			fmt.Printf("1 \n")
+			originalBucketName = PrivateBucket
+			newBucketName = PublicBucket
+		} else {
+			fmt.Printf("2 \n")
+			originalBucketName = PublicBucket
+			newBucketName = PrivateBucket
 		}
+	} else {
+		if picture.IsPublic == true {
+			fmt.Printf("3 \n")
+			originalBucketName = PublicBucket
+			newBucketName = PublicBucket
+		} else {
+			fmt.Printf("4 \n")
+			originalBucketName = PrivateBucket
+			newBucketName = PrivateBucket
+		}
+	}
+
+	fmt.Printf("Old name: %s\n", originalFileName)
+	fmt.Printf("New name: %s\n", newFileName)
+	fmt.Printf("Old bucket: %s\n", originalBucketName)
+	fmt.Printf("New bucket: %s\n", newBucketName)
+
+	if err := utils.TransferAndRenameFile(originalFileName, newFileName, originalBucketName, newBucketName, context); err != nil {
+		return nil, err
 	}
 
 	if err := database.DB.Save(&picture).Error; err != nil {

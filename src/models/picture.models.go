@@ -31,7 +31,7 @@ type CreatePictureRequest struct {
 	UserRole      string               `json:"-"`
 	Name          *string              `json:"name" form:"name"`
 	Priority      *int64               `json:"priority" from:"priority"`
-	IsPublic      *bool                `json:"isPublic;default:false" form:"isPublic"`
+	IsPublic      *bool                `json:"isPublic" form:"isPublic"`
 	Picture       multipart.FileHeader `json:"-"`
 	PublicBucket  string               `json:"-"`
 	PrivateBucket string               `json:"-"`
@@ -43,7 +43,7 @@ type UpdatePictureRequest struct {
 	TargetID      int64   `json:"-"`
 	Name          *string `json:"name"`
 	Priority      *int64  `json:"priority"`
-	IsPublic      *bool   `json:"isPublic;default:false"`
+	IsPublic      *bool   `json:"isPublic"`
 	PublicBucket  string  `json:"-"`
 	PrivateBucket string  `json:"-"`
 }
