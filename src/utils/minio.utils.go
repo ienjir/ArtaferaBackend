@@ -51,6 +51,8 @@ func GetFileFromMinio(bucketName string, fileName string, context *gin.Context) 
 	_, err := miniobucket.MinioClient.StatObject(context, bucketName, fileName, minio.StatObjectOptions{})
 	if err != nil {
 		fmt.Printf("Error: %s \n", err.Error())
+		fmt.Printf("Key: %s \n", fileName)
+		fmt.Printf("Bucket: %s \n", bucketName)
 		if minio.ToErrorResponse(err).Code == "NoSuchKey" {
 			return nil, &models.ServiceError{
 				StatusCode: http.StatusNotFound,
@@ -99,8 +101,6 @@ func TransferAndRenameFile(originalFileName string, targetFileName string, origi
 		Bucket: originalBucketName,
 		Object: originalFileName,
 	}
-
-	fmt.Printf("Original: %s \n", src.Bucket)
 
 	// Define the destination object
 	dst := minio.CopyDestOptions{

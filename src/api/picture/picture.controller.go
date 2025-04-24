@@ -219,8 +219,6 @@ func UpdatePicture(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Ispublic: %s \n", json.IsPublic)
-
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
 		fmt.Printf("Error: %s \n", parseErr.Error())

@@ -196,19 +196,24 @@ func updatePictureService(data models.UpdatePictureRequest, context *gin.Context
 		newFileName = picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
 	}
 
-	fmt.Printf("Ispublic: %s \n", data.IsPublic)
-
-	if data.IsPublic != nil {
-		if *data.IsPublic == true {
-			fmt.Printf("1 \n")
-			originalBucketName = PrivateBucket
-			newBucketName = PublicBucket
-		} else {
-			fmt.Printf("2 \n")
-			originalBucketName = PublicBucket
-			newBucketName = PrivateBucket
+	if data.IsPublic != nil && *data.IsPublic != picture.IsPublic {
+		fmt.Printf("Triggered \n")
+		if *data.IsPublic != picture.IsPublic {
+			fmt.Printf("Triggered 2 \n")
+			if *data.IsPublic == true {
+				fmt.Printf("1 \n")
+				picture.IsPublic = true
+				originalBucketName = PrivateBucket
+				newBucketName = PublicBucket
+			} else {
+				fmt.Printf("2 \n")
+				picture.IsPublic = false
+				originalBucketName = PublicBucket
+				newBucketName = PrivateBucket
+			}
 		}
 	} else {
+		fmt.Printf("Trigerred 3 \n")
 		if picture.IsPublic == true {
 			fmt.Printf("3 \n")
 			originalBucketName = PublicBucket
@@ -224,9 +229,13 @@ func updatePictureService(data models.UpdatePictureRequest, context *gin.Context
 	fmt.Printf("New name: %s\n", newFileName)
 	fmt.Printf("Old bucket: %s\n", originalBucketName)
 	fmt.Printf("New bucket: %s\n", newBucketName)
+	fmt.Printf("PictueIsPublic: %b \n", picture.IsPublic)
 
-	if err := utils.TransferAndRenameFile(originalFileName, newFileName, originalBucketName, newBucketName, context); err != nil {
-		return nil, err
+	if data.Name != nil || data.IsPublic != nil {
+		fmt.Printf("Transfer triggered")
+		if err := utils.TransferAndRenameFile(originalFileName, newFileName, originalBucketName, newBucketName, context); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := database.DB.Save(&picture).Error; err != nil {
