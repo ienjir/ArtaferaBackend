@@ -23,11 +23,11 @@ func RegisterRoutes(router *gin.Engine) {
 	userRoutes := router.Group("/user")
 	userRoutes.Use(middleware.RoleAuthMiddleware("admin", "user"))
 	{
-		userRoutes.GET("/getByID/:id", user.GetUserByID)
+		userRoutes.GET("/:id", user.GetUserByID)
 		userRoutes.POST("/getByEmail", user.GetUserByEmail)
-		userRoutes.POST("/create", user.CreateUser)
-		userRoutes.PUT("/update/:id", user.UpdateUser)
-		userRoutes.DELETE("/delete/:id", user.DeleteUser)
+		userRoutes.POST("/", user.CreateUser)
+		userRoutes.PUT("/:id", user.UpdateUser)
+		userRoutes.DELETE("/:id", user.DeleteUser)
 
 		userAdminRoutes := userRoutes.Group("")
 		userAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
@@ -39,62 +39,63 @@ func RegisterRoutes(router *gin.Engine) {
 	roleRoutes := router.Group("/role")
 	roleRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 	{
-		roleRoutes.GET("/getByID/:id", role.GetRoleByID)
-		roleRoutes.GET("/list", role.ListRoles)
-		roleRoutes.POST("/create", role.CreateRole)
-		roleRoutes.PUT("/update/:id", role.UpdateRole)
-		roleRoutes.DELETE("/delete/:id", role.DeleteRole)
+		roleRoutes.GET("/:id", role.GetRoleByID)
+		roleRoutes.POST("/list", role.ListRoles)
+		roleRoutes.POST("/", role.CreateRole)
+		roleRoutes.PUT("/:id", role.UpdateRole)
+		roleRoutes.DELETE("/:id", role.DeleteRole)
 	}
 
 	languageRoutes := router.Group("/language")
 	languageRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 	{
-		languageRoutes.GET("/getByID/:id", language.GetLanguageByID)
-		languageRoutes.GET("/list", language.ListLanguages)
-		languageRoutes.POST("/create", language.CreateLanguage)
-		languageRoutes.PUT("/update/:id", language.UpdateLanguage)
-		languageRoutes.DELETE("/delete/:id", language.DeleteLanguage)
+		languageRoutes.GET("/:id", language.GetLanguageByID)
+		languageRoutes.POST("/list", language.ListLanguages)
+		languageRoutes.POST("/", language.CreateLanguage)
+		languageRoutes.PUT("/:id", language.UpdateLanguage)
+		languageRoutes.DELETE("/:id", language.DeleteLanguage)
 	}
 
 	orderRoutes := router.Group("/order")
 	orderRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
-		orderRoutes.GET("/getByID/:id", order.GetOrderByID)
-		orderRoutes.GET("/getForUser/:id", order.GetOrdersForUser)
-		orderRoutes.GET("/list", order.ListOrder)
-		orderRoutes.POST("/create", order.CreateOrder)
-		orderRoutes.PUT("/update/:id", order.UpdateOrder)
+		orderRoutes.GET("/:id", order.GetOrderByID)
+		orderRoutes.GET("/user/:id", order.GetOrdersForUser)
+		orderRoutes.POST("/list", order.ListOrder)
+		orderRoutes.POST("/", order.CreateOrder)
+		orderRoutes.PUT("/:id", order.UpdateOrder)
 
 		orderAdminRoutes := orderRoutes.Group("")
 		orderAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 		{
-			orderAdminRoutes.DELETE("/delete/:id", order.DeleteOrder)
+			orderAdminRoutes.DELETE("/admin/:id", order.DeleteOrder)
 		}
 	}
 
 	savedRoutes := router.Group("/saved")
 	savedRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
-		savedRoutes.GET("/getByID/:id", saved.GetSavedByID)
-		savedRoutes.GET("/getForUser/:id", saved.GetSavedForUser)
-		savedRoutes.POST("/create", saved.CreateSaved)
-		savedRoutes.PUT("/update/:id", saved.UpdateSaved)
-		savedRoutes.DELETE("/delete/:id", saved.DeleteSaved)
+		savedRoutes.GET("/:id", saved.GetSavedByID)
+		savedRoutes.GET("/user/:id", saved.GetSavedForUser)
+		savedRoutes.POST("/", saved.CreateSaved)
+		savedRoutes.PUT("/:id", saved.UpdateSaved)
+		savedRoutes.DELETE("/:id", saved.DeleteSaved)
 
 		savedAdminRoutes := savedRoutes.Group("")
 		savedAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 		{
-			savedAdminRoutes.GET("/list", saved.ListOrder)
+			savedAdminRoutes.POST("/list", saved.ListOrder)
 		}
 	}
 
 	pictureRoutes := router.Group("/picture")
 	pictureRoutes.Use(middleware.RoleAuthMiddleware("user", "admin"))
 	{
-		pictureRoutes.GET("/getByID/:id", picture.GetPictureByID)
-		pictureRoutes.POST("/getByName", picture.GetPictureByName)
+		pictureRoutes.GET("/:id", picture.GetPictureByID)
+		pictureRoutes.POST("/name", picture.GetPictureByName)
 		pictureRoutes.POST("/list", picture.ListPicture)
-		pictureRoutes.POST("/create", picture.CreatePicture)
-		pictureRoutes.PUT("/update/:id", picture.UpdatePicture)
+		pictureRoutes.POST("/", picture.CreatePicture)
+		pictureRoutes.PUT("/:id", picture.UpdatePicture)
+		pictureRoutes.DELETE("/:id")
 	}
 }

@@ -47,3 +47,11 @@ type UpdatePictureRequest struct {
 	PublicBucket  string  `json:"-"`
 	PrivateBucket string  `json:"-"`
 }
+
+type DeletePictureRequest struct {
+	UserID        int64  `json:"-"`
+	UserRole      string `json:"-"`
+	TargetID      int64  `json:"-"`
+	PublicBucket  string `json:"-"`
+	PrivateBucket string `json:"-"`
+}

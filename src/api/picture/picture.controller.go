@@ -246,3 +246,28 @@ func UpdatePicture(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"picture": picture})
 }
+
+func DeletePicture(c *gin.Context) {
+	var json models.DeletePictureRequest
+
+	if err := c.ShouldBind(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not convert ID"})
+		return
+	}
+
+	json.TargetID = targetID
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyDeletePicture(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+}

@@ -232,3 +232,5 @@ func updatePictureService(data models.UpdatePictureRequest, context *gin.Context
 
 	return &picture, nil
 }
+
+func
