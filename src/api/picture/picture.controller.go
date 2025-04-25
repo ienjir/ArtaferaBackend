@@ -3,7 +3,6 @@ package picture
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"io"
@@ -219,9 +218,13 @@ func UpdatePicture(c *gin.Context) {
 		return
 	}
 
+	if json.Name == nil && json.IsPublic == nil && json.Priority == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No content found"})
+		return
+	}
+
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		fmt.Printf("Error: %s \n", parseErr.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not convert ID"})
 		return
 	}

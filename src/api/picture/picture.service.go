@@ -2,7 +2,6 @@ package picture
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
@@ -197,42 +196,28 @@ func updatePictureService(data models.UpdatePictureRequest, context *gin.Context
 	}
 
 	if data.IsPublic != nil && *data.IsPublic != picture.IsPublic {
-		fmt.Printf("Triggered \n")
 		if *data.IsPublic != picture.IsPublic {
-			fmt.Printf("Triggered 2 \n")
 			if *data.IsPublic == true {
-				fmt.Printf("1 \n")
 				picture.IsPublic = true
 				originalBucketName = PrivateBucket
 				newBucketName = PublicBucket
 			} else {
-				fmt.Printf("2 \n")
 				picture.IsPublic = false
 				originalBucketName = PublicBucket
 				newBucketName = PrivateBucket
 			}
 		}
 	} else {
-		fmt.Printf("Trigerred 3 \n")
 		if picture.IsPublic == true {
-			fmt.Printf("3 \n")
 			originalBucketName = PublicBucket
 			newBucketName = PublicBucket
 		} else {
-			fmt.Printf("4 \n")
 			originalBucketName = PrivateBucket
 			newBucketName = PrivateBucket
 		}
 	}
 
-	fmt.Printf("Old name: %s\n", originalFileName)
-	fmt.Printf("New name: %s\n", newFileName)
-	fmt.Printf("Old bucket: %s\n", originalBucketName)
-	fmt.Printf("New bucket: %s\n", newBucketName)
-	fmt.Printf("PictueIsPublic: %b \n", picture.IsPublic)
-
 	if data.Name != nil || data.IsPublic != nil {
-		fmt.Printf("Transfer triggered")
 		if err := utils.TransferAndRenameFile(originalFileName, newFileName, originalBucketName, newBucketName, context); err != nil {
 			return nil, err
 		}
