@@ -3,7 +3,6 @@ package picture
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"io"
@@ -251,16 +250,11 @@ func UpdatePicture(c *gin.Context) {
 func DeletePicture(c *gin.Context) {
 	var json models.DeletePictureRequest
 
-	fmt.Printf("Hldlj \n \n \n")
-
 	if err := c.ShouldBind(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	fmt.Printf("Hldlj \n \n \n")
-
-	fmt.Printf("Param: %s\n", c.Param("id"))
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not convert ID"})
