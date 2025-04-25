@@ -96,6 +96,6 @@ func RegisterRoutes(router *gin.Engine) {
 		pictureRoutes.POST("/list", picture.ListPicture)
 		pictureRoutes.POST("/", picture.CreatePicture)
 		pictureRoutes.PUT("/:id", picture.UpdatePicture)
-		pictureRoutes.DELETE("/:id")
+		pictureRoutes.DELETE("/:id", picture.DeletePicture)
 	}
 }

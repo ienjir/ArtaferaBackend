@@ -233,4 +233,35 @@ func updatePictureService(data models.UpdatePictureRequest, context *gin.Context
 	return &picture, nil
 }
 
-func
+func deletePictureService(data models.DeletePictureRequest, context *gin.Context) *models.ServiceError {
+	var picture models.Picture
+	var bucketName string
+
+	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Picture not found"}
+		}
+		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	if picture.IsPublic {
+		bucketName = PublicBucket
+	} else {
+		bucketName = PrivateBucket
+	}
+
+	fileName := picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
+	_, err := utils.DeleteFile(fileName, bucketName, context)
+	if err != nil {
+		return err
+	}
+
+	if result := database.DB.Delete(&models.Picture{}, data.TargetID); result.Error != nil {
+		return &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error occurred while deleting picture",
+		}
+	}
+
+	return nil
+}
