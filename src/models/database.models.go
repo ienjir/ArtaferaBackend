@@ -8,125 +8,157 @@ import (
 var AllModels = []interface{}{
 	&User{},
 	&Role{},
-	&UserRole{},
-	&Text{},
-	&Translation{},
 	&Language{},
+	&Saved{},
+	&Order{},
 	&Art{},
+	&ArtTranslation{},
 	&ArtPicture{},
 	&Picture{},
-	&Order{},
-	&OrderDetail{},
-	&Payment{},
 	&Currency{},
+	&Translation{},
 }
 
-// User model
+type OrderStatus string
+
+const (
+	OrderStatusPending   OrderStatus = "pending"
+	OrderStatusPaid      OrderStatus = "paid"
+	OrderStatusShipped   OrderStatus = "shipped"
+	OrderStatusDelivered OrderStatus = "delivered"
+	OrderStatusCancelled OrderStatus = "cancelled"
+)
+
+// SoftDeleteModel Base model with soft delete
+type SoftDeleteModel struct {
+	ID        int64          `gorm:"primaryKey;autoIncrement" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// Model Base model without soft delete
+type Model struct {
+	ID        int64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// User Done
 type User struct {
-	gorm.Model
-	Firstname  string  `gorm:"size:255;not null"`
-	Lastname   string  `gorm:"size:255;not null"`
-	Email      string  `gorm:"size:255;not null;unique"`
-	Phone      *string `gorm:"size:20"`
-	Address1   *string `gorm:"size:255"`
-	Address2   *string `gorm:"size:255"`
-	City       *string `gorm:"size:255"`
-	PostalCode *string `gorm:"size:32"`
-	Password   []byte  `gorm:"size:60;not null"`
-	LastAccess *time.Time
-	IsDeleted  bool `gorm:"default:false"`
+	SoftDeleteModel
+	Firstname   string     `gorm:"size:255;not null" json:"firstname" binding:"required"`
+	Lastname    string     `gorm:"size:255;not null" json:"lastname" binding:"required"`
+	Email       string     `gorm:"size:255;not null;uniqueIndex" json:"email" binding:"required,email"`
+	Phone       *string    `gorm:"size:20" json:"phone,omitempty" binding:"omitempty,e164"`
+	PhoneRegion *string    `gorm:"size:2" json:"phone_region,omitempty" binding:"omitempty,iso3166_1_alpha2"`
+	Address1    *string    `gorm:"size:255" json:"address1,omitempty"`
+	Address2    *string    `gorm:"size:255" json:"address2,omitempty"`
+	City        *string    `gorm:"size:255" json:"city,omitempty"`
+	PostalCode  *string    `gorm:"size:32" json:"postal_code,omitempty"`
+	Password    []byte     `gorm:"type:bytea;not null" json:"-"`
+	Salt        []byte     `gorm:"type:bytea;not null" json:"-"`
+	LastAccess  *time.Time `json:"last_access,omitempty"`
+	RoleID      int64      `gorm:"not null;default:1" json:"role_id"`
+	Role        *Role      `gorm:"foreignKey:RoleID;references:ID" json:"role"`
+	Orders      []Order    `gorm:"foreignKey:UserID" json:"orders,omitempty"`
+	Saved       []Saved    `gorm:"foreignKey:UserID" json:"saved,omitempty"`
 }
 
-// Role model
-type Role struct {
-	gorm.Model
-	Role string `gorm:"size:50;not null"`
-}
-
-// UserRole model
-type UserRole struct {
-	gorm.Model
-	UserID int `gorm:"not null;index"`
-	RoleID int `gorm:"not null;index"`
-}
-
-// Text model
-type Text struct {
-	gorm.Model
-}
-
-// Translation model
-type Translation struct {
-	gorm.Model
-	EntityID   int    `gorm:"not null;index"`
-	LanguageID int    `gorm:"not null;index"`
-	Context    string `gorm:"size:50;not null"`
-	Text       string `gorm:"type:text;not null"`
-}
-
-// Language model
-type Language struct {
-	gorm.Model
-	LanguageName string `gorm:"size:50;not null;unique"`
-	LanguageCode string `gorm:"size:2;not null;unique"`
-}
-
-// Art model
 type Art struct {
-	gorm.Model
-	Price        int      `gorm:"not null"`
-	CurrencyID   int      `gorm:"not null;index"`
-	CreationYear string   `gorm:"size:4;not null"`
-	Width        *float64 `gorm:"type:decimal(8,2)"`
-	Height       *float64 `gorm:"type:decimal(8,2)"`
-	Depth        *float64 `gorm:"type:decimal(8,2)"`
+	SoftDeleteModel
+	Price        int64            `gorm:"not null;check:price >= 0" json:"price"`
+	CurrencyID   int64            `gorm:"not null;index" json:"currency_id"`
+	Currency     *Currency        `gorm:"foreignKey:CurrencyID;references:ID" json:"currency,omitempty"`
+	CreationYear int              `gorm:"not null" json:"creation_year" binding:"required,min=1000,max=9999"`
+	Width        *float32         `gorm:"type:decimal(8,2)" json:"width,omitempty"`
+	Height       *float32         `gorm:"type:decimal(8,2)" json:"height,omitempty"`
+	Depth        *float32         `gorm:"type:decimal(8,2)" json:"depth,omitempty"`
+	Pictures     []ArtPicture     `gorm:"foreignKey:ArtID" json:"pictures,omitempty"`
+	Translations []ArtTranslation `gorm:"foreignKey:ArtID" json:"translations,omitempty"`
+	Orders       []Order          `gorm:"foreignKey:ArtID" json:"orders,omitempty"`
+	Saved        []Saved          `gorm:"foreignKey:ArtID" json:"saved,omitempty"`
+	Available    bool             `gorm:"default:true" json:"available"`
+	Visible      bool             `gorm:"default:true" json:"-"`
 }
 
-// ArtPicture model
-type ArtPicture struct {
-	gorm.Model
-	ArtID     int `gorm:"not null;index"`
-	PictureID int `gorm:"not null;index"`
-	Priority  *int
+// Role Done
+type Role struct {
+	Model
+	Name  string `gorm:"column:name;size:255;not null;uniqueIndex" json:"name"`
+	Users []User `gorm:"foreignKey:RoleID" json:"users,omitempty"`
 }
 
-// Picture model
-type Picture struct {
-	gorm.Model
-	PictureLink string `gorm:"size:255;not null"`
+// Language Done
+type Language struct {
+	Model
+	LanguageName    string           `gorm:"size:50;not null;unique" json:"language_name"`
+	LanguageCode    string           `gorm:"size:2;not null;unique;index" json:"language_code"`
+	Translations    []Translation    `gorm:"foreignKey:LanguageID" json:"translations,omitempty"`
+	ArtTranslations []ArtTranslation `gorm:"foreignKey:LanguageID" json:"art_translations,omitempty"`
 }
 
-// Order model
+// Saved Done
+type Saved struct {
+	Model
+	UserID int64 `gorm:"not null;index" json:"user_id"`
+	User   *User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE" json:"user,omitempty"`
+	ArtID  int64 `gorm:"not null;index" json:"art_id"`
+	Art    *Art  `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE" json:"art,omitempty"`
+}
+
+// Order Done
 type Order struct {
-	gorm.Model
-	UserID     int       `gorm:"not null;index"`
-	OrderDate  time.Time `gorm:"not null"`
-	TotalPrice float64   `gorm:"type:decimal(10,2);not null"`
-	Status     string    `gorm:"size:50;not null"`
+	Model
+	UserID    int64       `gorm:"not null;index" json:"user_id"`
+	User      *User       `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE" json:"user,omitempty"`
+	ArtID     int64       `gorm:"not null;index" json:"art_id"`
+	Art       *Art        `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE" json:"art,omitempty"`
+	OrderDate time.Time   `gorm:"not null;default:CURRENT_TIMESTAMP" json:"order_date"`
+	Status    OrderStatus `gorm:"size:50;not null;default:'pending'" json:"status"`
 }
 
-// OrderDetail model
-type OrderDetail struct {
-	gorm.Model
-	OrderID  int     `gorm:"not null;index"`
-	ArtID    int     `gorm:"not null;index"`
-	Quantity int     `gorm:"not null"`
-	Price    float64 `gorm:"type:decimal(10,2);not null"`
+type ArtTranslation struct {
+	Model
+	ArtID       int64     `gorm:"not null;index" json:"art_id"`
+	Art         *Art      `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE" json:"art,omitempty"`
+	LanguageID  int64     `gorm:"not null;index" json:"language_id"`
+	Language    *Language `gorm:"foreignKey:LanguageID;references:ID;constraint:OnDelete:CASCADE" json:"language,omitempty"`
+	Title       string    `gorm:"size:255;not null" json:"title"`
+	Description string    `gorm:"size:1000;not null" json:"description"`
+	Text        string    `gorm:"type:text;not null" json:"text"`
 }
 
-// Payment model
-type Payment struct {
-	gorm.Model
-	OrderID       int       `gorm:"not null;index"`
-	PaymentDate   time.Time `gorm:"not null"`
-	Amount        float64   `gorm:"type:decimal(10,2);not null"`
-	PaymentMethod string    `gorm:"size:50;not null"`
-	Status        string    `gorm:"size:50;not null"`
+type ArtPicture struct {
+	Model
+	ArtID     int64    `gorm:"not null;index" json:"art_id"`
+	Art       *Art     `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE" json:"art,omitempty"`
+	PictureID int64    `gorm:"not null;index" json:"picture_id"`
+	Picture   *Picture `gorm:"foreignKey:PictureID;references:ID;constraint:OnDelete:CASCADE" json:"picture,omitempty"`
+	Name      string   `gorm:"size:255;not null" json:"name"`
+	Priority  *int     `json:"priority,omitempty"`
 }
 
-// Currency model
+type Picture struct {
+	Model
+	Name     string `gorm:"size:255;not null" json:"name"`
+	Priority *int64 `json:"priority,omitempty"`
+	IsPublic bool   `gorm:"default:false" json:"is_public"`
+	Type     string `gorm:"not null"`
+}
+
 type Currency struct {
-	gorm.Model
-	CurrencyCode string `gorm:"size:3;not null;unique"`
-	CurrencyName string `gorm:"size:50;not null"`
+	Model
+	CurrencyCode string `gorm:"size:3;not null;unique" json:"currency_code"`
+	CurrencyName string `gorm:"size:50;not null" json:"currency_name"`
+	Arts         []Art  `gorm:"foreignKey:CurrencyID" json:"arts,omitempty"`
+}
+
+type Translation struct {
+	Model
+	EntityID   int64     `gorm:"not null;index" json:"entity_id"`
+	LanguageID int64     `gorm:"not null;index" json:"language_id"`
+	Language   *Language `gorm:"foreignKey:LanguageID;references:ID;constraint:OnDelete:CASCADE" json:"language,omitempty"`
+	Context    string    `gorm:"size:50;not null" json:"context"`
+	Text       string    `gorm:"type:text;not null" json:"text"`
 }

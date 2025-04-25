@@ -1,51 +1,68 @@
 package auth
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
+	"strings"
 )
 
-func LoginHandler(c *gin.Context) {
-	var u models.User
+var Argon2IDHash Argon2idHash
 
-	// Bind JSON body to the user model
-	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+func Login(c *gin.Context) {
+	var json models.LoginRequest
+	if jsonErr := c.ShouldBindJSON(&json); jsonErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": jsonErr.Error()})
 		return
 	}
 
-	fmt.Printf("The user request value: %v\n", u)
+	json.Email = strings.ToLower(json.Email)
 
-	if true {
-		tokenString, err := CreateToken("test")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"token": tokenString})
-	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+	if err := VerifyLoginData(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
 	}
+
+	user, err := VerifyUser(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	jwt, err2 := GenerateTokenPair(*user)
+	if err2 != nil {
+		c.JSON(err2.StatusCode, gin.H{"error": err2.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": jwt})
 }
 
-// ProtectedHandler handles requests to a protected endpoint
-func ProtectedHandler(c *gin.Context) {
-	tokenString := c.GetHeader("Authorization")
-	if tokenString == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing authorization header"})
+func RefreshTokenHandler(c *gin.Context) {
+	refreshToken := c.GetHeader("X-Refresh-Token")
+	if refreshToken == "" {
+		c.JSON(http.StatusBadRequest, models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Refresh token is required",
+		})
 		return
 	}
 
-	// Remove "Bearer " prefix
-	tokenString = tokenString[len("Bearer "):]
-
-	if err := VerifyToken(tokenString); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+	newTokens, err := RefreshTokens(refreshToken)
+	if err != nil {
+		c.JSON(err.StatusCode, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Welcome to the protected area"})
+	c.JSON(http.StatusOK, newTokens)
+}
+
+func HashPassword(password string) (*HashSalt, error) {
+	bytePassword := []byte(password)
+	hashSalt, err := Argon2IDHash.GenerateHash(bytePassword, nil)
+	if err != nil {
+		return nil, err
+	}
+	return hashSalt, nil
 }

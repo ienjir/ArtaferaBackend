@@ -1,40 +1,38 @@
 package auth
 
 import (
-	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"time"
+	"github.com/ienjir/ArtaferaBackend/src/database"
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"net/http"
 )
 
-var secretKey = []byte("secret-key")
+func VerifyUser(request models.LoginRequest) (*models.User, *models.ServiceError) {
+	var User models.User
 
-func VerifyToken(tokenString string) error {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
-	})
-
-	if err != nil {
-		return err
+	// Check if user exists
+	if err := database.DB.Preload("Role").Where("email = ?", request.Email).First(&User).Error; err != nil {
+		return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
 	}
 
-	if !token.Valid {
-		return fmt.Errorf("invalid token")
+	// Compare password
+	if err := ComparePassword(User, request.Password); err != nil {
+		return nil, &models.ServiceError{StatusCode: err.StatusCode, Message: err.Message}
+	}
+
+	return &User, nil
+}
+
+func ComparePassword(user models.User, password string) *models.ServiceError {
+	var Password, Hash, Salt []byte
+
+	Password = []byte(password)
+	Hash = user.Password
+	Salt = user.Salt
+
+	err := Argon2IDHash.Compare(Hash, Salt, Password)
+	if err != nil {
+		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Password is wrong"}
 	}
 
 	return nil
-}
-
-func CreateToken(username string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"username": username,
-			"exp":      time.Now().Add(time.Hour * 24).Unix(),
-		})
-
-	tokenString, err := token.SignedString(secretKey)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
 }
