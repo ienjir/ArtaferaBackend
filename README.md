@@ -9,7 +9,7 @@
 
 To start the Artafera backend you the following things:
 
-- Go 1.23.2
+- Go 1.24.4
 - Docker
 
 Run `go mod tidy` to install all dependency's. Then run `docker compose up -d` to start the postgres and minio services, but only if you are not in production. <br>
@@ -40,4 +40,3 @@ To start using this project for prod make the following steps:
 Afterward run `docker compose up -d`. 
 
 For any more specific documentation refer to the right `md` file in the `src/docs` folder
-

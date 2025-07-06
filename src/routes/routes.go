@@ -13,7 +13,6 @@ import (
 )
 
 func RegisterRoutes(router *gin.Engine) {
-
 	authRoutes := router.Group("/auth")
 	{
 		authRoutes.POST("/login", auth.Login)
