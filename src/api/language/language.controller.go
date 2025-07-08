@@ -12,7 +12,7 @@ func GetLanguageByID(c *gin.Context) {
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "OrderID is wrong"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "LanguageID is wrong"})
 	}
 
 	json.UserID = c.GetInt64("userID")

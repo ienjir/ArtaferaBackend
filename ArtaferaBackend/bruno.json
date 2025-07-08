@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "ArtaferaBackend",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

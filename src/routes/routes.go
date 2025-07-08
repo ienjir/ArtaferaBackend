@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	ArtTranslation "github.com/ienjir/ArtaferaBackend/src/api/artTranslation"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/api/language"
 	"github.com/ienjir/ArtaferaBackend/src/api/order"
@@ -96,5 +97,11 @@ func RegisterRoutes(router *gin.Engine) {
 		pictureRoutes.POST("/", picture.CreatePicture)
 		pictureRoutes.PUT("/:id", picture.UpdatePicture)
 		pictureRoutes.DELETE("/:id", picture.DeletePicture)
+	}
+
+	artTranslationRoutes := router.Group("/artTranslation")
+	artTranslationRoutes.Use(middleware.RoleAuthMiddleware("admin"))
+	{
+		artTranslationRoutes.GET("/:id", ArtTranslation.GetArtTranslationByID)
 	}
 }
