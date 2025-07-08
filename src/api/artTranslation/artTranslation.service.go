@@ -1,4 +1,4 @@
-package ArtTranslation
+package artTranslation
 
 import (
 	"errors"
@@ -26,4 +26,25 @@ func getArtTranslationByIDService(data models.GetArtTranslationByIDRequest) (*mo
 	}
 
 	return &ArtTranslation, nil
+}
+
+func listArtTranslationService(data models.ListArtTranslationRequest) (*[]models.ArtTranslation, *int64, *models.ServiceError) {
+	var artTranslations []models.ArtTranslation
+	var count int64
+
+	if err := database.DB.Limit(10).Offset(int(data.Offset * 10)).Find(&artTranslations).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while retrieving artTranslations from database",
+		}
+	}
+
+	if err := database.DB.Model(&models.ArtTranslation{}).Count(&count).Error; err != nil {
+		return nil, nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error while counting artTranslations in database",
+		}
+	}
+
+	return &artTranslations, &count, nil
 }

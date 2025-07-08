@@ -1,4 +1,4 @@
-package ArtTranslation
+package artTranslation
 
 import (
 	"github.com/gin-gonic/gin"
@@ -34,5 +34,31 @@ func GetArtTranslationByID(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"artTranslation": artTranslation})
+	return
+}
+
+func ListArtTranslations(c *gin.Context) {
+	var json models.ListArtTranslationRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyListArtTranslation(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	artTranslations, count, err := listArtTranslationService(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count, "artTranslations": artTranslations})
 	return
 }
