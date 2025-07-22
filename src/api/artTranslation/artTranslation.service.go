@@ -48,3 +48,37 @@ func listArtTranslationService(data models.ListArtTranslationRequest) (*[]models
 
 	return &artTranslations, &count, nil
 }
+
+func createArtTranslationService(data models.CreateArtTranslationRequest, languageID int64) (*models.ArtTranslation, *models.ServiceError) {
+	var artTranslation models.ArtTranslation
+	var newArtTranslation models.ArtTranslation
+
+	if err := database.DB.Where("art_id = ? AND language_id = ?", data.ArtID, languageID).First(&artTranslation).Error; err == nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusConflict,
+			Message:    "Art translation already exists for this language",
+		}
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Database error",
+		}
+	}
+
+	newArtTranslation = models.ArtTranslation{
+		ArtID:       data.ArtID,
+		LanguageID:  languageID,
+		Title:       data.Title,
+		Description: data.Description,
+		Text:        data.Text,
+	}
+
+	if err := database.DB.Create(&newArtTranslation).Error; err != nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Failed to save art translation",
+		}
+	}
+
+	return &newArtTranslation, nil
+}

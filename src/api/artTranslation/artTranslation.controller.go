@@ -2,6 +2,7 @@ package artTranslation
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/api/language"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"net/http"
 	"strconv"
@@ -60,5 +61,37 @@ func ListArtTranslations(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"count": count, "artTranslations": artTranslations})
+	return
+}
+
+func CreateArtTranslation(c *gin.Context) {
+	var json models.CreateArtTranslationRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyCreateArtTranslation(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	id, langErr := language.LanguageCodeToID(json.LanguageCode)
+	if langErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": langErr.Error()})
+		return
+	}
+
+	createdRole, err := createArtTranslationService(json, id.ID)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"language": createdRole})
 	return
 }

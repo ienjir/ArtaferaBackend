@@ -104,5 +104,6 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		artTranslationRoutes.GET("/:id", artTranslation.GetArtTranslationByID)
 		artTranslationRoutes.POST("/list", artTranslation.ListArtTranslations)
+		artTranslationRoutes.POST("/", artTranslation.CreateArtTranslation)
 	}
 }
