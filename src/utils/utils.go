@@ -1,8 +1,12 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/database"
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"gorm.io/gorm"
 	"net/http"
 	"os"
 )
@@ -50,4 +54,17 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func LanguageCodeToID(languageCode string) (*models.Language, error) {
+	var language models.Language
+
+	if err := database.DB.Where("language_code = ?", languageCode).First(&language).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("language with code '%s' not found", languageCode)
+		}
+		return nil, fmt.Errorf("error retrieving language: %w", err)
+	}
+
+	return &language, nil
 }
