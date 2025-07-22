@@ -1,9 +1,6 @@
 # ArtaferaBackend
 
-### The backend for the <a href="Artafera.ch">Artafera Website</a>
-
-## ToDo
-- Uncomment admin verification in `pictures.validation.go`
+### The backend for the <a href="https://wwww.Artafera.ch">Artafera Website</a>
 
 ## Development
 
@@ -23,11 +20,14 @@ Afterwards go to <a href="localhost:9000">`localhost:9000`</a>, log in with the 
 - User: `DBAdmin`
 - Password: `AVerySecurePassword`
 
-### MinIO
+#### MinIO
 - Port: `9000`
 - Admin page: `localhost:9001`
 - User: `S3Admin`
 - Password: `AVerySecurePassword`
+
+#### Bruno
+There is also a Bruno folder called `bruno` (duh) in which I have (hopefully someday) all requests. Because Bruno is new (and currently a bit shitty) there are some issues. So until they are so kind and fix these issues its these issues you are stuck with copy pasting your generated JWT into the auth tab of the collection. If i write docs about it it will be in the `docs` folder and not in bruno itself.
 
 ## Production
 
