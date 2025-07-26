@@ -32,3 +32,9 @@ type UpdateArtTranslationRequest struct {
 	Description  *string `json:"description"`
 	Text         *string `json:"text"`
 }
+
+type DeleteArtTranslationRequest struct {
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	TargetID int64  `json:"-"`
+}

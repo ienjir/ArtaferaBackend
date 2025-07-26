@@ -106,5 +106,6 @@ func RegisterRoutes(router *gin.Engine) {
 		artTranslationRoutes.POST("/list", artTranslation.ListArtTranslations)
 		artTranslationRoutes.POST("/", artTranslation.CreateArtTranslation)
 		artTranslationRoutes.PUT("/:id", artTranslation.UpdateArtTranslation)
+		artTranslationRoutes.DELETE("/:id", artTranslation.DeleteArtTranslation)
 	}
 }

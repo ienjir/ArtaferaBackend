@@ -102,5 +102,87 @@ func verifyCreateArtTranslation(data models.CreateArtTranslationRequest) *models
 }
 
 func verifyUpdateArtTranslation(data models.UpdateArtTranslationRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "You are not allowed to see this route",
+		}
+	}
+
+	if data.TargetID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "TargetID has to be at least 1",
+		}
+	}
+
+	if data.LanguageCode != nil {
+		if l := len(*data.LanguageCode); l != 2 {
+			return &models.ServiceError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "Language code needs to be 2 chars",
+			}
+		}
+	}
+
+	if data.Title != nil {
+		if *data.Text == "" {
+			return &models.ServiceError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "Title can't be empty",
+			}
+		}
+	}
+
+	if data.Description != nil {
+		if *data.Description == "" {
+			return &models.ServiceError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "Description can't be empty",
+			}
+		}
+	}
+
+	if data.Text != nil {
+		if *data.Text == "" {
+			return &models.ServiceError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "Text can't be empty",
+			}
+		}
+	}
+
+	return nil
+}
+
+func verifyDeleteArtTranslation(data models.DeleteArtTranslationRequest) *models.ServiceError {
+	if data.UserID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "UserID has to be at least 1",
+		}
+	}
+
+	if data.UserRole != "admin" {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "You are not allowed to see this route",
+		}
+	}
+
+	if data.TargetID < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "TargetID has to be at least 1",
+		}
+	}
+
 	return nil
 }

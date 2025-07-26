@@ -124,3 +124,29 @@ func updateArtTranslation(data models.UpdateArtTranslationRequest) (*models.ArtT
 
 	return &artTranslation, nil
 }
+
+func deleteArtTranslationService(data models.DeleteArtTranslationRequest) *models.ServiceError {
+	var artTranslation models.ArtTranslation
+
+	if err := database.DB.First(&artTranslation, "id = ?", data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "ArtTranslation not found",
+			}
+		}
+		return &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Database error",
+		}
+	}
+
+	if result := database.DB.Delete(&models.ArtTranslation{}, data.TargetID); result.Error != nil {
+		return &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Error occurred while deleting Art Translation",
+		}
+	}
+
+	return nil
+}

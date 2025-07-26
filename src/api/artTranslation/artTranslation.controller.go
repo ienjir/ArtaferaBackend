@@ -138,3 +138,30 @@ func UpdateArtTranslation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"language": updatedLanguage})
 	return
 }
+
+func DeleteArtTranslation(c *gin.Context) {
+	var json models.DeleteArtTranslationRequest
+
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not convert ID"})
+		return
+	}
+
+	json.TargetID = targetID
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyDeleteArtTranslation(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	if err := deleteArtTranslationService(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": "Art translation successfully deleted"})
+	return
+}
