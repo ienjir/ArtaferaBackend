@@ -5,9 +5,20 @@ meta {
 }
 
 put {
-  url: 
-  body: none
+  url: {{BaseURL}}{{Group}}/:id
+  body: json
   auth: inherit
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+   {
+     "languageCode": "fr",
+     "text": "test"
+   }
 }
 
 settings {
