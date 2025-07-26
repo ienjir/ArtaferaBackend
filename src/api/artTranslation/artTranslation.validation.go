@@ -100,3 +100,7 @@ func verifyCreateArtTranslation(data models.CreateArtTranslationRequest) *models
 
 	return nil
 }
+
+func verifyUpdateArtTranslation(data models.UpdateArtTranslationRequest) *models.ServiceError {
+	return nil
+}

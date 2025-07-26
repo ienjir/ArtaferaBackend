@@ -93,7 +93,7 @@ func updateRoleService(data models.UpdateLanguageRequest) (*models.Language, *mo
 		}
 		return nil, &models.ServiceError{
 			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
+			Message:    "Database error",
 		}
 	}
 

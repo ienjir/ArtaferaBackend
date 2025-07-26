@@ -82,3 +82,45 @@ func createArtTranslationService(data models.CreateArtTranslationRequest, langua
 
 	return &newArtTranslation, nil
 }
+
+func updateArtTranslation(data models.UpdateArtTranslationRequest) (*models.ArtTranslation, *models.ServiceError) {
+	var artTranslation models.ArtTranslation
+
+	if err := database.DB.First(&artTranslation, "id = ?", data.TargetID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &models.ServiceError{
+				StatusCode: http.StatusNotFound,
+				Message:    "ArtTranslation not found",
+			}
+		}
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "Database error",
+		}
+	}
+
+	if data.LanguageID != nil {
+		artTranslation.LanguageID = *data.LanguageID
+	}
+
+	if data.Title != nil {
+		artTranslation.Title = *data.Title
+	}
+
+	if data.Description != nil {
+		artTranslation.Description = *data.Description
+	}
+
+	if data.Text != nil {
+		artTranslation.Text = *data.Text
+	}
+
+	if err := database.DB.Save(&artTranslation).Error; err != nil {
+		return nil, &models.ServiceError{
+			StatusCode: http.StatusUnauthorized,
+			Message:    "Error while updating artTranslation",
+		}
+	}
+
+	return &artTranslation, nil
+}

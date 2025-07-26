@@ -95,3 +95,46 @@ func CreateArtTranslation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"language": createdRole})
 	return
 }
+
+func UpdateArtTranslation(c *gin.Context) {
+	var json models.UpdateArtTranslationRequest
+	var artTranslation models.ArtTranslation
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "TranslationID is wrong"})
+		return
+	}
+
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+	json.TargetID = targetID
+
+	if err := verifyUpdateArtTranslation(json); err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	if json.LanguageCode != nil {
+		languageID, langErr := language.LanguageCodeToID(*json.LanguageCode)
+		if langErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": langErr.Error()})
+			return
+		}
+		artTranslation.LanguageID = languageID.ID
+	}
+
+	updatedLanguage, err := updateArtTranslation(json)
+	if err != nil {
+		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"language": updatedLanguage})
+	return
+}

@@ -21,3 +21,14 @@ type CreateArtTranslationRequest struct {
 	Description  string `json:"description"`
 	Text         string `json:"text"`
 }
+
+type UpdateArtTranslationRequest struct {
+	UserID       int64   `json:"-"`
+	UserRole     string  `json:"-"`
+	TargetID     int64   `json:"-"`
+	LanguageID   *int64  `json:"-"`
+	LanguageCode *string `json:"languageCode"`
+	Title        *string `json:"title"`
+	Description  *string `json:"description"`
+	Text         *string `json:"text"`
+}
