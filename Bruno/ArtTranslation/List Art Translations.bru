@@ -1,0 +1,17 @@
+meta {
+  name: List Art Translations
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BaseURL}}{{Group}}/list
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "offset": 0
+  }
+}

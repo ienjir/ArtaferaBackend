@@ -1,0 +1,21 @@
+meta {
+  name: Create Art Translation
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BaseURL}}{{Group}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "artID": 1,
+    "languageCode": "en",
+    "title": "A test title",
+    "description": "Test description",
+    "text": "ads ist ein text der keine bedeutung hat"
+  }
+}
