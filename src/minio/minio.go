@@ -3,38 +3,43 @@ package miniobucket
 import (
 	"context"
 	"fmt"
-	"github.com/ienjir/ArtaferaBackend/src/models"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 var MinioClient *minio.Client
 
 func InitMinIO() error {
-	var err error
-
 	endpoint := os.Getenv("MINIO_ENDPOINT")
-	accessKeyID := os.Getenv("MINIO_ACCESS_KEY")
-	secretAccessKey := os.Getenv("MINIO_SECRET_KEY")
-	useSSL, err := strconv.ParseBool(os.Getenv("MINIO_USE_SSL"))
-	if err != nil {
-		log.Fatalln("Error while getting use ssl bool from env")
+	rootUser := os.Getenv("MINIO_ROOT_USER")
+	rootPassword := os.Getenv("MINIO_ROOT_PASSWORD")
+
+	if rootUser == "" || rootPassword == "" {
+		log.Fatalln("Root credentials not set: please set MINIO_ROOT_USER and MINIO_ROOT_PASSWORD")
+		return fmt.Errorf("missing root credentials")
 	}
 
-	MinioClient, err = minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
-		Secure: useSSL,
-	})
-
+	useSSL, err := strconv.ParseBool(os.Getenv("MINIO_USE_SSL"))
 	if err != nil {
-		log.Fatalln("Error initialize minio client: ", err)
+		log.Fatalln("Error parsing MINIO_USE_SSL:", err)
 		return err
 	}
 
-	log.Println("Successfully initialized minio client")
+	MinioClient, err = minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(rootUser, rootPassword, ""),
+		Secure: useSSL,
+	})
+	if err != nil {
+		log.Fatalln("Error initializing MinIO client:", err)
+		return err
+	}
+
+	log.Println("MinIO client initialized using ROOT credentials")
 	return nil
 }
 
