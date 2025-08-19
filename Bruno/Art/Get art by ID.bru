@@ -1,17 +1,17 @@
 meta {
-  name: Delete Art Translation
+  name: Get art by ID
   type: http
-  seq: 5
+  seq: 1
 }
 
-delete {
+get {
   url: {{BaseURL}}{{Group}}/:id
   body: none
   auth: inherit
 }
 
 params:path {
-  id: 1
+  id: 
 }
 
 settings {
