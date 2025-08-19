@@ -425,3 +425,8 @@ func NewTransactionCommitError() *models.ServiceError {
 func NewHashPasswordError() *models.ServiceError {
 	return NewInternalServerError(ErrHashPassword)
 }
+
+// Generic record not found error
+func NewRecordNotFoundError() *models.ServiceError {
+	return NewNotFoundError(ErrResourceNotFound)
+}

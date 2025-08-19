@@ -1,39 +1,34 @@
 package user
 
 import (
-	"errors"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
-	"gorm.io/gorm"
 	"strings"
 )
 
 func getUserByIDService(data models.GetUserByIDRequest) (*models.User, *models.ServiceError) {
-	var user models.User
-
-	if err := database.DB.Preload("Role").First(&user, data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	user, err := database.Repositories.User.GetByID(data.TargetID, "Role")
+	if err != nil {
+		if err.StatusCode == 404 {
 			return nil, utils.NewUserNotFoundError()
-		} else {
-			return nil, utils.NewDatabaseRetrievalError()
 		}
+		return nil, err
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func getUserByEmailService(data models.GetUserByEmailRequest) (*models.User, *models.ServiceError) {
-	var user models.User
-
 	data.Email = strings.ToLower(data.Email)
 
-	if err := database.DB.Preload("Role").Where("email = ?", data.Email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	user, err := database.Repositories.User.FindByField("email", data.Email, "Role")
+	if err != nil {
+		if err.StatusCode == 404 {
 			return nil, utils.NewUserNotFoundError()
 		}
-		return nil, utils.NewDatabaseRetrievalError()
+		return nil, err
 	}
 
 	if data.UserRole != "admin" {
@@ -42,34 +37,29 @@ func getUserByEmailService(data models.GetUserByEmailRequest) (*models.User, *mo
 		}
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func listUsersService(data models.ListUserRequest) (*[]models.User, *int64, *models.ServiceError) {
-	var users []models.User
-	var count int64
-
-	if err := database.DB.Preload("Role").Limit(10).Offset(int(data.Offset * 10)).Find(&users).Error; err != nil {
-		return nil, nil, utils.NewDatabaseRetrievalError()
+	users, err := database.Repositories.User.List(int(data.Offset*10), 10, "Role")
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if err := database.DB.Model(&models.User{}).Count(&count).Error; err != nil {
-		return nil, nil, utils.NewDatabaseCountError()
+	count, err := database.Repositories.User.Count()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return &users, &count, nil
+	return users, count, nil
 }
 
 func createUserService(data models.CreateUserRequest) (*models.User, *models.ServiceError) {
-	var user models.User
-	var newUser models.User
-
 	data.Email = strings.ToLower(data.Email)
 
-	if err := database.DB.Where("email = ?", data.Email).First(&user).Error; err == nil {
+	// Check if user already exists
+	if existingUser, err := database.Repositories.User.FindByField("email", data.Email); err == nil && existingUser != nil {
 		return nil, utils.NewUserAlreadyExistsError()
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, utils.NewDatabaseRetrievalError()
 	}
 
 	hashedPassword, err := auth.HashPassword(data.Password)
@@ -77,7 +67,7 @@ func createUserService(data models.CreateUserRequest) (*models.User, *models.Ser
 		return nil, utils.NewHashPasswordError()
 	}
 
-	newUser = models.User{
+	newUser := models.User{
 		Firstname:   data.Firstname,
 		Lastname:    data.Lastname,
 		Email:       data.Email,
@@ -91,21 +81,20 @@ func createUserService(data models.CreateUserRequest) (*models.User, *models.Ser
 		Salt:        hashedPassword.Salt,
 	}
 
-	if err := database.DB.Create(&newUser).Error; err != nil {
-		return nil, utils.NewDatabaseCreateError()
+	if serviceErr := database.Repositories.User.Create(&newUser); serviceErr != nil {
+		return nil, serviceErr
 	}
 
 	return &newUser, nil
 }
 
 func updateUserService(data models.UpdateUserRequest) (*models.User, *models.ServiceError) {
-	var user models.User
-
-	if err := database.DB.Preload("Role").First(&user, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	user, err := database.Repositories.User.GetByID(data.TargetID, "Role")
+	if err != nil {
+		if err.StatusCode == 404 {
 			return nil, utils.NewUserNotFoundError()
 		}
-		return nil, utils.NewDatabaseRetrievalError()
+		return nil, err
 	}
 
 	if data.Firstname != nil {
@@ -137,33 +126,27 @@ func updateUserService(data models.UpdateUserRequest) (*models.User, *models.Ser
 	}
 
 	if data.Password != nil {
-		password, err := auth.HashPassword(*data.Password)
-		if err != nil {
+		password, hashErr := auth.HashPassword(*data.Password)
+		if hashErr != nil {
 			return nil, utils.NewHashPasswordError()
 		}
 		user.Password = password.Hash
 		user.Salt = password.Salt
 	}
 
-	if err := database.DB.Save(&user).Error; err != nil {
-		return nil, utils.NewDatabaseUpdateError()
+	if serviceErr := database.Repositories.User.Update(user); serviceErr != nil {
+		return nil, serviceErr
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func deleteUserService(data models.DeleteUserRequest) *models.ServiceError {
-	var user models.User
-
-	if err := database.DB.First(&user, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := database.Repositories.User.Delete(data.TargetID); err != nil {
+		if err.StatusCode == 404 {
 			return utils.NewUserNotFoundError()
 		}
-		return utils.NewDatabaseRetrievalError()
-	}
-
-	if result := database.DB.Delete(&models.User{}, data.TargetID); result.Error != nil {
-		return utils.NewDatabaseDeleteError()
+		return err
 	}
 
 	return nil

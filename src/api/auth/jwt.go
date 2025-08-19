@@ -112,8 +112,6 @@ func verifyToken(tokenString string, secret []byte, tokenType string) (*jwt2.Tok
 }
 
 func RefreshTokens(refreshToken string) (*TokenPair, *models.ServiceError) {
-	var user models.User
-
 	// Verify the refresh token
 	token, err := VerifyRefreshToken(refreshToken)
 	if err != nil {
@@ -121,10 +119,19 @@ func RefreshTokens(refreshToken string) (*TokenPair, *models.ServiceError) {
 	}
 
 	claims, _ := token.Claims.(jwt2.MapClaims)
-	userID := claims["id"]
-
-	if err := database.DB.Preload("Role").Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+	userIDFloat, ok := claims["id"].(float64)
+	if !ok {
+		return nil, &models.ServiceError{StatusCode: http.StatusBadRequest, Message: "Invalid user ID in token"}
 	}
-	return GenerateTokenPair(user)
+	userID := int64(userIDFloat)
+
+	user, dbErr := database.Repositories.User.GetByID(userID, "Role")
+	if dbErr != nil {
+		if dbErr.StatusCode == 404 {
+			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+		}
+		return nil, dbErr
+	}
+	
+	return GenerateTokenPair(*user)
 }

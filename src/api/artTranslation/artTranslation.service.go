@@ -1,53 +1,46 @@
 package artTranslation
 
 import (
-	"errors"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
-	"gorm.io/gorm"
 )
 
 func getArtTranslationByIDService(data models.GetArtTranslationByIDRequest) (*models.ArtTranslation, *models.ServiceError) {
-	var ArtTranslation models.ArtTranslation
-
-	if err := database.DB.First(&ArtTranslation, data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	artTranslation, err := database.Repositories.ArtTranslation.GetByID(data.TargetID)
+	if err != nil {
+		if err.StatusCode == 404 {
 			return nil, utils.NewArtTranslationNotFoundError()
-		} else {
-			return nil, utils.NewDatabaseRetrievalError()
 		}
+		return nil, err
 	}
 
-	return &ArtTranslation, nil
+	return artTranslation, nil
 }
 
 func listArtTranslationService(data models.ListArtTranslationRequest) (*[]models.ArtTranslation, *int64, *models.ServiceError) {
-	var artTranslations []models.ArtTranslation
-	var count int64
-
-	if err := database.DB.Limit(10).Offset(int(data.Offset * 10)).Find(&artTranslations).Error; err != nil {
-		return nil, nil, utils.NewDatabaseRetrievalError()
+	artTranslations, err := database.Repositories.ArtTranslation.List(int(data.Offset*10), 10)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if err := database.DB.Model(&models.ArtTranslation{}).Count(&count).Error; err != nil {
-		return nil, nil, utils.NewDatabaseCountError()
+	count, err := database.Repositories.ArtTranslation.Count()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return &artTranslations, &count, nil
+	return artTranslations, count, nil
 }
 
 func createArtTranslationService(data models.CreateArtTranslationRequest, languageID int64) (*models.ArtTranslation, *models.ServiceError) {
-	var artTranslation models.ArtTranslation
-	var newArtTranslation models.ArtTranslation
-
-	if err := database.DB.Where("art_id = ? AND language_id = ?", data.ArtID, languageID).First(&artTranslation).Error; err == nil {
+	// Check if art translation already exists for this art and language
+	query := database.Repositories.ArtTranslation.Query().Where("art_id = ? AND language_id = ?", data.ArtID, languageID)
+	var existingTranslation models.ArtTranslation
+	if queryErr := query.First(&existingTranslation).Error; queryErr == nil {
 		return nil, utils.NewArtTranslationExistsError()
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, utils.NewDatabaseRetrievalError()
 	}
 
-	newArtTranslation = models.ArtTranslation{
+	newArtTranslation := models.ArtTranslation{
 		ArtID:       data.ArtID,
 		LanguageID:  languageID,
 		Title:       data.Title,
@@ -55,21 +48,20 @@ func createArtTranslationService(data models.CreateArtTranslationRequest, langua
 		Text:        data.Text,
 	}
 
-	if err := database.DB.Create(&newArtTranslation).Error; err != nil {
-		return nil, utils.NewDatabaseCreateError()
+	if err := database.Repositories.ArtTranslation.Create(&newArtTranslation); err != nil {
+		return nil, err
 	}
 
 	return &newArtTranslation, nil
 }
 
 func updateArtTranslation(data models.UpdateArtTranslationRequest) (*models.ArtTranslation, *models.ServiceError) {
-	var artTranslation models.ArtTranslation
-
-	if err := database.DB.First(&artTranslation, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	artTranslation, err := database.Repositories.ArtTranslation.GetByID(data.TargetID)
+	if err != nil {
+		if err.StatusCode == 404 {
 			return nil, utils.NewArtTranslationNotFoundError()
 		}
-		return nil, utils.NewDatabaseRetrievalError()
+		return nil, err
 	}
 
 	if data.LanguageID != nil {
@@ -88,25 +80,19 @@ func updateArtTranslation(data models.UpdateArtTranslationRequest) (*models.ArtT
 		artTranslation.Text = *data.Text
 	}
 
-	if err := database.DB.Save(&artTranslation).Error; err != nil {
-		return nil, utils.NewDatabaseUpdateError()
+	if err := database.Repositories.ArtTranslation.Update(artTranslation); err != nil {
+		return nil, err
 	}
 
-	return &artTranslation, nil
+	return artTranslation, nil
 }
 
 func deleteArtTranslationService(data models.DeleteArtTranslationRequest) *models.ServiceError {
-	var artTranslation models.ArtTranslation
-
-	if err := database.DB.First(&artTranslation, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := database.Repositories.ArtTranslation.Delete(data.TargetID); err != nil {
+		if err.StatusCode == 404 {
 			return utils.NewArtTranslationNotFoundError()
 		}
-		return utils.NewDatabaseRetrievalError()
-	}
-
-	if result := database.DB.Delete(&models.ArtTranslation{}, data.TargetID); result.Error != nil {
-		return utils.NewDatabaseDeleteError()
+		return err
 	}
 
 	return nil

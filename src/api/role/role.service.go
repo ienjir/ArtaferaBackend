@@ -1,94 +1,78 @@
 package role
 
 import (
-	"errors"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
-	"gorm.io/gorm"
 )
 
 func getRoleByIDService(data models.GetRoleByIDRequest) (*models.Role, *models.ServiceError) {
-	var role models.Role
-
-	if err := database.DB.First(&role, data.RoleID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	role, err := database.Repositories.Role.GetByID(data.RoleID)
+	if err != nil {
+		if err.StatusCode == 404 {
 			return nil, utils.NewRoleNotFoundError()
-		} else {
-			return nil, utils.NewDatabaseRetrievalError()
 		}
+		return nil, err
 	}
 
-	return &role, nil
+	return role, nil
 }
 
 func listRolesService(data models.ListRoleRequest) (*[]models.Role, *int64, *models.ServiceError) {
-	var roles []models.Role
-	var count int64
-
-	if err := database.DB.Limit(5).Offset(int(data.Offset) * 10).Find(&roles).Error; err != nil {
-		return nil, nil, utils.NewDatabaseRetrievalError()
+	roles, err := database.Repositories.Role.List(int(data.Offset)*10, 5)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if err := database.DB.Model(&models.Role{}).Count(&count).Error; err != nil {
-		return nil, nil, utils.NewDatabaseCountError()
+	count, err := database.Repositories.Role.Count()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return &roles, &count, nil
+	return roles, count, nil
 }
 
 func createRoleService(data models.CreateRoleRequest) (*models.Role, *models.ServiceError) {
-	var role models.Role
-	var newRole models.Role
-
-	if err := database.DB.Where("name = ?", data.Role).First(&role).Error; err == nil {
+	// Check if role already exists
+	if existingRole, err := database.Repositories.Role.FindByField("name", data.Role); err == nil && existingRole != nil {
 		return nil, utils.NewRoleAlreadyExistsError()
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, utils.NewDatabaseRetrievalError()
 	}
 
-	newRole = models.Role{
+	newRole := models.Role{
 		Name: data.Role,
 	}
 
-	if err := database.DB.Create(&newRole).Error; err != nil {
-		return nil, utils.NewDatabaseCreateError()
+	if err := database.Repositories.Role.Create(&newRole); err != nil {
+		return nil, err
 	}
 
 	return &newRole, nil
 }
 
 func updateRoleService(data models.UpdateRoleRequest) (*models.Role, *models.ServiceError) {
-	var role models.Role
-
-	if err := database.DB.First(&role, "id = ?", data.RoleID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	role, err := database.Repositories.Role.GetByID(data.RoleID)
+	if err != nil {
+		if err.StatusCode == 404 {
 			return nil, utils.NewRoleNotFoundError()
 		}
-		return nil, utils.NewDatabaseRetrievalError()
+		return nil, err
 	}
 
 	role.Name = data.Role
 
-	if err := database.DB.Save(&role).Error; err != nil {
-		return nil, utils.NewDatabaseUpdateError()
+	if err := database.Repositories.Role.Update(role); err != nil {
+		return nil, err
 	}
 
-	return &role, nil
+	return role, nil
 }
 
 func deleteRoleService(data models.DeleteRoleRequest) *models.ServiceError {
-	var role models.Role
-
-	if err := database.DB.First(&role, "id = ?", data.RoleID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := database.Repositories.Role.Delete(data.RoleID); err != nil {
+		if err.StatusCode == 404 {
 			return utils.NewRoleNotFoundError()
 		}
-		return utils.NewDatabaseRetrievalError()
-	}
-
-	if result := database.DB.Delete(&models.Role{}, data.RoleID); result.Error != nil {
-		return utils.NewDatabaseDeleteError()
+		return err
 	}
 
 	return nil
