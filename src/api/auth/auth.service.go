@@ -4,7 +4,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
-	"net/http"
 )
 
 func VerifyUser(request models.LoginRequest) (*models.User, *models.ServiceError) {

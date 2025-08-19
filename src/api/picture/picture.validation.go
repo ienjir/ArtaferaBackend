@@ -4,7 +4,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
-	"net/http"
 )
 
 func verifyGetPictureByIDRequest(data models.GetPictureByIDRequest) *models.ServiceError {

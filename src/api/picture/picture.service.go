@@ -8,7 +8,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
-	"net/http"
 	"path/filepath"
 	"strconv"
 )

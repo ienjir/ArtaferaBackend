@@ -7,7 +7,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 func getLanguageByIDService(data models.GetLanguageByIDRequest) (*models.Language, *models.ServiceError) {
@@ -61,7 +60,7 @@ func createLanguageService(data models.CreateLanguageRequest) (*models.Language,
 	return &newLanguage, nil
 }
 
-func updateRoleService(data models.UpdateLanguageRequest) (*models.Language, *models.ServiceError) {
+func updateLanguageService(data models.UpdateLanguageRequest) (*models.Language, *models.ServiceError) {
 	var language models.Language
 
 	if err := database.DB.First(&language, "id = ?", data.TargetID).Error; err != nil {

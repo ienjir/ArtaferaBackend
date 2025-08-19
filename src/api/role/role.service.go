@@ -6,7 +6,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 func getRoleByIDService(data models.GetRoleByIDRequest) (*models.Role, *models.ServiceError) {

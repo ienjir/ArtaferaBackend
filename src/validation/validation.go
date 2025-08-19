@@ -7,7 +7,6 @@ import (
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"log"
 	"mime/multipart"
-	"net/http"
 	"net/mail"
 	"os"
 	"strconv"

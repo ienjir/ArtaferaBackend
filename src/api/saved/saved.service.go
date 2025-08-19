@@ -6,7 +6,6 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 func getSavedByIDService(data models.GetSavedByIDRequest) (*models.Saved, *models.ServiceError) {
