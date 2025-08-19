@@ -2,161 +2,74 @@ package order
 
 import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
-	"net/http"
 )
 
 func verifyGetOrderByIDRequest(data models.GetOrderByIDRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
-	}
-
-	if data.OrderID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "OrderID has to be over 1",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.OrderID, "OrderID").
+		GetFirstError()
 }
 
 func verifyGetOrdersForUserRequest(data models.GetOrdersForUserRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
+	validator := validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.TargetUserID, "TargetUserID").
+		ValidateOffset(int64(data.Offset))
+
+	if err := validator.GetFirstError(); err != nil {
+		return err
 	}
 
-	if data.TargetUserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "OrderID has to be at least 1",
-		}
-	}
-
-	if data.Offset < 0 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Offset has to  be 0 or more",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		if data.UserID != data.TargetUserID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You can only see orders for your own user account",
-			}
-		}
+	if data.UserRole != "admin" && data.UserID != data.TargetUserID {
+		return utils.NewOwnerOnlyOrdersError()
 	}
 
 	return nil
 }
 
 func verifyListOrdersRequest(data models.ListOrdersRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.Offset < 0 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Offset has to be 0 or more",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed for this route",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateOffset(int64(data.Offset)).
+		ValidateAdminRole(data.UserRole).
+		GetFirstError()
 }
 
 func verifyCreateOrder(data models.CreateOrderRequest) *models.ServiceError {
+	validator := validation.NewValidator().
+		ValidateID(data.ArtID, "ArtID")
+
 	if data.TargetUserID == nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID is required",
-		}
+		return utils.NewFieldRequiredError("UserID")
 	}
 
-	if *data.TargetUserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
+	validator = validator.ValidateID(*data.TargetUserID, "TargetUserID")
+
+	if err := validator.GetFirstError(); err != nil {
+		return err
 	}
 
-	if data.ArtID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "ArtID has to be over 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		if *data.TargetUserID != data.UserID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You can only create orders for your own user account",
-			}
-		}
+	if data.UserRole != "admin" && *data.TargetUserID != data.UserID {
+		return utils.NewOwnerOnlyCreateError()
 	}
 
 	return nil
 }
 
 func verifyUpdateOrderRequest(data models.UpdateOrderRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be at least 1",
-		}
-	}
+	validator := validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.TargetID, "TargetID")
 
 	if data.TargetUserID != nil {
-		if *data.TargetUserID < 1 {
-			return &models.ServiceError{
-				StatusCode: http.StatusBadRequest,
-				Message:    "TargetUserID has to be at least 1",
-			}
-		}
-	}
-	
-	if data.UserRole != "admin" {
-		if data.UserID != *data.TargetUserID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You can only see saved for your own user account",
-			}
-		}
+		validator = validator.ValidateID(*data.TargetUserID, "TargetUserID")
 	}
 
 	if data.ArtID != nil {
-		if *data.ArtID < 1 {
-			return &models.ServiceError{
-				StatusCode: http.StatusBadRequest,
-				Message:    "ArtID has to be over 1",
-			}
-		}
+		validator = validator.ValidateID(*data.ArtID, "ArtID")
 	}
 
 	if data.Status != nil {
@@ -166,31 +79,28 @@ func verifyUpdateOrderRequest(data models.UpdateOrderRequest) *models.ServiceErr
 		}
 	}
 
+	if err := validator.GetFirstError(); err != nil {
+		return err
+	}
+
+	if data.UserRole != "admin" && data.TargetUserID != nil && data.UserID != *data.TargetUserID {
+		return utils.NewOwnerOnlySavedError()
+	}
+
 	return nil
 }
 
 func verifyDeleteOrderRequest(data models.DeleteOrderRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
+	validator := validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.TargetID, "TargetID")
+
+	if err := validator.GetFirstError(); err != nil {
+		return err
 	}
 
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be at least 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		if data.UserID != data.TargetID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You are not allowed to see this route",
-			}
-		}
+	if data.UserRole != "admin" && data.UserID != data.TargetID {
+		return utils.NewNotAllowedRouteError()
 	}
 
 	return nil

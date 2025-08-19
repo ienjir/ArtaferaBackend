@@ -1,71 +1,46 @@
 package artTranslation
 
 import (
-	"errors"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
-	"gorm.io/gorm"
-	"net/http"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 )
 
 func getArtTranslationByIDService(data models.GetArtTranslationByIDRequest) (*models.ArtTranslation, *models.ServiceError) {
-	var ArtTranslation models.ArtTranslation
-
-	if err := database.DB.First(&ArtTranslation, data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "ArtTranslation not found",
-			}
-		} else {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving ArtTranslation",
-			}
+	artTranslation, err := database.Repositories.ArtTranslation.GetByID(data.TargetID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewArtTranslationNotFoundError()
 		}
+		return nil, err
 	}
 
-	return &ArtTranslation, nil
+	return artTranslation, nil
 }
 
 func listArtTranslationService(data models.ListArtTranslationRequest) (*[]models.ArtTranslation, *int64, *models.ServiceError) {
-	var artTranslations []models.ArtTranslation
-	var count int64
-
-	if err := database.DB.Limit(10).Offset(int(data.Offset * 10)).Find(&artTranslations).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving artTranslations from database",
-		}
+	artTranslations, err := database.Repositories.ArtTranslation.List(int(data.Offset*10), 10)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if err := database.DB.Model(&models.ArtTranslation{}).Count(&count).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting artTranslations in database",
-		}
+	count, err := database.Repositories.ArtTranslation.Count()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return &artTranslations, &count, nil
+	return artTranslations, count, nil
 }
 
 func createArtTranslationService(data models.CreateArtTranslationRequest, languageID int64) (*models.ArtTranslation, *models.ServiceError) {
-	var artTranslation models.ArtTranslation
-	var newArtTranslation models.ArtTranslation
-
-	if err := database.DB.Where("art_id = ? AND language_id = ?", data.ArtID, languageID).First(&artTranslation).Error; err == nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusConflict,
-			Message:    "Art translation already exists for this language",
-		}
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Database error",
-		}
+	// Check if art translation already exists for this art and language
+	query := database.Repositories.ArtTranslation.Query().Where("art_id = ? AND language_id = ?", data.ArtID, languageID)
+	var existingTranslation models.ArtTranslation
+	if queryErr := query.First(&existingTranslation).Error; queryErr == nil {
+		return nil, utils.NewArtTranslationExistsError()
 	}
 
-	newArtTranslation = models.ArtTranslation{
+	newArtTranslation := models.ArtTranslation{
 		ArtID:       data.ArtID,
 		LanguageID:  languageID,
 		Title:       data.Title,
@@ -73,30 +48,20 @@ func createArtTranslationService(data models.CreateArtTranslationRequest, langua
 		Text:        data.Text,
 	}
 
-	if err := database.DB.Create(&newArtTranslation).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to save art translation",
-		}
+	if err := database.Repositories.ArtTranslation.Create(&newArtTranslation); err != nil {
+		return nil, err
 	}
 
 	return &newArtTranslation, nil
 }
 
 func updateArtTranslation(data models.UpdateArtTranslationRequest) (*models.ArtTranslation, *models.ServiceError) {
-	var artTranslation models.ArtTranslation
-
-	if err := database.DB.First(&artTranslation, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "ArtTranslation not found",
-			}
+	artTranslation, err := database.Repositories.ArtTranslation.GetByID(data.TargetID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewArtTranslationNotFoundError()
 		}
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Database error",
-		}
+		return nil, err
 	}
 
 	if data.LanguageID != nil {
@@ -115,37 +80,19 @@ func updateArtTranslation(data models.UpdateArtTranslationRequest) (*models.ArtT
 		artTranslation.Text = *data.Text
 	}
 
-	if err := database.DB.Save(&artTranslation).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusUnauthorized,
-			Message:    "Error while updating artTranslation",
-		}
+	if err := database.Repositories.ArtTranslation.Update(artTranslation); err != nil {
+		return nil, err
 	}
 
-	return &artTranslation, nil
+	return artTranslation, nil
 }
 
 func deleteArtTranslationService(data models.DeleteArtTranslationRequest) *models.ServiceError {
-	var artTranslation models.ArtTranslation
-
-	if err := database.DB.First(&artTranslation, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "ArtTranslation not found",
-			}
+	if err := database.Repositories.ArtTranslation.Delete(data.TargetID); err != nil {
+		if err.StatusCode == 404 {
+			return utils.NewArtTranslationNotFoundError()
 		}
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Database error",
-		}
-	}
-
-	if result := database.DB.Delete(&models.ArtTranslation{}, data.TargetID); result.Error != nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error occurred while deleting Art Translation",
-		}
+		return err
 	}
 
 	return nil

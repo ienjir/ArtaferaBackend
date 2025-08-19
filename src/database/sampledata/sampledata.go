@@ -23,8 +23,10 @@ func SeedDatabase() error {
 		{LanguageName: "German", LanguageCode: "de"},
 		{LanguageName: "French", LanguageCode: "fr"},
 	}
-	if err := database.DB.Create(&languages).Error; err != nil {
-		return err
+	for i := range languages {
+		if err := database.Repositories.Language.Create(&languages[i]); err != nil {
+			return fmt.Errorf("failed to create language: %v", err.Message)
+		}
 	}
 
 	hashPassword, _ := auth.HashPassword("Password")
@@ -96,8 +98,10 @@ func SeedDatabase() error {
 			RoleID:      1,
 		},
 	}
-	if err := database.DB.Create(&users).Error; err != nil {
-		return err
+	for i := range users {
+		if err := database.Repositories.User.Create(&users[i]); err != nil {
+			return fmt.Errorf("failed to create user: %v", err.Message)
+		}
 	}
 
 	// Currencies
@@ -108,8 +112,10 @@ func SeedDatabase() error {
 		{CurrencyCode: "JPY", CurrencyName: "Japanese Yen"},
 		{CurrencyCode: "CHF", CurrencyName: "Swiss Franc"},
 	}
-	if err := database.DB.Create(&currencies).Error; err != nil {
-		return err
+	for i := range currencies {
+		if err := database.Repositories.Currency.Create(&currencies[i]); err != nil {
+			return fmt.Errorf("failed to create currency: %v", err.Message)
+		}
 	}
 
 	// Art pieces
@@ -160,8 +166,10 @@ func SeedDatabase() error {
 			Visible:      true,
 		},
 	}
-	if err := database.DB.Create(&arts).Error; err != nil {
-		return err
+	for i := range arts {
+		if err := database.Repositories.Art.Create(&arts[i]); err != nil {
+			return fmt.Errorf("failed to create art: %v", err.Message)
+		}
 	}
 
 	// Art Translations
@@ -212,8 +220,10 @@ func SeedDatabase() error {
 			})
 		}
 	}
-	if err := database.DB.Create(&artTranslations).Error; err != nil {
-		return err
+	for i := range artTranslations {
+		if err := database.Repositories.ArtTranslation.Create(&artTranslations[i]); err != nil {
+			return fmt.Errorf("failed to create art translation: %v", err.Message)
+		}
 	}
 
 	// Pictures
@@ -224,8 +234,10 @@ func SeedDatabase() error {
 		{Name: "slide_3", Type: ".jpg"},
 		{Name: "privateImage2", IsPublic: false, Priority: int64Ptr(4), Type: ".jpg"},
 	}
-	if err := database.DB.Create(&pictures).Error; err != nil {
-		return err
+	for i := range pictures {
+		if err := database.Repositories.Picture.Create(&pictures[i]); err != nil {
+			return fmt.Errorf("failed to create picture: %v", err.Message)
+		}
 	}
 
 	_, filename, _, ok := runtime.Caller(0)
@@ -278,8 +290,10 @@ func SeedDatabase() error {
 		{ArtID: 3, PictureID: 4, Name: "Main view", Priority: intPtr(1)},
 		{ArtID: 4, PictureID: 5, Name: "Main view", Priority: intPtr(1)},
 	}
-	if err := database.DB.Create(&artPictures).Error; err != nil {
-		return err
+	for i := range artPictures {
+		if err := database.Repositories.ArtPicture.Create(&artPictures[i]); err != nil {
+			return fmt.Errorf("failed to create art picture: %v", err.Message)
+		}
 	}
 
 	// Orders
@@ -315,8 +329,10 @@ func SeedDatabase() error {
 			Status:    models.OrderStatusPending,
 		},
 	}
-	if err := database.DB.Create(&orders).Error; err != nil {
-		return err
+	for i := range orders {
+		if err := database.Repositories.Order.Create(&orders[i]); err != nil {
+			return fmt.Errorf("failed to create order: %v", err.Message)
+		}
 	}
 
 	// Saved items
@@ -327,8 +343,10 @@ func SeedDatabase() error {
 		{UserID: 3, ArtID: 4},
 		{UserID: 4, ArtID: 5},
 	}
-	if err := database.DB.Create(&saved).Error; err != nil {
-		return err
+	for i := range saved {
+		if err := database.Repositories.Saved.Create(&saved[i]); err != nil {
+			return fmt.Errorf("failed to create saved: %v", err.Message)
+		}
 	}
 
 	// Translations
@@ -352,8 +370,10 @@ func SeedDatabase() error {
 			Text:       "Bienvenue dans notre galerie d'art!",
 		},
 	}
-	if err := database.DB.Create(&welcomeMessage).Error; err != nil {
-		return err
+	for i := range welcomeMessage {
+		if err := database.Repositories.Translation.Create(&welcomeMessage[i]); err != nil {
+			return fmt.Errorf("failed to create translation: %v", err.Message)
+		}
 	}
 
 	return nil

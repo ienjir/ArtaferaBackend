@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -20,7 +21,7 @@ func GetPictureByID(c *gin.Context) {
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "PictureID is wrong"})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
 
@@ -29,7 +30,7 @@ func GetPictureByID(c *gin.Context) {
 	json.TargetID = targetID
 
 	if err := verifyGetPictureByIDRequest(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
@@ -38,21 +39,21 @@ func GetPictureByID(c *gin.Context) {
 
 	picture, minioFile, err := getPictureByIDService(json, c)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	buf := new(bytes.Buffer)
 	_, err2 := io.Copy(buf, minioFile)
 	if err2 != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
+		utils.RespondWithError(c, http.StatusInternalServerError, utils.ErrFileUpload)
 		return
 	}
 
 	// Encode the picture as base64
 	base64Picture := base64.StdEncoding.EncodeToString(buf.Bytes())
 
-	c.JSON(http.StatusOK, gin.H{
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{
 		"metadata": picture,
 		"picture":  base64Picture,
 	})
@@ -62,7 +63,7 @@ func GetPictureByName(c *gin.Context) {
 	var json models.GetPictureByNameRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
@@ -70,7 +71,7 @@ func GetPictureByName(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyGetPictureByNameRequest(json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
@@ -80,21 +81,21 @@ func GetPictureByName(c *gin.Context) {
 
 	picture, minioFile, err := getPictureByNameService(json, c)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	buf := new(bytes.Buffer)
 	_, err2 := io.Copy(buf, minioFile)
 	if err2 != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
+		utils.RespondWithError(c, http.StatusInternalServerError, utils.ErrFileUpload)
 		return
 	}
 
 	// Encode the picture as base64
 	base64Picture := base64.StdEncoding.EncodeToString(buf.Bytes())
 
-	c.JSON(http.StatusOK, gin.H{
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{
 		"metadata": picture,
 		"picture":  base64Picture,
 	})
@@ -104,7 +105,7 @@ func ListPicture(c *gin.Context) {
 	var json models.ListPictureRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
@@ -112,7 +113,7 @@ func ListPicture(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyListPicture(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
@@ -121,7 +122,7 @@ func ListPicture(c *gin.Context) {
 
 	pictures, minioFiles, count, err := listPictureService(json, c)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
@@ -131,7 +132,7 @@ func ListPicture(c *gin.Context) {
 		buf := new(bytes.Buffer)
 		_, err2 := io.Copy(buf, &minioFile)
 		if err2 != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
+			utils.RespondWithError(c, http.StatusInternalServerError, utils.ErrFileUpload)
 			return
 		}
 
@@ -141,7 +142,7 @@ func ListPicture(c *gin.Context) {
 		base64Pictures = append(base64Pictures, base64Picture)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{
 		"metadata": pictures,
 		"count":    count,
 		"picture":  base64Pictures,
@@ -153,13 +154,13 @@ func CreatePicture(c *gin.Context) {
 	var json models.CreatePictureRequest
 
 	if err := c.ShouldBind(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
 	picture, err := c.FormFile("picture")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Picture is required"})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrPictureRequired)
 		return
 	}
 
@@ -171,7 +172,7 @@ func CreatePicture(c *gin.Context) {
 		if priorityInt, err := strconv.ParseInt(priority, 10, 8); err == nil {
 			json.Priority = &priorityInt
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid priority format"})
+			utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidPriorityFormat)
 			return
 		}
 	}
@@ -188,13 +189,13 @@ func CreatePicture(c *gin.Context) {
 		if isPublicBool, err := strconv.ParseBool(isPublic); err == nil {
 			json.IsPublic = &isPublicBool
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid isPublic format"})
+			utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidPublicFormat)
 			return
 		}
 	}
 
 	if err := verifyCreatePicture(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
@@ -203,29 +204,29 @@ func CreatePicture(c *gin.Context) {
 
 	pictureDB, srvErr := createPictureService(json, c)
 	if srvErr != nil {
-		c.JSON(srvErr.StatusCode, gin.H{"error": srvErr.Message})
+		utils.RespondWithServiceError(c, srvErr)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"picture": pictureDB})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"picture": pictureDB})
 }
 
 func UpdatePicture(c *gin.Context) {
 	var json models.UpdatePictureRequest
 
 	if err := c.ShouldBind(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
 	if json.Name == nil && json.IsPublic == nil && json.Priority == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No content found"})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrNoContentFound)
 		return
 	}
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not convert ID"})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
 
@@ -234,30 +235,30 @@ func UpdatePicture(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyUpdatePicture(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	picture, err := updatePictureService(json, c)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"picture": picture})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"picture": picture})
 }
 
 func DeletePicture(c *gin.Context) {
 	var json models.DeletePictureRequest
 
 	if err := c.ShouldBind(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not convert ID"})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
 
@@ -266,15 +267,15 @@ func DeletePicture(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyDeletePicture(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	if err := deletePictureService(json, c); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": "Picture successfully deleted"})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"success": "Picture successfully deleted"})
 	return
 }

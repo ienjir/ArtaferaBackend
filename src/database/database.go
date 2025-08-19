@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/repository"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -11,6 +12,7 @@ import (
 )
 
 var DB *gorm.DB
+var Repositories *repository.RepositoryManager
 
 func ConnectDatabase() error {
 	var err error
@@ -54,31 +56,37 @@ func ConnectDatabase() error {
 		return err
 	}
 
+	// Initialize repository manager
+	Repositories = repository.NewRepositoryManager(DB)
+
 	log.Println("Database connected and migrated successfully")
 	return nil
 }
 
 func createInitialRoles() error {
+	// Initialize repository manager first for this function
+	tempRepos := repository.NewRepositoryManager(DB)
+
 	userRole := models.Role{
 		Name: "user",
 	}
-	result := DB.Create(&userRole)
-	if result.Error != nil {
-		return result.Error
+	if err := tempRepos.Role.Create(&userRole); err != nil {
+		return fmt.Errorf("failed to create user role: %v", err.Message)
 	}
 
 	adminRole := models.Role{
 		Name: "admin",
 	}
-	result = DB.Create(&adminRole)
-	if result.Error != nil {
-		return result.Error
+	if err := tempRepos.Role.Create(&adminRole); err != nil {
+		return fmt.Errorf("failed to create admin role: %v", err.Message)
 	}
 
 	artistRole := models.Role{
 		Name: "artist",
 	}
-	result = DB.Create(&artistRole)
+	if err := tempRepos.Role.Create(&artistRole); err != nil {
+		return fmt.Errorf("failed to create artist role: %v", err.Message)
+	}
 
 	return nil
 }

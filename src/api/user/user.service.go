@@ -1,107 +1,73 @@
 package user
 
 import (
-	"errors"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
-	"gorm.io/gorm"
-	"net/http"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"strings"
 )
 
 func getUserByIDService(data models.GetUserByIDRequest) (*models.User, *models.ServiceError) {
-	var user models.User
-
-	if err := database.DB.Preload("Role").First(&user, data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
-			}
-		} else {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving user",
-			}
+	user, err := database.Repositories.User.GetByID(data.TargetID, "Role")
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewUserNotFoundError()
 		}
+		return nil, err
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func getUserByEmailService(data models.GetUserByEmailRequest) (*models.User, *models.ServiceError) {
-	var user models.User
-
 	data.Email = strings.ToLower(data.Email)
 
-	if err := database.DB.Preload("Role").Where("email = ?", data.Email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+	user, err := database.Repositories.User.FindByField("email", data.Email, "Role")
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewUserNotFoundError()
 		}
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return nil, err
 	}
 
 	if data.UserRole != "admin" {
 		if int(data.UserID) != int(user.ID) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusUnauthorized,
-				Message:    "You can only see your own account",
-			}
+			return nil, utils.NewOwnerAccessError()
 		}
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func listUsersService(data models.ListUserRequest) (*[]models.User, *int64, *models.ServiceError) {
-	var users []models.User
-	var count int64
-
-	if err := database.DB.Preload("Role").Limit(10).Offset(int(data.Offset * 10)).Find(&users).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving users from database",
-		}
+	users, err := database.Repositories.User.List(int(data.Offset*10), 10, "Role")
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if err := database.DB.Model(&models.User{}).Count(&count).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting users in database",
-		}
+	count, err := database.Repositories.User.Count()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return &users, &count, nil
+	return users, count, nil
 }
 
 func createUserService(data models.CreateUserRequest) (*models.User, *models.ServiceError) {
-	var user models.User
-	var newUser models.User
-
 	data.Email = strings.ToLower(data.Email)
 
-	if err := database.DB.Where("email = ?", data.Email).First(&user).Error; err == nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusConflict,
-			Message:    "Email already in use",
-		}
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Database error",
-		}
+	// Check if user already exists
+	if existingUser, err := database.Repositories.User.FindByField("email", data.Email); err == nil && existingUser != nil {
+		return nil, utils.NewUserAlreadyExistsError()
 	}
 
 	hashedPassword, err := auth.HashPassword(data.Password)
 	if err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to hash password",
-		}
+		return nil, utils.NewHashPasswordError()
 	}
 
-	newUser = models.User{
+	newUser := models.User{
 		Firstname:   data.Firstname,
 		Lastname:    data.Lastname,
 		Email:       data.Email,
@@ -115,24 +81,20 @@ func createUserService(data models.CreateUserRequest) (*models.User, *models.Ser
 		Salt:        hashedPassword.Salt,
 	}
 
-	if err := database.DB.Create(&newUser).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to save user",
-		}
+	if serviceErr := database.Repositories.User.Create(&newUser); serviceErr != nil {
+		return nil, serviceErr
 	}
 
 	return &newUser, nil
 }
 
 func updateUserService(data models.UpdateUserRequest) (*models.User, *models.ServiceError) {
-	var user models.User
-
-	if err := database.DB.Preload("Role").First(&user, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+	user, err := database.Repositories.User.GetByID(data.TargetID, "Role")
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewUserNotFoundError()
 		}
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return nil, err
 	}
 
 	if data.Firstname != nil {
@@ -164,42 +126,27 @@ func updateUserService(data models.UpdateUserRequest) (*models.User, *models.Ser
 	}
 
 	if data.Password != nil {
-		password, err := auth.HashPassword(*data.Password)
-		if err != nil {
-			return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		password, hashErr := auth.HashPassword(*data.Password)
+		if hashErr != nil {
+			return nil, utils.NewHashPasswordError()
 		}
 		user.Password = password.Hash
 		user.Salt = password.Salt
 	}
 
-	if err := database.DB.Save(&user).Error; err != nil {
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to update user"}
+	if serviceErr := database.Repositories.User.Update(user); serviceErr != nil {
+		return nil, serviceErr
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func deleteUserService(data models.DeleteUserRequest) *models.ServiceError {
-	var user models.User
-
-	if err := database.DB.First(&user, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
-			}
+	if err := database.Repositories.User.Delete(data.TargetID); err != nil {
+		if err.StatusCode == 404 {
+			return utils.NewUserNotFoundError()
 		}
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-		}
-	}
-
-	if result := database.DB.Delete(&models.Role{}, data.TargetID); result.Error != nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error occurred while deleting user",
-		}
+		return err
 	}
 
 	return nil

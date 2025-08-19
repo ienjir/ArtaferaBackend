@@ -3,6 +3,7 @@ package order
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"net/http"
 	"strconv"
 )
@@ -14,7 +15,8 @@ func GetOrderByID(c *gin.Context) {
 
 	orderID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "OrderID is wrong"})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
+		return
 	}
 
 	userID := c.GetInt64("userID")
@@ -25,16 +27,16 @@ func GetOrderByID(c *gin.Context) {
 	json.UserRole = userRole
 
 	if err = verifyGetOrderByIDRequest(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	if order, err = getOrderByIDService(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"order": order})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"order": order})
 	return
 }
 
@@ -42,13 +44,13 @@ func GetOrdersForUser(c *gin.Context) {
 	var json models.GetOrdersForUserRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusInternalServerError, "Could not convert ID")
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
 
@@ -57,16 +59,17 @@ func GetOrdersForUser(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyGetOrdersForUserRequest(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	orders, user, count, err := getOrdersForUserService(json)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"count": count, "user": user, "orders": orders})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"count": count, "user": user, "orders": orders})
 	return
 }
 
@@ -74,7 +77,7 @@ func ListOrder(c *gin.Context) {
 	var json models.ListOrdersRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
@@ -82,17 +85,17 @@ func ListOrder(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyListOrdersRequest(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	orders, count, err := listOrderService(json)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"count": count, "orders": orders})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"count": count, "orders": orders})
 	return
 }
 
@@ -100,7 +103,7 @@ func CreateOrder(c *gin.Context) {
 	var json models.CreateOrderRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
@@ -108,30 +111,30 @@ func CreateOrder(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyCreateOrder(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	order, err := createOrderService(json)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"order": order})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"order": order})
 }
 
 func UpdateOrder(c *gin.Context) {
 	var json models.UpdateOrderRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusInternalServerError, "Could not convert ID")
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
 
@@ -140,17 +143,17 @@ func UpdateOrder(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyUpdateOrderRequest(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	order, err := updateOrderService(json)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"order": order})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"order": order})
 	return
 }
 
@@ -159,7 +162,7 @@ func DeleteOrder(c *gin.Context) {
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusInternalServerError, "Could not convert ID")
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
 
@@ -168,14 +171,14 @@ func DeleteOrder(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyDeleteOrderRequest(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	if err := deleteOrderService(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Order2 successfully deleted"})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"message": "Order successfully deleted"})
 }

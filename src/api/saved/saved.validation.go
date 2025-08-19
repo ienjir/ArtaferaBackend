@@ -2,188 +2,86 @@ package saved
 
 import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
-	"net/http"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
+	"github.com/ienjir/ArtaferaBackend/src/validation"
 )
 
 func verifyGetSavedById(data models.GetSavedByIDRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be at least 1",
-		}
-	}
+	validator := validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.TargetID, "TargetID")
 
 	if data.UserRole != "admin" {
 		if data.UserID != data.TargetID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You are not allowed to see this route",
-			}
+			return utils.NewOwnerOnlyAccessError()
 		}
 	}
 
-	return nil
+	return validator.GetFirstError()
 }
 
 func verifyGetSavedForUserRequest(data models.GetSavedForUserRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.TargetUserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "OrderID has to be at least 1",
-		}
-	}
-
-	if data.Offset < 0 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Offset has to  be 0 or more",
-		}
-	}
+	validator := validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.TargetUserID, "TargetUserID").
+		ValidateOffset(int64(data.Offset))
 
 	if data.UserRole != "admin" {
 		if data.UserID != data.TargetUserID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You can only see saved for your own user account",
-			}
+			return utils.NewOwnerOnlySavedError()
 		}
 	}
 
-	return nil
+	return validator.GetFirstError()
 }
 
 func verifyListSavedRequest(data models.ListSavedRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.Offset < 0 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Offset has to be 0 or more",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed for this route",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateOffset(int64(data.Offset)).
+		ValidateAdminRole(data.UserRole).
+		GetFirstError()
 }
 
 func verifyCreateSaved(data models.CreateSavedRequest) *models.ServiceError {
-	if data.TargetUserID == nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID is required",
+	validator := validation.NewValidator().
+		ValidateID(*data.TargetUserID, "TargetUserID").
+		ValidateID(data.ArtID, "ArtID")
+
+	if data.UserRole != "admin" && data.TargetUserID != nil {
+		if data.UserID != *data.TargetUserID {
+			return utils.NewOwnerOnlyCreateSavedError()
 		}
 	}
 
-	if *data.TargetUserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
-	}
-
-	if data.ArtID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "ArtID has to be over 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		if *data.TargetUserID != data.UserID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You can only create saved for your own user account",
-			}
-		}
-	}
-
-	return nil
+	return validator.GetFirstError()
 }
 
 func verifyUpdateSavedRequest(data models.UpdateSavedRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be at least 1",
-		}
-	}
+	validator := validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.TargetID, "TargetID")
 
 	if data.TargetUserID != nil {
-		if *data.TargetUserID < 1 {
-			return &models.ServiceError{
-				StatusCode: http.StatusBadRequest,
-				Message:    "TargetUserID has to be at least 1",
-			}
-		}
+		validator = validator.ValidateID(*data.TargetUserID, "TargetUserID")
 	}
 
 	if data.ArtID != nil {
-		if *data.ArtID < 1 {
-			return &models.ServiceError{
-				StatusCode: http.StatusBadRequest,
-				Message:    "ArtID has to be over 1",
-			}
-		}
+		validator = validator.ValidateID(*data.ArtID, "ArtID")
 	}
 
-	if data.UserRole != "admin" {
+	if data.UserRole != "admin" && data.TargetUserID != nil {
 		if data.UserID != *data.TargetUserID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You can only see saved for your own user account",
-			}
+			return utils.NewOwnerOnlyUpdateSavedError()
 		}
 	}
 
-	return nil
+	return validator.GetFirstError()
 }
 
 func verifyDeleteSavedRequest(data models.DeleteSavedRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be at least 1",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.TargetID, "TargetID").
+		GetFirstError()
 }
