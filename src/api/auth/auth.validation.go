@@ -6,15 +6,8 @@ import (
 )
 
 func VerifyLoginData(Data models.LoginRequest) *models.ServiceError {
-	err := validation.ValidatePasswordWithoutEntropy(Data.Password)
-	if err != nil {
+	if err := validation.ValidateEmail(Data.Email); err != nil {
 		return err
 	}
-
-	err = validation.ValidateEmail(Data.Email)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return validation.ValidatePasswordWithoutEntropy(Data.Password)
 }

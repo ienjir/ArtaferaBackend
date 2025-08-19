@@ -14,78 +14,36 @@ func verifyGetPictureByIDRequest(data models.GetPictureByIDRequest) *models.Serv
 }
 
 func verifyGetPictureByNameRequest(data models.GetPictureByNameRequest) *models.ServiceError {
-	if data.Name == "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Name is required",
-		}
-	}
-
-	if data.PublicBucket != "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to send with a bucket name",
-		}
-	}
-
-	if data.PrivateBucket != "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to send with a bucket name",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateNotEmpty(&data.Name, "Name").
+		ValidateBucketRestriction(data.PublicBucket, data.PrivateBucket).
+		GetFirstError()
 }
 
 func verifyListPicture(data models.ListPictureRequest) *models.ServiceError {
 	return validation.NewValidator().
 		ValidateBucketRestriction(data.PublicBucket, data.PrivateBucket).
 		ValidateID(data.UserID, "UserID").
-		ValidateOffset(data.Offset).
+		ValidateOffset(int64(data.Offset)).
 		ValidateAdminRole(data.UserRole).
 		GetFirstError()
 }
 
 func verifyCreatePicture(data models.CreatePictureRequest) *models.ServiceError {
-	if data.Priority != nil {
-		if *data.Priority < 1 {
-			return &models.ServiceError{
-				StatusCode: http.StatusBadRequest,
-				Message:    "Priority must be greater than 0",
-			}
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "Only admins can upload pictures",
-		}
-	}
+	validator := validation.NewValidator().
+		ValidateAdminRole(data.UserRole).
+		ValidateID(data.UserID, "UserID").
+		ValidateBucketRestriction(data.PublicBucket, data.PrivateBucket)
 
 	if !validation.IsValidImage(&data.Picture) {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Invalid image format. Allowed formats: jpg, jpeg, png, gif",
-		}
+		return &models.ServiceError{StatusCode: http.StatusBadRequest, Message: "Invalid image format"}
 	}
 
-	if data.PublicBucket != "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to send with a bucket name",
-		}
+	if data.Priority != nil {
+		validator = validator.ValidatePositiveNumber(int64(*data.Priority), "Priority")
 	}
 
-	if data.PrivateBucket != "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to send with a bucket name",
-		}
-	}
-
-	return nil
+	return validator.GetFirstError()
 }
 
 func verifyUpdatePicture(data models.UpdatePictureRequest) *models.ServiceError {

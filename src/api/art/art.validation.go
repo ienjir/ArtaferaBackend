@@ -3,7 +3,6 @@ package art
 import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
-	"net/http"
 )
 
 func verifyGetArtByID(data models.GetArtByIDRequest) *models.ServiceError {
@@ -33,49 +32,24 @@ func verifyCreateArt(data models.CreateArtRequest) *models.ServiceError {
 }
 
 func verifyUpdateArt(data models.UpdateArtRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
+	validator := validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateAdminRole(data.UserRole).
+		ValidateID(data.TargetID, "TargetID")
+
+	if data.Price != nil {
+		validator = validator.ValidatePositiveNumber(*data.Price, "Price")
 	}
 
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusUnauthorized,
-			Message:    "Only admins can update art",
-		}
+	if data.CurrencyID != nil {
+		validator = validator.ValidateID(*data.CurrencyID, "CurrencyID")
 	}
 
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be over 1",
-		}
+	if data.CreationYear != nil {
+		validator = validator.ValidateIntRange(*data.CreationYear, 1000, 9999, "CreationYear")
 	}
 
-	if data.Price != nil && *data.Price < 0 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Price cannot be negative",
-		}
-	}
-
-	if data.CurrencyID != nil && *data.CurrencyID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "CurrencyID has to be over 1",
-		}
-	}
-
-	if data.CreationYear != nil && (*data.CreationYear < 1000 || *data.CreationYear > 9999) {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "CreationYear must be between 1000 and 9999",
-		}
-	}
-
-	return nil
+	return validator.GetFirstError()
 }
 
 func verifyDeleteArt(data models.DeleteArtRequest) *models.ServiceError {
