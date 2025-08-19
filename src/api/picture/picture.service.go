@@ -22,15 +22,9 @@ func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Conte
 
 	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Picture not found",
-			}
+			return nil, nil, utils.NewPictureNotFoundError()
 		} else {
-			return nil, nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving picture",
-			}
+			return nil, nil, utils.NewDatabaseRetrievalError()
 		}
 	}
 
@@ -58,15 +52,9 @@ func getPictureByNameService(data models.GetPictureByNameRequest, context *gin.C
 
 	if err := database.DB.Where("Name = ?", data.Name).First(&picture).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Picture not found",
-			}
+			return nil, nil, utils.NewPictureNotFoundError()
 		} else {
-			return nil, nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving picture",
-			}
+			return nil, nil, utils.NewDatabaseRetrievalError()
 		}
 	}
 
@@ -93,17 +81,11 @@ func listPictureService(data models.ListPictureRequest, context *gin.Context) (*
 	var count int64
 
 	if err := database.DB.Limit(5).Offset(int(data.Offset * 5)).Find(&pictures).Error; err != nil {
-		return nil, nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving orders from pictures",
-		}
+		return nil, nil, nil, utils.NewDatabaseRetrievalError()
 	}
 
 	if err := database.DB.Model(&models.Picture{}).Count(&count).Error; err != nil {
-		return nil, nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting pictures in database",
-		}
+		return nil, nil, nil, utils.NewDatabaseCountError()
 	}
 
 	for _, picture := range pictures {
@@ -153,11 +135,7 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 	picture.Type = filepath.Ext(data.Picture.Filename)
 
 	if db := database.DB.Create(&picture); db.Error != nil {
-		return nil,
-			&models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Failed to save picture",
-			}
+		return nil, utils.NewDatabaseCreateError()
 	}
 
 	fileExt := filepath.Ext(data.Picture.Filename)
@@ -176,9 +154,9 @@ func updatePictureService(data models.UpdatePictureRequest, context *gin.Context
 
 	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Picture not found"}
+			return nil, utils.NewPictureNotFoundError()
 		}
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return nil, utils.NewDatabaseRetrievalError()
 	}
 
 	var originalFileName string
@@ -224,10 +202,7 @@ func updatePictureService(data models.UpdatePictureRequest, context *gin.Context
 	}
 
 	if err := database.DB.Save(&picture).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to update picture",
-		}
+		return nil, utils.NewDatabaseUpdateError()
 	}
 
 	return &picture, nil
@@ -239,9 +214,9 @@ func deletePictureService(data models.DeletePictureRequest, context *gin.Context
 
 	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Picture not found"}
+			return utils.NewPictureNotFoundError()
 		}
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return utils.NewDatabaseRetrievalError()
 	}
 
 	if picture.IsPublic {
@@ -257,10 +232,7 @@ func deletePictureService(data models.DeletePictureRequest, context *gin.Context
 	}
 
 	if result := database.DB.Delete(&models.Picture{}, data.TargetID); result.Error != nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error occurred while deleting picture",
-		}
+		return utils.NewDatabaseDeleteError()
 	}
 
 	return nil

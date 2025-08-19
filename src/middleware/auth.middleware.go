@@ -21,7 +21,7 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse{
-				Error: "Access token is required",
+				Error: utils.ErrAccessTokenRequired,
 				Code:  http.StatusUnauthorized,
 			})
 			return
@@ -31,7 +31,7 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		bearerToken := strings.Split(authHeader, " ")
 		if len(bearerToken) != 2 || bearerToken[0] != "Bearer" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse{
-				Error: "Invalid authorization header format",
+				Error: utils.ErrInvalidAuthHeader,
 				Code:  http.StatusUnauthorized,
 			})
 			return
@@ -49,7 +49,7 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		claims, ok := token.Claims.(jwt2.MapClaims)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse{
-				Error: "Invalid token claims",
+				Error: utils.ErrInvalidTokenClaims,
 				Code:  http.StatusUnauthorized,
 			})
 			return
@@ -58,7 +58,7 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		userRole, ok := claims["role"].(string)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse{
-				Error: "Role not found in token",
+				Error: utils.ErrRoleNotInToken,
 				Code:  http.StatusUnauthorized,
 			})
 			return

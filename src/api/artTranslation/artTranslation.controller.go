@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/api/language"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"net/http"
 	"strconv"
 )
@@ -13,7 +14,8 @@ func GetArtTranslationByID(c *gin.Context) {
 
 	artTranslationID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "ArtTranslationID is wrong"})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
+		return
 	}
 
 	userID := c.GetInt64("userID")
@@ -24,17 +26,17 @@ func GetArtTranslationByID(c *gin.Context) {
 	json.UserRole = userRole
 
 	if err := verifyGetArtTranslationByIDRequest(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	artTranslation, err := getArtTranslationByIDService(json)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"artTranslation": artTranslation})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"artTranslation": artTranslation})
 	return
 }
 
@@ -42,7 +44,7 @@ func ListArtTranslations(c *gin.Context) {
 	var json models.ListArtTranslationRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
@@ -50,17 +52,17 @@ func ListArtTranslations(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyListArtTranslation(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	artTranslations, count, err := listArtTranslationService(json)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"count": count, "artTranslations": artTranslations})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"count": count, "artTranslations": artTranslations})
 	return
 }
 
@@ -68,7 +70,7 @@ func CreateArtTranslation(c *gin.Context) {
 	var json models.CreateArtTranslationRequest
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
@@ -76,23 +78,23 @@ func CreateArtTranslation(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyCreateArtTranslation(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	id, langErr := language.LanguageCodeToID(json.LanguageCode)
 	if langErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": langErr.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrLanguageNotFound)
 		return
 	}
 
 	createdRole, err := createArtTranslationService(json, id.ID)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"language": createdRole})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"language": createdRole})
 	return
 }
 
@@ -101,13 +103,13 @@ func UpdateArtTranslation(c *gin.Context) {
 	var artTranslation models.ArtTranslation
 
 	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "TranslationID is wrong"})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
 
@@ -116,14 +118,14 @@ func UpdateArtTranslation(c *gin.Context) {
 	json.TargetID = targetID
 
 	if err := verifyUpdateArtTranslation(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	if json.LanguageCode != nil {
 		languageID, langErr := language.LanguageCodeToID(*json.LanguageCode)
 		if langErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": langErr.Error()})
+			utils.RespondWithError(c, http.StatusBadRequest, utils.ErrLanguageNotFound)
 			return
 		}
 		artTranslation.LanguageID = languageID.ID
@@ -131,11 +133,11 @@ func UpdateArtTranslation(c *gin.Context) {
 
 	updatedLanguage, err := updateArtTranslation(json)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"language": updatedLanguage})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"language": updatedLanguage})
 	return
 }
 
@@ -144,7 +146,7 @@ func DeleteArtTranslation(c *gin.Context) {
 
 	targetID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not convert ID"})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
 
@@ -153,15 +155,15 @@ func DeleteArtTranslation(c *gin.Context) {
 	json.UserRole = c.GetString("userRole")
 
 	if err := verifyDeleteArtTranslation(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	if err := deleteArtTranslationService(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": "Art translation successfully deleted"})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"success": "Art translation successfully deleted"})
 	return
 }

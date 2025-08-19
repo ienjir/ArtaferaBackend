@@ -5,6 +5,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"gorm.io/gorm"
 	"net/http"
 	"strings"
@@ -15,15 +16,9 @@ func getUserByIDService(data models.GetUserByIDRequest) (*models.User, *models.S
 
 	if err := database.DB.Preload("Role").First(&user, data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
-			}
+			return nil, utils.NewUserNotFoundError()
 		} else {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving user",
-			}
+			return nil, utils.NewDatabaseRetrievalError()
 		}
 	}
 
@@ -37,17 +32,14 @@ func getUserByEmailService(data models.GetUserByEmailRequest) (*models.User, *mo
 
 	if err := database.DB.Preload("Role").Where("email = ?", data.Email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+			return nil, utils.NewUserNotFoundError()
 		}
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return nil, utils.NewDatabaseRetrievalError()
 	}
 
 	if data.UserRole != "admin" {
 		if int(data.UserID) != int(user.ID) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusUnauthorized,
-				Message:    "You can only see your own account",
-			}
+			return nil, utils.NewOwnerAccessError()
 		}
 	}
 
@@ -59,17 +51,11 @@ func listUsersService(data models.ListUserRequest) (*[]models.User, *int64, *mod
 	var count int64
 
 	if err := database.DB.Preload("Role").Limit(10).Offset(int(data.Offset * 10)).Find(&users).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving users from database",
-		}
+		return nil, nil, utils.NewDatabaseRetrievalError()
 	}
 
 	if err := database.DB.Model(&models.User{}).Count(&count).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting users in database",
-		}
+		return nil, nil, utils.NewDatabaseCountError()
 	}
 
 	return &users, &count, nil
@@ -82,23 +68,14 @@ func createUserService(data models.CreateUserRequest) (*models.User, *models.Ser
 	data.Email = strings.ToLower(data.Email)
 
 	if err := database.DB.Where("email = ?", data.Email).First(&user).Error; err == nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusConflict,
-			Message:    "Email already in use",
-		}
+		return nil, utils.NewUserAlreadyExistsError()
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Database error",
-		}
+		return nil, utils.NewDatabaseRetrievalError()
 	}
 
 	hashedPassword, err := auth.HashPassword(data.Password)
 	if err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to hash password",
-		}
+		return nil, utils.NewHashPasswordError()
 	}
 
 	newUser = models.User{
@@ -116,10 +93,7 @@ func createUserService(data models.CreateUserRequest) (*models.User, *models.Ser
 	}
 
 	if err := database.DB.Create(&newUser).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to save user",
-		}
+		return nil, utils.NewDatabaseCreateError()
 	}
 
 	return &newUser, nil
@@ -130,9 +104,9 @@ func updateUserService(data models.UpdateUserRequest) (*models.User, *models.Ser
 
 	if err := database.DB.Preload("Role").First(&user, "id = ?", data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+			return nil, utils.NewUserNotFoundError()
 		}
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return nil, utils.NewDatabaseRetrievalError()
 	}
 
 	if data.Firstname != nil {
@@ -166,14 +140,14 @@ func updateUserService(data models.UpdateUserRequest) (*models.User, *models.Ser
 	if data.Password != nil {
 		password, err := auth.HashPassword(*data.Password)
 		if err != nil {
-			return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+			return nil, utils.NewHashPasswordError()
 		}
 		user.Password = password.Hash
 		user.Salt = password.Salt
 	}
 
 	if err := database.DB.Save(&user).Error; err != nil {
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Failed to update user"}
+		return nil, utils.NewDatabaseUpdateError()
 	}
 
 	return &user, nil
@@ -184,22 +158,13 @@ func deleteUserService(data models.DeleteUserRequest) *models.ServiceError {
 
 	if err := database.DB.First(&user, "id = ?", data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
-			}
+			return utils.NewUserNotFoundError()
 		}
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-		}
+		return utils.NewDatabaseRetrievalError()
 	}
 
-	if result := database.DB.Delete(&models.Role{}, data.TargetID); result.Error != nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error occurred while deleting user",
-		}
+	if result := database.DB.Delete(&models.User{}, data.TargetID); result.Error != nil {
+		return utils.NewDatabaseDeleteError()
 	}
 
 	return nil

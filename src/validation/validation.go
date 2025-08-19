@@ -55,7 +55,7 @@ func ValidateEmail(email string) *models.ServiceError {
 	}
 
 	if IsLower(email) == false {
-		return utils.NewBadRequestError("Email must be lowercase")
+		return utils.NewEmailLowercaseError()
 	}
 
 	_, err := mail.ParseAddress(email)
@@ -182,14 +182,14 @@ func (v *Validator) ValidateIntID(id int, fieldName string) *Validator {
 
 func (v *Validator) ValidatePositiveFloat(value *float64, fieldName string) *Validator {
 	if value != nil && *value < 0 {
-		v.errors = append(v.errors, utils.NewBadRequestError(fieldName + " cannot be negative"))
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError(fieldName, "0 or greater"))
 	}
 	return v
 }
 
 func (v *Validator) ValidatePositiveNumber(value int64, fieldName string) *Validator {
 	if value < 0 {
-		v.errors = append(v.errors, utils.NewBadRequestError(fieldName + " cannot be negative"))
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError(fieldName, "0 or greater"))
 	}
 	return v
 }
@@ -203,10 +203,7 @@ func (v *Validator) ValidateRange(value *int, min, max int, fieldName string) *V
 
 func (v *Validator) ValidateIntRange(value int, min, max int, fieldName string) *Validator {
 	if value < min || value > max {
-		v.errors = append(v.errors, &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    fieldName + " must be between " + strconv.Itoa(min) + " and " + strconv.Itoa(max),
-		})
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError(fieldName, "between "+strconv.Itoa(min)+" and "+strconv.Itoa(max)))
 	}
 	return v
 }
@@ -255,7 +252,7 @@ func (v *Validator) ValidateNotEmpty(value *string, fieldName string) *Validator
 
 func (v *Validator) ValidateBucketRestriction(publicBucket, privateBucket string) *Validator {
 	if publicBucket != "" || privateBucket != "" {
-		v.errors = append(v.errors, utils.NewForbiddenError("Bucket names are not allowed to be specified"))
+		v.errors = append(v.errors, utils.NewForbiddenError("You are not allowed to send with a bucket name"))
 	}
 	return v
 }

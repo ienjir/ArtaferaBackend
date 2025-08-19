@@ -2,6 +2,7 @@ package saved
 
 import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 )
 
@@ -12,7 +13,7 @@ func verifyGetSavedById(data models.GetSavedByIDRequest) *models.ServiceError {
 
 	if data.UserRole != "admin" {
 		if data.UserID != data.TargetID {
-			return &models.ServiceError{StatusCode: 403, Message: "Access denied: can only access your own saved items"}
+			return utils.NewOwnerOnlyAccessError()
 		}
 	}
 
@@ -27,7 +28,7 @@ func verifyGetSavedForUserRequest(data models.GetSavedForUserRequest) *models.Se
 
 	if data.UserRole != "admin" {
 		if data.UserID != data.TargetUserID {
-			return &models.ServiceError{StatusCode: 403, Message: "You can only see saved for your own user account"}
+			return utils.NewOwnerOnlySavedError()
 		}
 	}
 
@@ -49,7 +50,7 @@ func verifyCreateSaved(data models.CreateSavedRequest) *models.ServiceError {
 
 	if data.UserRole != "admin" && data.TargetUserID != nil {
 		if data.UserID != *data.TargetUserID {
-			return &models.ServiceError{StatusCode: 403, Message: "You can only create saved for your own user account"}
+			return utils.NewOwnerOnlyCreateSavedError()
 		}
 	}
 
@@ -71,7 +72,7 @@ func verifyUpdateSavedRequest(data models.UpdateSavedRequest) *models.ServiceErr
 
 	if data.UserRole != "admin" && data.TargetUserID != nil {
 		if data.UserID != *data.TargetUserID {
-			return &models.ServiceError{StatusCode: 403, Message: "You can only update saved for your own user account"}
+			return utils.NewOwnerOnlyUpdateSavedError()
 		}
 	}
 

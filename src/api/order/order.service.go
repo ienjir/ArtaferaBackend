@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"gorm.io/gorm"
 	"net/http"
@@ -15,23 +16,14 @@ func getOrderByIDService(data models.GetOrderByIDRequest) (*models.Order, *model
 
 	if err := database.DB.Preload("User").Preload("Art").First(&order, data.OrderID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Order not found",
-			}
+			return nil, utils.NewOrderNotFoundError()
 		}
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving order",
-		}
+		return nil, utils.NewDatabaseRetrievalError()
 	}
 
 	if data.UserRole != "admin" {
 		if data.UserID != order.UserID {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You can only see your own orders",
-			}
+			return nil, utils.NewOwnerOnlyOrdersError()
 		}
 	}
 
@@ -45,36 +37,21 @@ func getOrdersForUserService(data models.GetOrdersForUserRequest) (*[]models.Ord
 
 	if err := database.DB.First(&user, data.TargetUserID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
-			}
+			return nil, nil, nil, utils.NewUserNotFoundError()
 		} else {
-			return nil, nil, nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving user",
-			}
+			return nil, nil, nil, utils.NewDatabaseRetrievalError()
 		}
 	}
 
 	if err := database.DB.Preload("Art").Where("user_id = ?", data.TargetUserID).Find(&orders).Limit(5).Offset(int(data.Offset) * 5).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Orders not found",
-			}
+			return nil, nil, nil, utils.NewOrderNotFoundError()
 		}
-		return nil, nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving orders",
-		}
+		return nil, nil, nil, utils.NewDatabaseRetrievalError()
 	}
 
 	if err := database.DB.Model(&models.Order{}).Where("user_id = ?", data.TargetUserID).Count(&count).Error; err != nil {
-		return nil, nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting orders in database",
-		}
+		return nil, nil, nil, utils.NewDatabaseCountError()
 	}
 
 	return &orders, &user, &count, nil
@@ -85,17 +62,11 @@ func listOrderService(data models.ListOrdersRequest) (*[]models.Order, *int64, *
 	var count int64
 
 	if err := database.DB.Preload("Art").Preload("User").Limit(5).Offset(int(data.Offset * 5)).Find(&orders).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving orders from database",
-		}
+		return nil, nil, utils.NewDatabaseRetrievalError()
 	}
 
 	if err := database.DB.Model(&models.Order{}).Count(&count).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting orders in database",
-		}
+		return nil, nil, utils.NewDatabaseCountError()
 	}
 
 	return &orders, &count, nil
@@ -107,22 +78,13 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 
 	if err := database.DB.First(&art, data.ArtID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Art not found",
-			}
+			return nil, utils.NewArtNotFoundError()
 		}
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving art",
-		}
+		return nil, utils.NewDatabaseRetrievalError()
 	}
 
 	if art.Available == false {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusConflict,
-			Message:    "Art is not available",
-		}
+		return nil, utils.NewArtNotAvailableError()
 	}
 
 	order = models.Order{
@@ -135,35 +97,23 @@ func createOrderService(data models.CreateOrderRequest) (*models.Order, *models.
 	// Start transaction
 	tx := database.DB.Begin()
 	if tx.Error != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to start transaction",
-		}
+		return nil, utils.NewTransactionStartError()
 	}
 
 	art.Available = false
 	if err := tx.Save(&art).Error; err != nil {
 		tx.Rollback()
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to update corresponding art",
-		}
+		return nil, utils.NewDatabaseUpdateError()
 	}
 
 	if err := tx.Create(&order).Error; err != nil {
 		tx.Rollback()
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to save order",
-		}
+		return nil, utils.NewDatabaseCreateError()
 	}
 
 	// Commit transaction
 	if err := tx.Commit().Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to commit transaction",
-		}
+		return nil, utils.NewTransactionCommitError()
 	}
 
 	return &order, nil
@@ -174,9 +124,9 @@ func updateOrderService(data models.UpdateOrderRequest) (*models.Order, *models.
 
 	if err := database.DB.First(&order, "id = ?", data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "User not found"}
+			return nil, utils.NewOrderNotFoundError()
 		}
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return nil, utils.NewDatabaseRetrievalError()
 	}
 
 	if data.TargetUserID != nil {
@@ -194,10 +144,7 @@ func updateOrderService(data models.UpdateOrderRequest) (*models.Order, *models.
 	}
 
 	if err := database.DB.Save(&order).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to update order",
-		}
+		return nil, utils.NewDatabaseUpdateError()
 	}
 
 	return &order, nil
@@ -208,22 +155,13 @@ func deleteOrderService(data models.DeleteOrderRequest) *models.ServiceError {
 
 	if err := database.DB.First(&order, "id = ?", data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Order not found",
-			}
+			return utils.NewOrderNotFoundError()
 		}
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-		}
+		return utils.NewDatabaseRetrievalError()
 	}
 
 	if result := database.DB.Delete(&models.Order{}, data.TargetID); result.Error != nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error occurred while deleting order",
-		}
+		return utils.NewDatabaseDeleteError()
 	}
 
 	return nil

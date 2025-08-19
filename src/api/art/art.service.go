@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"gorm.io/gorm"
 	"net/http"
 )
@@ -13,15 +14,9 @@ func getArtByIDService(data models.GetArtByIDRequest) (*models.Art, *models.Serv
 
 	if err := database.DB.First(&Art, data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Art not found",
-			}
+			return nil, utils.NewArtNotFoundError()
 		} else {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving Art",
-			}
+			return nil, utils.NewDatabaseRetrievalError()
 		}
 	}
 
@@ -43,10 +38,7 @@ func listArtService(data models.ListArtRequest) (*[]models.Art, *int64, *models.
 	}
 
 	if err := query.Count(&count).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting arts",
-		}
+		return nil, nil, utils.NewDatabaseCountError()
 	}
 
 	offset := (data.Page - 1) * data.PageSize
@@ -64,10 +56,7 @@ func listArtService(data models.ListArtRequest) (*[]models.Art, *int64, *models.
 
 	if err := query.Preload("Currency").Preload("Pictures").Preload("Translations").
 		Offset(offset).Limit(data.PageSize).Order(orderClause).Find(&arts).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving arts",
-		}
+		return nil, nil, utils.NewDatabaseRetrievalError()
 	}
 
 	return &arts, &count, nil
@@ -96,10 +85,7 @@ func createArtService(data models.CreateArtRequest) (*models.Art, *models.Servic
 	}
 
 	if err := database.DB.Create(&art).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while creating art",
-		}
+		return nil, utils.NewDatabaseCreateError()
 	}
 
 	return &art, nil
@@ -110,15 +96,9 @@ func updateArtService(data models.UpdateArtRequest) (*models.Art, *models.Servic
 
 	if err := database.DB.First(&art, data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Art not found",
-			}
+			return nil, utils.NewArtNotFoundError()
 		}
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving art",
-		}
+		return nil, utils.NewDatabaseRetrievalError()
 	}
 
 	updates := make(map[string]interface{})
@@ -149,10 +129,7 @@ func updateArtService(data models.UpdateArtRequest) (*models.Art, *models.Servic
 	}
 
 	if err := database.DB.Model(&art).Updates(updates).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while updating art",
-		}
+		return nil, utils.NewDatabaseUpdateError()
 	}
 
 	return &art, nil
@@ -163,22 +140,13 @@ func deleteArtService(data models.DeleteArtRequest) *models.ServiceError {
 
 	if err := database.DB.First(&art, data.TargetID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Art not found",
-			}
+			return utils.NewArtNotFoundError()
 		}
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving art",
-		}
+		return utils.NewDatabaseRetrievalError()
 	}
 
 	if err := database.DB.Delete(&art).Error; err != nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while deleting art",
-		}
+		return utils.NewDatabaseDeleteError()
 	}
 
 	return nil
