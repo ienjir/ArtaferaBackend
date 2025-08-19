@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	jwt2 "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
-	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"net/http"
 	"strings"
 )
@@ -20,9 +20,9 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
-				StatusCode: http.StatusUnauthorized,
-				Message:    "Access token is required",
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse{
+				Error: "Access token is required",
+				Code:  http.StatusUnauthorized,
 			})
 			return
 		}
@@ -30,33 +30,36 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		// Check if the header starts with "Bearer"
 		bearerToken := strings.Split(authHeader, " ")
 		if len(bearerToken) != 2 || bearerToken[0] != "Bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
-				StatusCode: http.StatusUnauthorized,
-				Message:    "Invalid authorization header format",
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse{
+				Error: "Invalid authorization header format",
+				Code:  http.StatusUnauthorized,
 			})
 			return
 		}
 
 		token, serviceErr := auth.VerifyAccessToken(bearerToken[1])
 		if serviceErr != nil {
-			c.AbortWithStatusJSON(serviceErr.StatusCode, gin.H{"error": serviceErr.Message})
+			c.AbortWithStatusJSON(serviceErr.StatusCode, utils.ErrorResponse{
+				Error: serviceErr.Message,
+				Code:  serviceErr.StatusCode,
+			})
 			return
 		}
 
 		claims, ok := token.Claims.(jwt2.MapClaims)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
-				StatusCode: http.StatusUnauthorized,
-				Message:    "Invalid token claims",
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse{
+				Error: "Invalid token claims",
+				Code:  http.StatusUnauthorized,
 			})
 			return
 		}
 
 		userRole, ok := claims["role"].(string)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, models.ServiceError{
-				StatusCode: http.StatusUnauthorized,
-				Message:    "Role not found in token",
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorResponse{
+				Error: "Role not found in token",
+				Code:  http.StatusUnauthorized,
 			})
 			return
 		}
@@ -72,7 +75,10 @@ func RoleAuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		}
 
 		if !roleAllowed {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "User is not authorized for this route"})
+			c.AbortWithStatusJSON(http.StatusForbidden, utils.ErrorResponse{
+				Error: utils.ErrInsufficientPerms,
+				Code:  http.StatusForbidden,
+			})
 			return
 		}
 
