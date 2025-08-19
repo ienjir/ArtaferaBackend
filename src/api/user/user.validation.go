@@ -7,70 +7,27 @@ import (
 )
 
 func verifyGetUserById(data models.GetUserByIDRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be at least 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		if data.UserID != data.TargetID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You are not allowed to see this route",
-			}
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.TargetID, "TargetID").
+		ValidateUserAccess(data.UserID, data.TargetID, data.UserRole).
+		GetFirstError()
 }
 
 func verifyGetUserByEmail(data models.GetUserByEmailRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
+	v := validation.NewValidator().ValidateID(data.UserID, "UserID")
 	if err := validation.ValidateEmail(data.Email); err != nil {
 		return err
 	}
-
-	return nil
+	return v.GetFirstError()
 }
 
 func verifyListUserData(data models.ListUserRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.Offset < 0 {
-		return &models.ServiceError{
-			StatusCode: http.StatusUnprocessableEntity,
-			Message:    "Offset can't be less than 0",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "You are not allowed to see this route",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateOffset(data.Offset).
+		ValidateAdminRole(data.UserRole).
+		GetFirstError()
 }
 
 func verifyCreateUserData(data models.CreateUserRequest) *models.ServiceError {
@@ -210,28 +167,9 @@ func verifyUpdateUserRequest(data models.UpdateUserRequest) *models.ServiceError
 }
 
 func verifyDeleteUserRequest(data models.DeleteUserRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be at least 1",
-		}
-	}
-
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be at least 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		if data.UserID != data.TargetID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You are not allowed to see this route",
-			}
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.TargetID, "TargetID").
+		ValidateUserAccess(data.UserID, data.TargetID, data.UserRole).
+		GetFirstError()
 }

@@ -156,3 +156,182 @@ func IsLower(s string) bool {
 	}
 	return true
 }
+
+type Validator struct {
+	errors []*models.ServiceError
+}
+
+func NewValidator() *Validator {
+	return &Validator{errors: make([]*models.ServiceError, 0)}
+}
+
+func (v *Validator) ValidateID(id int64, fieldName string) *Validator {
+	if id < 1 {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    fieldName + " must be at least 1",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidateIntID(id int, fieldName string) *Validator {
+	if id < 1 {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    fieldName + " must be at least 1",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidatePositiveFloat(value *float64, fieldName string) *Validator {
+	if value != nil && *value < 0 {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    fieldName + " cannot be negative",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidatePositiveNumber(value int64, fieldName string) *Validator {
+	if value < 0 {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    fieldName + " cannot be negative",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidateRange(value *int, min, max int, fieldName string) *Validator {
+	if value != nil && (*value < min || *value > max) {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    fieldName + " must be between " + strconv.Itoa(min) + " and " + strconv.Itoa(max),
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidateIntRange(value int, min, max int, fieldName string) *Validator {
+	if value < min || value > max {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    fieldName + " must be between " + strconv.Itoa(min) + " and " + strconv.Itoa(max),
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidateOffset(offset int64) *Validator {
+	if offset < 0 {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "Offset must be 0 or greater",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidatePageSize(pageSize int) *Validator {
+	if pageSize < 1 || pageSize > 100 {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "PageSize must be between 1 and 100",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidateSortOrder(sortOrder *string) *Validator {
+	if sortOrder != nil && *sortOrder != "asc" && *sortOrder != "desc" {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    "SortOrder must be 'asc' or 'desc'",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidateAdminRole(userRole string) *Validator {
+	if userRole != "admin" {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "Admin role required",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidateUserAccess(userID, targetID int64, userRole string) *Validator {
+	if userRole != "admin" && userID != targetID {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "Access denied - you can only access your own resources",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidateNotEmpty(value *string, fieldName string) *Validator {
+	if value != nil && *value == "" {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    fieldName + " cannot be empty",
+		})
+	}
+	return v
+}
+
+func (v *Validator) ValidateBucketRestriction(publicBucket, privateBucket string) *Validator {
+	if publicBucket != "" || privateBucket != "" {
+		v.errors = append(v.errors, &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "Bucket names are not allowed to be specified",
+		})
+	}
+	return v
+}
+
+func (v *Validator) GetFirstError() *models.ServiceError {
+	if len(v.errors) > 0 {
+		return v.errors[0]
+	}
+	return nil
+}
+
+func (v *Validator) HasErrors() bool {
+	return len(v.errors) > 0
+}
+
+func ValidateIDField(id int64, fieldName string) *models.ServiceError {
+	if id < 1 {
+		return &models.ServiceError{
+			StatusCode: http.StatusBadRequest,
+			Message:    fieldName + " must be at least 1",
+		}
+	}
+	return nil
+}
+
+func ValidateAdminRole(userRole string) *models.ServiceError {
+	if userRole != "admin" {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "Admin role required",
+		}
+	}
+	return nil
+}
+
+func ValidateUserAccess(userID, targetID int64, userRole string) *models.ServiceError {
+	if userRole != "admin" && userID != targetID {
+		return &models.ServiceError{
+			StatusCode: http.StatusForbidden,
+			Message:    "Access denied - you can only access your own resources",
+		}
+	}
+	return nil
+}

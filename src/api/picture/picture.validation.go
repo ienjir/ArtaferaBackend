@@ -7,28 +7,10 @@ import (
 )
 
 func verifyGetPictureByIDRequest(data models.GetPictureByIDRequest) *models.ServiceError {
-	if data.TargetID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "TargetID has to be over 1",
-		}
-	}
-
-	if data.PublicBucket != "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to send with a bucket name",
-		}
-	}
-
-	if data.PrivateBucket != "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to send with a bucket name",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.TargetID, "TargetID").
+		ValidateBucketRestriction(data.PublicBucket, data.PrivateBucket).
+		GetFirstError()
 }
 
 func verifyGetPictureByNameRequest(data models.GetPictureByNameRequest) *models.ServiceError {
@@ -57,42 +39,12 @@ func verifyGetPictureByNameRequest(data models.GetPictureByNameRequest) *models.
 }
 
 func verifyListPicture(data models.ListPictureRequest) *models.ServiceError {
-	if data.PublicBucket != "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to send with a bucket name",
-		}
-	}
-
-	if data.PrivateBucket != "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not allowed to send with a bucket name",
-		}
-	}
-
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
-	}
-
-	if data.Offset < 0 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Offset has to  be 0 or more",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not authorized to see all role",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateBucketRestriction(data.PublicBucket, data.PrivateBucket).
+		ValidateID(data.UserID, "UserID").
+		ValidateOffset(data.Offset).
+		ValidateAdminRole(data.UserRole).
+		GetFirstError()
 }
 
 func verifyCreatePicture(data models.CreatePictureRequest) *models.ServiceError {
