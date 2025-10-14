@@ -7,14 +7,12 @@ import (
 
 func verifyGetArtByID(data models.GetArtByIDRequest) *models.ServiceError {
 	return validation.NewValidator().
-		ValidateID(data.UserID, "UserID").
 		ValidateID(data.TargetID, "TargetID").
 		GetFirstError()
 }
 
 func verifyListArt(data models.ListArtRequest) *models.ServiceError {
 	return validation.NewValidator().
-		ValidateID(data.UserID, "UserID").
 		ValidateIntID(data.Page, "Page").
 		ValidatePageSize(data.PageSize).
 		ValidateSortOrder(data.SortOrder).

@@ -114,11 +114,11 @@ func RegisterRoutes(router *gin.Engine) {
 	artRoutes.Use(middleware.RoleAuthMiddleware("all"))
 	{
 		artRoutes.POST("/list", art.ListArts)
+		artRoutes.GET("/:id", art.GetArtByID)
 
 		artAdminRoutes := artRoutes.Group("")
 		artAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 		{
-			artAdminRoutes.GET("/:id", art.GetArtByID)
 			artAdminRoutes.POST("/", art.CreateArt)
 			artAdminRoutes.PUT("/:id", art.UpdateArt)
 			artAdminRoutes.DELETE("/:id", art.DeleteArt)
