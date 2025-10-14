@@ -1,20 +1,29 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:latest
     container_name: ArtaferaDB
     environment:
-      POSTGRES_USER: DBAdmin
-      POSTGRES_PASSWORD: AVerySecurePassword
-      POSTGRES_DB: ArtaferaDB
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   minio:
     image: minio/minio:latest
     container_name: minio
     environment:
-      MINIO_ROOT_USER: S3Admin
-      MINIO_ROOT_PASSWORD: AVerySecurePassword
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
       MINIO_CONSOLE_ADDRESS: ":9001"
     command: server /data --console-address ":9001"
     ports:
@@ -22,6 +31,28 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+
+  backend:
+    build: .
+    container_name: artafera-backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_USER: ${MINIO_USER}
+      MINIO_PASSWORD: ${MINIO_PASSWORD}
+      GIN_MODE: release
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
 volumes:
   postgres_data:
   minio_data:
