@@ -18,8 +18,7 @@ func main() {
 	// Load env's from .env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
-		return
+		log.Println("No .env file found, using environment variables")
 	}
 
 	utils.SetGinMode()
