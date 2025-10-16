@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	log.Println("new test")
+	log.Println("new test 2")
 	// Load env's from .env file
 	err := godotenv.Load()
 	if err != nil {
