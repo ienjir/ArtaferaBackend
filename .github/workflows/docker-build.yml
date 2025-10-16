@@ -36,7 +36,7 @@ jobs:
       
       - name: Deploy via Dokploy API
         run: |
-          curl -X POST "${{ DOKPLOY_WEBHOOK_URL }}" \
+          curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
           -H "Content-Type: application/json" \
           -H "User-Agent: GitHub-Hookshot/test" \
           -H "X-GitHub-Event: push" \
