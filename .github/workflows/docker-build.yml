@@ -35,6 +35,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
-      - name: Trigger Dokploy Redeploy
+      - name: Deploy via Dokploy API
         run: |
-          curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
+          curl -X POST "http://45.81.235.213:3000/api/compose.deploy" \
+            -H "Authorization: Bearer ${{ secrets.DOKPLOY_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"composeId": "5pJ3DsjGsarOKCl3_rjF2"}'
