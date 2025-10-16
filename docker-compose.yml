@@ -29,6 +29,7 @@ services:
       
   backend:
     image: ghcr.io/ienjir/artafera-backend:${BACKEND_IMAGE_TAG}
+    pull_policy: always
     container_name: artafera-backend
     environment:
       MODE: ${MODE}
