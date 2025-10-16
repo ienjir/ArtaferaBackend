@@ -1,14 +1,11 @@
 package picture
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/minio/minio-go/v7"
-	"gorm.io/gorm"
-	"net/http"
 	"path/filepath"
 	"strconv"
 )
@@ -16,22 +13,15 @@ import (
 var wrong = false
 
 func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Context) (*models.Picture, *minio.Object, *models.ServiceError) {
-	var picture models.Picture
 	var returnMinioFile *minio.Object
 	var bucketName string
 
-	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Picture not found",
-			}
-		} else {
-			return nil, nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving picture",
-			}
+	picture, err := database.Repositories.Picture.GetByID(data.TargetID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, nil, utils.NewPictureNotFoundError()
 		}
+		return nil, nil, err
 	}
 
 	if picture.IsPublic {
@@ -48,26 +38,19 @@ func getPictureByIDService(data models.GetPictureByIDRequest, context *gin.Conte
 		returnMinioFile = minioFile
 	}
 
-	return &picture, returnMinioFile, nil
+	return picture, returnMinioFile, nil
 }
 
 func getPictureByNameService(data models.GetPictureByNameRequest, context *gin.Context) (*models.Picture, *minio.Object, *models.ServiceError) {
-	var picture models.Picture
 	var returnMinioFile *minio.Object
 	var bucketName string
 
-	if err := database.DB.Where("Name = ?", data.Name).First(&picture).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Picture not found",
-			}
-		} else {
-			return nil, nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving picture",
-			}
+	picture, err := database.Repositories.Picture.FindByField("name", data.Name)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, nil, utils.NewPictureNotFoundError()
 		}
+		return nil, nil, err
 	}
 
 	if picture.IsPublic {
@@ -84,29 +67,23 @@ func getPictureByNameService(data models.GetPictureByNameRequest, context *gin.C
 		returnMinioFile = minioFile
 	}
 
-	return &picture, returnMinioFile, nil
+	return picture, returnMinioFile, nil
 }
 
 func listPictureService(data models.ListPictureRequest, context *gin.Context) (*[]models.Picture, *[]minio.Object, *int64, *models.ServiceError) {
-	var pictures []models.Picture
 	var returnMinioFiles []minio.Object
-	var count int64
 
-	if err := database.DB.Limit(5).Offset(int(data.Offset * 5)).Find(&pictures).Error; err != nil {
-		return nil, nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving orders from pictures",
-		}
+	pictures, err := database.Repositories.Picture.List(int(data.Offset*5), 5)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
-	if err := database.DB.Model(&models.Picture{}).Count(&count).Error; err != nil {
-		return nil, nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting pictures in database",
-		}
+	count, err := database.Repositories.Picture.Count()
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
-	for _, picture := range pictures {
+	for _, picture := range *pictures {
 		var bucketName string
 		fileName := picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
 
@@ -123,7 +100,7 @@ func listPictureService(data models.ListPictureRequest, context *gin.Context) (*
 		}
 	}
 
-	return &pictures, &returnMinioFiles, &count, nil
+	return pictures, &returnMinioFiles, count, nil
 }
 
 func createPictureService(data models.CreatePictureRequest, context *gin.Context) (*models.Picture, *models.ServiceError) {
@@ -152,12 +129,8 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 
 	picture.Type = filepath.Ext(data.Picture.Filename)
 
-	if db := database.DB.Create(&picture); db.Error != nil {
-		return nil,
-			&models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Failed to save picture",
-			}
+	if err := database.Repositories.Picture.Create(&picture); err != nil {
+		return nil, err
 	}
 
 	fileExt := filepath.Ext(data.Picture.Filename)
@@ -172,13 +145,12 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 }
 
 func updatePictureService(data models.UpdatePictureRequest, context *gin.Context) (*models.Picture, *models.ServiceError) {
-	var picture models.Picture
-
-	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Picture not found"}
+	picture, err := database.Repositories.Picture.GetByID(data.TargetID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewPictureNotFoundError()
 		}
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return nil, err
 	}
 
 	var originalFileName string
@@ -223,25 +195,22 @@ func updatePictureService(data models.UpdatePictureRequest, context *gin.Context
 		}
 	}
 
-	if err := database.DB.Save(&picture).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to update picture",
-		}
+	if err := database.Repositories.Picture.Update(picture); err != nil {
+		return nil, err
 	}
 
-	return &picture, nil
+	return picture, nil
 }
 
 func deletePictureService(data models.DeletePictureRequest, context *gin.Context) *models.ServiceError {
-	var picture models.Picture
 	var bucketName string
 
-	if err := database.DB.First(&picture, data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Picture not found"}
+	picture, err := database.Repositories.Picture.GetByID(data.TargetID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return utils.NewPictureNotFoundError()
 		}
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return err
 	}
 
 	if picture.IsPublic {
@@ -251,16 +220,13 @@ func deletePictureService(data models.DeletePictureRequest, context *gin.Context
 	}
 
 	fileName := picture.Name + "__" + strconv.Itoa(int(picture.ID)) + picture.Type
-	_, err := utils.DeleteFile(fileName, bucketName, context)
-	if err != nil {
-		return err
+	_, deleteErr := utils.DeleteFile(fileName, bucketName, context)
+	if deleteErr != nil {
+		return deleteErr
 	}
 
-	if result := database.DB.Delete(&models.Picture{}, data.TargetID); result.Error != nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error occurred while deleting picture",
-		}
+	if err := database.Repositories.Picture.DeleteEntity(picture); err != nil {
+		return err
 	}
 
 	return nil

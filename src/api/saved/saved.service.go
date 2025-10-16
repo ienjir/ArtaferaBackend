@@ -1,163 +1,106 @@
 package saved
 
 import (
-	"errors"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
-	"gorm.io/gorm"
-	"net/http"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 )
 
 func getSavedByIDService(data models.GetSavedByIDRequest) (*models.Saved, *models.ServiceError) {
-	var saved models.Saved
-
-	if err := database.DB.Preload("Art").Preload("User").First(&saved, data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Saved not found",
-			}
-		} else {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving saved",
-			}
+	saved, err := database.Repositories.Saved.GetByID(data.TargetID, "Art", "User")
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewSavedNotFoundError()
 		}
+		return nil, err
 	}
 
-	return &saved, nil
+	return saved, nil
 }
 
 func getSavedForUserService(data models.GetSavedForUserRequest) (*[]models.Saved, *models.User, *int64, *models.ServiceError) {
-	var saved []models.Saved
-	var user models.User
+	user, err := database.Repositories.User.GetByID(data.TargetUserID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, nil, nil, utils.NewUserNotFoundError()
+		}
+		return nil, nil, nil, err
+	}
+
+	saved, err := database.Repositories.Saved.FindAllByField("user_id", data.TargetUserID, int(data.Offset)*5, 5, "Art")
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// Count saved items for user
+	query := database.Repositories.Saved.Query().Where("user_id = ?", data.TargetUserID)
 	var count int64
-
-	if err := database.DB.First(&user, data.TargetUserID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
-			}
-		} else {
-			return nil, nil, nil, &models.ServiceError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    "Error while retrieving user",
-			}
-		}
+	if countErr := query.Count(&count).Error; countErr != nil {
+		return nil, nil, nil, utils.NewDatabaseCountError()
 	}
 
-	if err := database.DB.Preload("Art").Where("user_id = ?", data.TargetUserID).Find(&saved).Limit(5).Offset(int(data.Offset) * 5).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil, nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Saved not found",
-			}
-		}
-		return nil, nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving saved",
-		}
-	}
-
-	if err := database.DB.Model(&models.Saved{}).Where("user_id = ?", data.TargetUserID).Count(&count).Error; err != nil {
-		return nil, nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting saved in database",
-		}
-	}
-
-	return &saved, &user, &count, nil
+	return saved, user, &count, nil
 }
 
 func listSavedService(data models.ListSavedRequest) (*[]models.Saved, *int64, *models.ServiceError) {
-	var saved []models.Saved
-	var count int64
-
-	if err := database.DB.Preload("Art").Preload("User").Limit(5).Offset(int(data.Offset * 5)).Find(&saved).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving saved from database",
-		}
+	saved, err := database.Repositories.Saved.List(int(data.Offset*5), 5, "Art", "User")
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if err := database.DB.Model(&models.Saved{}).Count(&count).Error; err != nil {
-		return nil, nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while counting saved in database",
-		}
+	count, err := database.Repositories.Saved.Count()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return &saved, &count, nil
+	return saved, count, nil
 }
 
 func createSavedService(data models.CreateSavedRequest) (*models.Saved, *models.ServiceError) {
-	var art models.Art
-	var user models.User
-	var saved models.Saved
-
-	if err := database.DB.First(&art, data.ArtID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Art not found",
-			}
+	// Verify art exists
+	art, err := database.Repositories.Art.GetByID(data.ArtID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewArtNotFoundError()
 		}
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving art",
-		}
+		return nil, err
 	}
 
-	if err := database.DB.First(&user, data.TargetUserID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "User not found",
-			}
+	// Verify user exists
+	user, err := database.Repositories.User.GetByID(*data.TargetUserID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewUserNotFoundError()
 		}
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while retrieving user",
-		}
+		return nil, err
 	}
 
-	if err := database.DB.Where("user_id = ? AND art_id = ?", user.ID, data.ArtID).First(&saved).Error; err == nil {
-		// Record already exists
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusConflict,
-			Message:    "Art is already saved for this user",
-		}
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error while checking existing saved record",
-		}
+	// Check if already saved
+	query := database.Repositories.Saved.Query().Where("user_id = ? AND art_id = ?", user.ID, data.ArtID)
+	var existingSaved models.Saved
+	if queryErr := query.First(&existingSaved).Error; queryErr == nil {
+		return nil, utils.NewArtAlreadySavedError()
 	}
 
 	newSaved := models.Saved{
 		UserID: user.ID,
-		ArtID:  data.ArtID,
+		ArtID:  art.ID,
 	}
 
-	if err := database.DB.Create(&newSaved).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to save record",
-		}
+	if err := database.Repositories.Saved.Create(&newSaved); err != nil {
+		return nil, err
 	}
 
 	return &newSaved, nil
 }
 
 func updateSavedService(data models.UpdateSavedRequest) (*models.Saved, *models.ServiceError) {
-	var saved models.Saved
-
-	if err := database.DB.First(&saved, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &models.ServiceError{StatusCode: http.StatusNotFound, Message: "Saved not found"}
+	saved, err := database.Repositories.Saved.GetByID(data.TargetID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return nil, utils.NewSavedNotFoundError()
 		}
-		return nil, &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return nil, err
 	}
 
 	if data.TargetUserID != nil {
@@ -168,46 +111,30 @@ func updateSavedService(data models.UpdateSavedRequest) (*models.Saved, *models.
 		saved.ArtID = *data.ArtID
 	}
 
-	if err := database.DB.Save(&saved).Error; err != nil {
-		return nil, &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Failed to update saved",
-		}
+	if err := database.Repositories.Saved.Update(saved); err != nil {
+		return nil, err
 	}
 
-	return &saved, nil
+	return saved, nil
 }
 
 func deleteSavedService(data models.DeleteSavedRequest) *models.ServiceError {
-	var saved models.Saved
-
-	if err := database.DB.First(&saved, "id = ?", data.TargetID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &models.ServiceError{
-				StatusCode: http.StatusNotFound,
-				Message:    "Saved not found",
-			}
+	saved, err := database.Repositories.Saved.GetByID(data.TargetID)
+	if err != nil {
+		if err.StatusCode == 404 {
+			return utils.NewSavedNotFoundError()
 		}
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    err.Error(),
-		}
+		return err
 	}
 
 	if data.UserRole != "admin" {
 		if saved.UserID != data.UserID {
-			return &models.ServiceError{
-				StatusCode: http.StatusForbidden,
-				Message:    "You are not allowed to see this route",
-			}
+			return utils.NewNotAllowedRouteError()
 		}
 	}
 
-	if result := database.DB.Delete(&models.Saved{}, saved.ID); result.Error != nil {
-		return &models.ServiceError{
-			StatusCode: http.StatusInternalServerError,
-			Message:    "Error occurred while deleting saved",
-		}
+	if err := database.Repositories.Saved.DeleteEntity(saved); err != nil {
+		return err
 	}
 
 	return nil

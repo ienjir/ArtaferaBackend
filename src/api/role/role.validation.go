@@ -2,137 +2,46 @@ package role
 
 import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
-	"net/http"
+	"github.com/ienjir/ArtaferaBackend/src/validation"
 )
 
 func verifyGetRoleByID(data models.GetRoleByIDRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
-	}
-
-	if data.RoleID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "RoleID has to be over 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not authorized to see this role",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateID(data.RoleID, "RoleID").
+		ValidateAdminRole(data.UserRole).
+		GetFirstError()
 }
 
 func verifyListRoles(data models.ListRoleRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
-	}
-
-	if data.Offset < 0 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Offset has to  be 0 or more",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not authorized to see all role",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateOffset(int64(data.Offset)).
+		ValidateAdminRole(data.UserRole).
+		GetFirstError()
 }
 
 func verifyCreateRole(data models.CreateRoleRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not authorized to see all role",
-		}
-	}
-
-	if data.Role == "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Role can not be empty",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateAdminRole(data.UserRole).
+		ValidateNotEmpty(&data.Role, "Role").
+		GetFirstError()
 }
 
 func verifyUpdateRole(data models.UpdateRoleRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not authorized to see all role",
-		}
-	}
-
-	if data.Role == "" {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Role can not be empty",
-		}
-	}
-
-	if data.RoleID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "RoleID has to be over 1",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateAdminRole(data.UserRole).
+		ValidateNotEmpty(&data.Role, "Role").
+		ValidateID(data.RoleID, "RoleID").
+		GetFirstError()
 }
 
 func verifyDeleteRole(data models.DeleteRoleRequest) *models.ServiceError {
-	if data.UserID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "UserID has to be over 1",
-		}
-	}
-
-	if data.UserRole != "admin" {
-		return &models.ServiceError{
-			StatusCode: http.StatusForbidden,
-			Message:    "You are not authorized to see all role",
-		}
-	}
-
-	if data.RoleID < 1 {
-		return &models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "RoleID has to be over 1",
-		}
-	}
-
-	return nil
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateAdminRole(data.UserRole).
+		ValidateID(data.RoleID, "RoleID").
+		GetFirstError()
 }

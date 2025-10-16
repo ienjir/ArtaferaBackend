@@ -1,13 +1,17 @@
-# Build stage
-FROM golang:1.18-alpine AS builder
+FROM golang:alpine AS builder
 WORKDIR /app
-COPY . .
-RUN go mod download
-RUN go build -o main .
 
-# Run stage
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o artaferabackend .
+
 FROM alpine:latest
-WORKDIR /root/
-COPY --from=builder /app/main .
+WORKDIR /app
+
+COPY --from=builder /app/artaferabackend .
+
 EXPOSE 8080
-CMD ["./main"]
+
+CMD ["./artaferabackend"]

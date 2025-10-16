@@ -5,36 +5,37 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+	"log"
 )
 
 var GinMode int
 
 func SetGinMode() {
-	switch os.Getenv("MODE") {
+	mode := os.Getenv("MODE")
+	
+	// Default to release in production environments
+	if mode == "" {
+		mode = "release"
+		GinMode = 2
+		log.Println("MODE not set, defaulting to 'release'")
+	}
+	
+	switch mode {
 	case "debug":
-		gin.SetMode("debug")
+		gin.SetMode(gin.DebugMode)
 		GinMode = 0
 		fmt.Println("Running in debug mode")
-
 	case "test":
-		gin.SetMode("test")
+		gin.SetMode(gin.TestMode)
 		GinMode = 1
 		fmt.Println("Running in test mode")
-
 	case "release":
-		gin.SetMode("release")
+		gin.SetMode(gin.ReleaseMode)
 		GinMode = 2
 		fmt.Println("Running in release mode")
-
 	default:
-		fmt.Println("No application mode was provided")
-		fmt.Println("Please set 'MODE' in the .env file to one of the following 3 options:")
-		fmt.Println("debug")
-		fmt.Println("test")
-		fmt.Println("release")
-		os.Exit(1)
+		log.Fatalf("Invalid MODE '%s'. Must be one of: debug, test, release", mode)
 	}
-
 }
 
 func CORSMiddleware() gin.HandlerFunc {

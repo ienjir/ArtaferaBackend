@@ -2,11 +2,11 @@ package validation
 
 import (
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/nyaruka/phonenumbers"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"log"
 	"mime/multipart"
-	"net/http"
 	"net/mail"
 	"os"
 	"strconv"
@@ -34,7 +34,7 @@ func ValidatePassword(password string) *models.ServiceError {
 	}
 
 	if err := passwordvalidator.Validate(password, MinEntropyBits); err != nil {
-		return &models.ServiceError{StatusCode: http.StatusForbidden, Message: "Password is insecure"}
+		return utils.NewPasswordInsecureError()
 	}
 
 	return nil
@@ -42,7 +42,7 @@ func ValidatePassword(password string) *models.ServiceError {
 
 func ValidatePasswordWithoutEntropy(password string) *models.ServiceError {
 	if password == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Password can't be empty"}
+		return utils.NewFieldEmptyError("Password")
 	}
 
 	return nil
@@ -50,16 +50,16 @@ func ValidatePasswordWithoutEntropy(password string) *models.ServiceError {
 
 func ValidateEmail(email string) *models.ServiceError {
 	if email == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Email can't be empty"}
+		return utils.NewFieldEmptyError("Email")
 	}
 
 	if IsLower(email) == false {
-		return &models.ServiceError{StatusCode: http.StatusUnauthorized, Message: "Email has to be lowercase"}
+		return utils.NewEmailLowercaseError()
 	}
 
 	_, err := mail.ParseAddress(email)
 	if err != nil {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Error parsing email"}
+		return utils.NewEmailInvalidError()
 	}
 
 	return nil
@@ -67,7 +67,7 @@ func ValidateEmail(email string) *models.ServiceError {
 
 func ValidateName(name, fieldName string) *models.ServiceError {
 	if name == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: fieldName + " can't be empty"}
+		return utils.NewFieldEmptyError(fieldName)
 	}
 
 	return nil
@@ -79,25 +79,25 @@ func ValidatePhone(phone, phoneRegion *string) *models.ServiceError {
 	}
 
 	if phoneRegion == nil {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone region has to be sent"}
+		return utils.NewFieldRequiredError("Phone region")
 	}
 
 	if phone == nil || *phone == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone number can't be empty"}
+		return utils.NewFieldEmptyError("Phone number")
 	}
 
 	if *phoneRegion == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone region can't be empty"}
+		return utils.NewFieldEmptyError("Phone region")
 	}
 
 	upperRegion := strings.ToUpper(*phoneRegion)
 	parsedNumber, err := phonenumbers.Parse(*phone, upperRegion)
 	if err != nil {
-		return &models.ServiceError{StatusCode: http.StatusInternalServerError, Message: "Error while trying to parse phone number"}
+		return utils.NewInternalServerError("Error parsing phone number")
 	}
 
 	if !phonenumbers.IsValidNumber(parsedNumber) {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: "Phone format is not valid"}
+		return utils.NewPhoneInvalidError()
 	}
 
 	return nil
@@ -105,7 +105,7 @@ func ValidatePhone(phone, phoneRegion *string) *models.ServiceError {
 
 func ValidateAddress(field *string, fieldName string) *models.ServiceError {
 	if field != nil && *field == "" {
-		return &models.ServiceError{StatusCode: http.StatusUnprocessableEntity, Message: fieldName + " can't be empty"}
+		return utils.NewFieldEmptyError(fieldName)
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func ValidateStatusString(status string) (models.OrderStatus, *models.ServiceErr
 	case string(models.OrderStatusCancelled):
 		return models.OrderStatusCancelled, nil
 	default:
-		return "", &models.ServiceError{StatusCode: http.StatusBadRequest, Message: "Order status is invalid"}
+		return "", utils.NewFieldInvalidError("Order status")
 	}
 }
 
@@ -155,4 +155,135 @@ func IsLower(s string) bool {
 		}
 	}
 	return true
+}
+
+type Validator struct {
+	errors []*models.ServiceError
+}
+
+func NewValidator() *Validator {
+	return &Validator{errors: make([]*models.ServiceError, 0)}
+}
+
+func (v *Validator) ValidateID(id int64, fieldName string) *Validator {
+	if id < 1 {
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError(fieldName, "at least 1"))
+	}
+	return v
+}
+
+func (v *Validator) ValidateIntID(id int, fieldName string) *Validator {
+	if id < 1 {
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError(fieldName, "at least 1"))
+	}
+	return v
+}
+
+func (v *Validator) ValidatePositiveFloat(value *float64, fieldName string) *Validator {
+	if value != nil && *value < 0 {
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError(fieldName, "0 or greater"))
+	}
+	return v
+}
+
+func (v *Validator) ValidatePositiveNumber(value int64, fieldName string) *Validator {
+	if value < 0 {
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError(fieldName, "0 or greater"))
+	}
+	return v
+}
+
+func (v *Validator) ValidateRange(value *int, min, max int, fieldName string) *Validator {
+	if value != nil && (*value < min || *value > max) {
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError(fieldName, "between "+strconv.Itoa(min)+" and "+strconv.Itoa(max)))
+	}
+	return v
+}
+
+func (v *Validator) ValidateIntRange(value int, min, max int, fieldName string) *Validator {
+	if value < min || value > max {
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError(fieldName, "between "+strconv.Itoa(min)+" and "+strconv.Itoa(max)))
+	}
+	return v
+}
+
+func (v *Validator) ValidateOffset(offset int64) *Validator {
+	if offset < 0 {
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError("Offset", "0 or greater"))
+	}
+	return v
+}
+
+func (v *Validator) ValidatePageSize(pageSize int) *Validator {
+	if pageSize < 1 || pageSize > 100 {
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError("PageSize", "between 1 and 100"))
+	}
+	return v
+}
+
+func (v *Validator) ValidateSortOrder(sortOrder *string) *Validator {
+	if sortOrder != nil && *sortOrder != "asc" && *sortOrder != "desc" {
+		v.errors = append(v.errors, utils.NewFieldOutOfRangeError("SortOrder", "'asc' or 'desc'"))
+	}
+	return v
+}
+
+func (v *Validator) ValidateAdminRole(userRole string) *Validator {
+	if userRole != "admin" {
+		v.errors = append(v.errors, utils.NewAdminRequiredError())
+	}
+	return v
+}
+
+func (v *Validator) ValidateUserAccess(userID, targetID int64, userRole string) *Validator {
+	if userRole != "admin" && userID != targetID {
+		v.errors = append(v.errors, utils.NewOwnerAccessError())
+	}
+	return v
+}
+
+func (v *Validator) ValidateNotEmpty(value *string, fieldName string) *Validator {
+	if value != nil && *value == "" {
+		v.errors = append(v.errors, utils.NewFieldEmptyError(fieldName))
+	}
+	return v
+}
+
+func (v *Validator) ValidateBucketRestriction(publicBucket, privateBucket string) *Validator {
+	if publicBucket != "" || privateBucket != "" {
+		v.errors = append(v.errors, utils.NewForbiddenError("You are not allowed to send with a bucket name"))
+	}
+	return v
+}
+
+func (v *Validator) GetFirstError() *models.ServiceError {
+	if len(v.errors) > 0 {
+		return v.errors[0]
+	}
+	return nil
+}
+
+func (v *Validator) HasErrors() bool {
+	return len(v.errors) > 0
+}
+
+func ValidateIDField(id int64, fieldName string) *models.ServiceError {
+	if id < 1 {
+		return utils.NewFieldOutOfRangeError(fieldName, "at least 1")
+	}
+	return nil
+}
+
+func ValidateAdminRole(userRole string) *models.ServiceError {
+	if userRole != "admin" {
+		return utils.NewAdminRequiredError()
+	}
+	return nil
+}
+
+func ValidateUserAccess(userID, targetID int64, userRole string) *models.ServiceError {
+	if userRole != "admin" && userID != targetID {
+		return utils.NewOwnerAccessError()
+	}
+	return nil
 }

@@ -3,25 +3,67 @@ services:
     image: postgres:latest
     container_name: ArtaferaDB
     environment:
-      POSTGRES_USER: DBAdmin
-      POSTGRES_PASSWORD: AVerySecurePassword
-      POSTGRES_DB: ArtaferaDB
-    ports:
-      - "5432:5432"
-
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - artafera-network
+      
   minio:
     image: minio/minio:latest
     container_name: minio
     environment:
-      MINIO_ROOT_USER: S3Admin
-      MINIO_ROOT_PASSWORD: AVerySecurePassword
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_CONSOLE_ADDRESS: ":9001"
     command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     volumes:
       - minio_data:/data
+    networks:
+      - artafera-network
+      
+  backend:
+    image: ghcr.io/ienjir/artafera-backend:latest
+    pull_policy: always
+    container_name: artafera-backend
+    environment:
+      MODE: ${MODE}
+      APP_PORT: ${APP_PORT}
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
+      DB_SSL_MODE: ${DB_SSL_MODE}
+      HASH_TIME: ${HASH_TIME}
+      HASH_SALT_LENGTH: ${HASH_SALT_LENGTH}
+      HASH_MEMORY: ${HASH_MEMORY}
+      HASH_THREADS: ${HASH_THREADS}
+      HASH_KEY_LENGTH: ${HASH_KEY_LENGTH}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_USE_SSL: ${MINIO_USE_SSL}
+      ENTROPY_MIN_BITS: ${ENTROPY_MIN_BITS}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    networks:
+      - artafera-network
+
 volumes:
   postgres_data:
   minio_data:
+  
+networks:
+  artafera-network:
+    driver: bridge

@@ -3,14 +3,17 @@ package database
 import (
 	"fmt"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/repository"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
+	"errors"
 	"os"
 )
 
 var DB *gorm.DB
+var Repositories *repository.RepositoryManager
 
 func ConnectDatabase() error {
 	var err error
@@ -30,7 +33,7 @@ func ConnectDatabase() error {
 		return err
 	}
 
-	// Drop all tables
+	// Drop all tables if not prod
 	if utils.GinMode != 2 {
 		for _, model := range models.AllModels {
 			err := DB.Migrator().DropTable(model)
@@ -54,31 +57,38 @@ func ConnectDatabase() error {
 		return err
 	}
 
+	// Initialize repository manager
+	Repositories = repository.NewRepositoryManager(DB)
+
 	log.Println("Database connected and migrated successfully")
 	return nil
 }
 
 func createInitialRoles() error {
-	userRole := models.Role{
-		Name: "user",
-	}
-	result := DB.Create(&userRole)
-	if result.Error != nil {
-		return result.Error
-	}
+	tempRepos := repository.NewRepositoryManager(DB)
 
-	adminRole := models.Role{
-		Name: "admin",
-	}
-	result = DB.Create(&adminRole)
-	if result.Error != nil {
-		return result.Error
-	}
+	roles := []string{"user", "admin", "artist"}
 
-	artistRole := models.Role{
-		Name: "artist",
+	for _, roleName := range roles {
+		var existing models.Role
+		// Check if role already exists
+		err := DB.Where("name = ?", roleName).First(&existing).Error
+
+		if err == nil {
+			// Role already exists, skip
+			continue
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			// Unexpected DB error
+			return fmt.Errorf("failed to check role %s: %v", roleName, err)
+		}
+
+		// Role doesn't exist → create it
+		newRole := models.Role{Name: roleName}
+		if createErr := tempRepos.Role.Create(&newRole); createErr != nil {
+			return fmt.Errorf("failed to create %s role: %v", roleName, createErr.Message)
+		}
 	}
-	result = DB.Create(&artistRole)
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/golang-jwt/jwt/v5"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"net/http"
 	"strings"
 )
@@ -13,49 +14,46 @@ var Argon2IDHash Argon2idHash
 func Login(c *gin.Context) {
 	var json models.LoginRequest
 	if jsonErr := c.ShouldBindJSON(&json); jsonErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": jsonErr.Error()})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
 		return
 	}
 
 	json.Email = strings.ToLower(json.Email)
 
 	if err := VerifyLoginData(json); err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	user, err := VerifyUser(json)
 	if err != nil {
-		c.JSON(err.StatusCode, gin.H{"error": err.Message})
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
 	jwt, err2 := GenerateTokenPair(*user)
 	if err2 != nil {
-		c.JSON(err2.StatusCode, gin.H{"error": err2.Message})
+		utils.RespondWithServiceError(c, err2)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": jwt})
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"token": jwt})
 }
 
 func RefreshTokenHandler(c *gin.Context) {
 	refreshToken := c.GetHeader("X-Refresh-Token")
 	if refreshToken == "" {
-		c.JSON(http.StatusBadRequest, models.ServiceError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "Refresh token is required",
-		})
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrRefreshTokenRequired)
 		return
 	}
 
 	newTokens, err := RefreshTokens(refreshToken)
 	if err != nil {
-		c.JSON(err.StatusCode, err)
+		utils.RespondWithServiceError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, newTokens)
+	utils.RespondWithSuccess(c, http.StatusOK, newTokens)
 }
 
 func HashPassword(password string) (*HashSalt, error) {
