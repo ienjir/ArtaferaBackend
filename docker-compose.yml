@@ -28,7 +28,7 @@ services:
       - artafera-network
       
   backend:
-    image: ghcr.io/ienjir/artafera-backend:effd1183d4acfc82dbc7f41493f9238bbfc2d8ca
+    image: ghcr.io/ienjir/artafera-backend:${BACKEND_IMAGE_TAG}
     container_name: artafera-backend
     environment:
       MODE: ${MODE}
