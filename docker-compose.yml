@@ -64,8 +64,8 @@ services:
 
 volumes:
   postgres_data:
-    minio_data:
+  minio_data:
 
-      networks:
-        artafera-network:
-          driver: bridge
+networks:
+  artafera-network:
+    driver: bridge
