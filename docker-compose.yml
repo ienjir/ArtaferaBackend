@@ -6,8 +6,6 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 10s
@@ -15,35 +13,44 @@ services:
       retries: 5
     networks:
       - artafera-network
-
+      
   minio:
     image: minio/minio:latest
     container_name: minio
     environment:
-      MINIO_ROOT_USER: ${MINIO_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_CONSOLE_ADDRESS: ":9001"
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
     networks:
       - artafera-network
-
+      
   backend:
-    image: ghcr.io/ienjir/artafera-backend:latest
+    image: ghcr.io/ienjir/artafera-backend:effd1183d4acfc82dbc7f41493f9238bbfc2d8ca
     container_name: artafera-backend
     environment:
+      MODE: ${MODE}
+      APP_PORT: ${APP_PORT}
       DB_HOST: postgres
-      DB_PORT: 5432
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
+      DB_SSL_MODE: ${DB_SSL_MODE}
+      HASH_TIME: ${HASH_TIME}
+      HASH_SALT_LENGTH: ${HASH_SALT_LENGTH}
+      HASH_MEMORY: ${HASH_MEMORY}
+      HASH_THREADS: ${HASH_THREADS}
+      HASH_KEY_LENGTH: ${HASH_KEY_LENGTH}
       MINIO_ENDPOINT: minio:9000
-      MINIO_USER: ${MINIO_USER}
-      MINIO_PASSWORD: ${MINIO_PASSWORD}
-      GIN_MODE: release
-    ports:
-      - "8080:8080"
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_USE_SSL: ${MINIO_USE_SSL}
+      ENTROPY_MIN_BITS: ${ENTROPY_MIN_BITS}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,7 +62,7 @@ services:
 volumes:
   postgres_data:
   minio_data:
-
+  
 networks:
   artafera-network:
     driver: bridge

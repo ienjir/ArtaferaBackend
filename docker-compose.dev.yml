@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: ArtaferaDB
+    environment:
+      POSTGRES_USER: DBAdmin
+      POSTGRES_PASSWORD: AVerySecurePassword
+      POSTGRES_DB: ArtaferaDB
+    ports:
+      - "5432:5432"  # Expose for local access
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U DBAdmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - artafera-network
+      
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: S3Admin
+      MINIO_ROOT_PASSWORD: AVerySecurePassword
+      MINIO_CONSOLE_ADDRESS: ":9001"
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"  # Expose for local access
+      - "9001:9001"  # Console
+    volumes:
+      - minio_data:/data
+    networks:
+      - artafera-network
+
+volumes:
+  postgres_data:
+  minio_data:
+  
+networks:
+  artafera-network:
+    driver: bridge

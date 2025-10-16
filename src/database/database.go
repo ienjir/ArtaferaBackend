@@ -8,6 +8,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
+	"errors"
 	"os"
 )
 
@@ -32,7 +33,7 @@ func ConnectDatabase() error {
 		return err
 	}
 
-	// Drop all tables
+	// Drop all tables if not prod
 	if utils.GinMode != 2 {
 		for _, model := range models.AllModels {
 			err := DB.Migrator().DropTable(model)
@@ -64,28 +65,29 @@ func ConnectDatabase() error {
 }
 
 func createInitialRoles() error {
-	// Initialize repository manager first for this function
 	tempRepos := repository.NewRepositoryManager(DB)
 
-	userRole := models.Role{
-		Name: "user",
-	}
-	if err := tempRepos.Role.Create(&userRole); err != nil {
-		return fmt.Errorf("failed to create user role: %v", err.Message)
-	}
+	roles := []string{"user", "admin", "artist"}
 
-	adminRole := models.Role{
-		Name: "admin",
-	}
-	if err := tempRepos.Role.Create(&adminRole); err != nil {
-		return fmt.Errorf("failed to create admin role: %v", err.Message)
-	}
+	for _, roleName := range roles {
+		var existing models.Role
+		// Check if role already exists
+		err := DB.Where("name = ?", roleName).First(&existing).Error
 
-	artistRole := models.Role{
-		Name: "artist",
-	}
-	if err := tempRepos.Role.Create(&artistRole); err != nil {
-		return fmt.Errorf("failed to create artist role: %v", err.Message)
+		if err == nil {
+			// Role already exists, skip
+			continue
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			// Unexpected DB error
+			return fmt.Errorf("failed to check role %s: %v", roleName, err)
+		}
+
+		// Role doesn't exist → create it
+		newRole := models.Role{Name: roleName}
+		if createErr := tempRepos.Role.Create(&newRole); createErr != nil {
+			return fmt.Errorf("failed to create %s role: %v", roleName, createErr.Message)
+		}
 	}
 
 	return nil
