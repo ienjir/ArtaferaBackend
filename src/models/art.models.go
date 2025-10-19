@@ -7,13 +7,9 @@ type GetArtByIDRequest struct {
 }
 
 type ListArtRequest struct {
-	UserID    int64   `json:"-"`
-	UserRole  string  `json:"-"`
-	Page      int     `json:"page" binding:"required,min=1"`
-	PageSize  int     `json:"page_size" binding:"required,min=1,max=100"`
-	SortBy    *string `json:"sort_by,omitempty"`
-	SortOrder *string `json:"sort_order,omitempty"`
-	Available *bool   `json:"available,omitempty"`
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	Offset   int64  `json:"offset"`
 }
 
 type CreateArtRequest struct {
