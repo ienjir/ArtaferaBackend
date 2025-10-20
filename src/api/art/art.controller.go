@@ -1,11 +1,12 @@
 package art
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
-	"net/http"
-	"strconv"
 )
 
 func GetArtByID(c *gin.Context) {
