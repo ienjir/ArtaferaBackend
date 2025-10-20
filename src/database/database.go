@@ -25,13 +25,6 @@ func ConnectDatabase() error {
 	port := os.Getenv("DB_PORT")
 	sslmode := os.Getenv("DB_SSL_MODE")
 
-	log.Println(host)
-	log.Println(user)
-	log.Println(password)
-	log.Println(dbname)
-	log.Println(port)
-	log.Println(sslmode)
-
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		host, user, password, dbname, port, sslmode)
 
