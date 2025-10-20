@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - Api-stuff
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
