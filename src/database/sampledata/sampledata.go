@@ -3,16 +3,17 @@ package sampledata
 import (
 	"context"
 	"fmt"
-	"github.com/ienjir/ArtaferaBackend/src/api/auth"
-	"github.com/ienjir/ArtaferaBackend/src/database"
-	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
-	"github.com/ienjir/ArtaferaBackend/src/models"
-	"github.com/minio/minio-go/v7"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"time"
+
+	"github.com/ienjir/ArtaferaBackend/src/api/auth"
+	"github.com/ienjir/ArtaferaBackend/src/database"
+	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/minio/minio-go/v7"
 )
 
 func SeedDatabase() error {
@@ -181,7 +182,7 @@ func SeedDatabase() error {
 		4: {"en": "City Lights", "de": "Stadtlichter", "fr": "Lumières de la ville"},
 		5: {"en": "Ocean Waves", "de": "Meereswellen", "fr": "Vagues de l'océan"},
 	}
-	labels := map[int]map[string]string {
+	labels := map[int]map[string]string{
 		1: {"en": "Wind", "de": "Wind", "fr": "Windee"},
 		2: {"en": "Clouds", "de": "Wolken", "fr": "Wolkeen"},
 		3: {"en": "Ice", "de": "Eis", "fr": "Iseeee"},
@@ -224,7 +225,7 @@ func SeedDatabase() error {
 				Title:       titles[int(artID)][lang.LanguageCode],
 				Description: descriptions[int(artID)][lang.LanguageCode],
 				Text:        "Detailed artwork description goes here. This would be a longer text about the artwork's history and significance.",
-				Label: 				labels[int(artID)][lang.LanguageCode],	
+				Label:       labels[int(artID)][lang.LanguageCode],
 			})
 		}
 	}
@@ -236,11 +237,11 @@ func SeedDatabase() error {
 
 	// Pictures
 	pictures := []models.Picture{
-		{Name: "slide_1", Priority: int64Ptr(1), IsPublic: true, Type: ".jpg"},
+		{Name: "slide_1", IsPublic: true, Type: ".jpg"},
 		{Name: "privateImage", IsPublic: false, Type: ".jpg"},
-		{Name: "slide_2", Priority: int64Ptr(2), IsPublic: true, Type: ".jpg"},
+		{Name: "slide_2", IsPublic: true, Type: ".jpg"},
 		{Name: "slide_3", Type: ".jpg"},
-		{Name: "privateImage2", IsPublic: false, Priority: int64Ptr(4), Type: ".jpg"},
+		{Name: "privateImage2", IsPublic: false, Type: ".jpg"},
 	}
 	for i := range pictures {
 		if err := database.Repositories.Picture.Create(&pictures[i]); err != nil {

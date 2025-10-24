@@ -1,13 +1,14 @@
 package picture
 
 import (
+	"path/filepath"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/minio/minio-go/v7"
-	"path/filepath"
-	"strconv"
 )
 
 var wrong = false
@@ -123,7 +124,6 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 
 	picture := models.Picture{
 		Name:     *data.Name,
-		Priority: data.Priority,
 		IsPublic: isPublic,
 	}
 

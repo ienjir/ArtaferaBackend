@@ -30,7 +30,6 @@ type CreatePictureRequest struct {
 	UserID        int64                `json:"-"`
 	UserRole      string               `json:"-"`
 	Name          *string              `json:"name" form:"name"`
-	Priority      *int64               `json:"priority" from:"priority"`
 	IsPublic      *bool                `json:"isPublic" form:"isPublic"`
 	Picture       multipart.FileHeader `json:"-"`
 	PublicBucket  string               `json:"-"`

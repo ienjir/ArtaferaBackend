@@ -39,10 +39,6 @@ func verifyCreatePicture(data models.CreatePictureRequest) *models.ServiceError 
 		return utils.NewInvalidImageFormatError()
 	}
 
-	if data.Priority != nil {
-		validator = validator.ValidatePositiveNumber(int64(*data.Priority), "Priority")
-	}
-
 	return validator.GetFirstError()
 }
 

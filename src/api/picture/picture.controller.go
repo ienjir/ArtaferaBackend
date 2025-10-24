@@ -3,14 +3,15 @@ package picture
 import (
 	"bytes"
 	"encoding/base64"
-	"github.com/gin-gonic/gin"
-	"github.com/ienjir/ArtaferaBackend/src/models"
-	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"io"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 )
 
 var PublicBucket = "pictures"
@@ -167,15 +168,6 @@ func CreatePicture(c *gin.Context) {
 	json.Picture = *picture
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
-
-	if priority := c.PostForm("priority"); priority != "" {
-		if priorityInt, err := strconv.ParseInt(priority, 10, 8); err == nil {
-			json.Priority = &priorityInt
-		} else {
-			utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidPriorityFormat)
-			return
-		}
-	}
 
 	if name := c.PostForm("name"); name != "" {
 		trimmedName := strings.TrimSuffix(*json.Name, filepath.Ext(json.Picture.Filename))

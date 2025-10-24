@@ -1,8 +1,9 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 var AllModels = []interface{}{
@@ -74,7 +75,7 @@ type Art struct {
 	Width        *float32         `gorm:"type:decimal(8,2)" json:"width,omitempty"`
 	Height       *float32         `gorm:"type:decimal(8,2)" json:"height,omitempty"`
 	Depth        *float32         `gorm:"type:decimal(8,2)" json:"depth,omitempty"`
-	Pictures     []ArtPicture     `gorm:"foreignKey:ArtID" json:"pictures,omitempty"`
+	Pictures     []ArtPicture     `gorm:"foreignKey:ArtID" json:"artPictures,omitempty"`
 	Translations []ArtTranslation `gorm:"foreignKey:ArtID" json:"translations,omitempty"`
 	Orders       []Order          `gorm:"foreignKey:ArtID" json:"orders,omitempty"`
 	Saved        []Saved          `gorm:"foreignKey:ArtID" json:"saved,omitempty"`
@@ -127,23 +128,22 @@ type ArtTranslation struct {
 	Title       string    `gorm:"size:255;not null" json:"title"`
 	Description string    `gorm:"size:1000;not null" json:"description"`
 	Text        string    `gorm:"type:text;not null" json:"text"`
-	Label				string 		`gorm:"type:text;not null" json:"label"`
+	Label       string    `gorm:"type:text;not null" json:"label"`
 }
 
 type ArtPicture struct {
 	Model
-	ArtID     int64    `gorm:"not null;index" json:"art_id"`
-	Art       *Art     `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE" json:"art,omitempty"`
-	PictureID int64    `gorm:"not null;index" json:"picture_id"`
-	Picture   *Picture `gorm:"foreignKey:PictureID;references:ID;constraint:OnDelete:CASCADE" json:"picture,omitempty"`
-	Name      string   `gorm:"size:255;not null" json:"name"`
-	Priority  *int     `json:"priority,omitempty"`
+	ArtID     int64   `gorm:"not null;index" json:"art_id"`
+	Art       *Art    `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE" json:"art,omitempty"`
+	PictureID int64   `gorm:"not null;index" json:"picture_id"`
+	Picture   Picture `gorm:"foreignKey:PictureID;references:ID;constraint:OnDelete:CASCADE" json:"picture,omitempty"`
+	Name      string  `gorm:"size:255;not null" json:"name"`
+	Priority  *int    `json:"priority,omitempty"`
 }
 
 type Picture struct {
 	Model
 	Name     string `gorm:"size:255;not null" json:"name"`
-	Priority *int64 `json:"priority,omitempty"`
 	IsPublic bool   `gorm:"default:false" json:"is_public"`
 	Type     string `gorm:"not null"`
 }
