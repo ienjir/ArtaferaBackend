@@ -181,6 +181,13 @@ func SeedDatabase() error {
 		4: {"en": "City Lights", "de": "Stadtlichter", "fr": "Lumières de la ville"},
 		5: {"en": "Ocean Waves", "de": "Meereswellen", "fr": "Vagues de l'océan"},
 	}
+	labels := map[int]map[string]string {
+		1: {"en": "Wind", "de": "Wind", "fr": "Windee"},
+		2: {"en": "Clouds", "de": "Wolken", "fr": "Wolkeen"},
+		3: {"en": "Ice", "de": "Eis", "fr": "Iseeee"},
+		4: {"en": "Rectangles", "Vierecke": "Wind", "fr": "Quatreequee"},
+		5: {"en": "Idk", "de": "iwn", "fr": "jnsp"},
+	}
 	descriptions := map[int]map[string]string{
 		1: {
 			"en": "A beautiful sunset over the ocean",
@@ -217,6 +224,7 @@ func SeedDatabase() error {
 				Title:       titles[int(artID)][lang.LanguageCode],
 				Description: descriptions[int(artID)][lang.LanguageCode],
 				Text:        "Detailed artwork description goes here. This would be a longer text about the artwork's history and significance.",
+				Label: 				labels[int(artID)][lang.LanguageCode],	
 			})
 		}
 	}

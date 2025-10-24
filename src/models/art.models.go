@@ -1,9 +1,8 @@
 package models
 
 type GetArtByIDRequest struct {
-	UserID   int64  `json:"-"`
-	UserRole string `json:"-"`
-	TargetID int64  `json:"-"`
+	TargetID     int64  `json:"-"`
+	LanguageCode string `form:"lang"`
 }
 
 type ListArtRequest struct {

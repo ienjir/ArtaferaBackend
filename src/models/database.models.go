@@ -127,6 +127,7 @@ type ArtTranslation struct {
 	Title       string    `gorm:"size:255;not null" json:"title"`
 	Description string    `gorm:"size:1000;not null" json:"description"`
 	Text        string    `gorm:"type:text;not null" json:"text"`
+	Label				string 		`gorm:"type:text;not null" json:"label"`
 }
 
 type ArtPicture struct {
