@@ -10,100 +10,101 @@ import (
 // Common error messages
 const (
 	// Generic errors
-	ErrInternalServer    = "Internal server error"
-	ErrInvalidJSON       = "Invalid JSON format"
-	ErrInvalidID         = "Invalid ID format"
-	ErrResourceNotFound  = "Resource not found"
-	ErrUnauthorized      = "Unauthorized access"
-	ErrForbidden         = "Access forbidden"
-	ErrBadRequest        = "Bad request"
+	ErrInternalServer   = "Internal server error"
+	ErrInvalidJSON      = "Invalid JSON format"
+	ErrInvalidID        = "Invalid ID format"
+	ErrResourceNotFound = "Resource not found"
+	ErrUnauthorized     = "Unauthorized access"
+	ErrForbidden        = "Access forbidden"
+	ErrBadRequest       = "Bad request"
 
 	// Field validation errors
-	ErrFieldRequired     = " is required"
-	ErrFieldEmpty        = " cannot be empty"
-	ErrFieldInvalid      = " is invalid"
-	ErrFieldTooLong      = " is too long"
-	ErrFieldTooShort     = " is too short"
-	ErrFieldOutOfRange   = " is out of range"
+	ErrFieldRequired   = " is required"
+	ErrFieldEmpty      = " cannot be empty"
+	ErrFieldNotEmpty   = " has to be empty"
+	ErrFieldInvalid    = " is invalid"
+	ErrFieldTooLong    = " is too long"
+	ErrFieldTooShort   = " is too short"
+	ErrFieldOutOfRange = " is out of range"
 
 	// Authentication errors
-	ErrInvalidCredentials = "Invalid email or password"
-	ErrTokenExpired       = "Token has expired"
-	ErrTokenInvalid       = "Invalid token"
+	ErrInvalidCredentials   = "Invalid email or password"
+	ErrTokenExpired         = "Token has expired"
+	ErrTokenInvalid         = "Invalid token"
 	ErrRefreshTokenRequired = "Refresh token is required"
 
 	// Authorization errors
-	ErrAdminRequired      = "Admin role required"
-	ErrOwnerAccess        = "You can only access your own resources"
-	ErrInsufficientPerms  = "Insufficient permissions"
+	ErrAdminRequired     = "Admin role required"
+	ErrOwnerAccess       = "You can only access your own resources"
+	ErrInsufficientPerms = "Insufficient permissions"
 
 	// Database errors
-	ErrDatabaseConnection = "Database connection failed"
-	ErrDuplicateEntry     = "Resource already exists"
+	ErrDatabaseConnection  = "Database connection failed"
+	ErrDuplicateEntry      = "Resource already exists"
 	ErrConstraintViolation = "Database constraint violation"
 
 	// File/Upload errors
-	ErrFileUpload         = "File upload failed"
-	ErrInvalidFileFormat  = "Invalid file format"
-	ErrFileTooLarge       = "File size exceeds limit"
+	ErrFileUpload        = "File upload failed"
+	ErrInvalidFileFormat = "Invalid file format"
+	ErrFileTooLarge      = "File size exceeds limit"
 
 	// Business logic errors
-	ErrPasswordInsecure   = "Password does not meet security requirements"
-	ErrEmailInvalid       = "Email format is invalid"
-	ErrPhoneInvalid       = "Phone number format is invalid"
-	ErrPasswordWrong      = "Password is incorrect"
-	ErrEmailLowercase     = "Email must be lowercase"
+	ErrPasswordInsecure = "Password does not meet security requirements"
+	ErrEmailInvalid     = "Email format is invalid"
+	ErrPhoneInvalid     = "Phone number format is invalid"
+	ErrPasswordWrong    = "Password is incorrect"
+	ErrEmailLowercase   = "Email must be lowercase"
 
 	// Resource-specific errors
-	ErrUserNotFound       = "User not found"
-	ErrRoleNotFound       = "Role not found"
-	ErrArtNotFound        = "Art not found"
-	ErrOrderNotFound      = "Order not found"
-	ErrPictureNotFound    = "Picture not found"
-	ErrLanguageNotFound   = "Language not found"
-	ErrSavedNotFound      = "Saved not found"
+	ErrUserNotFound           = "User not found"
+	ErrRoleNotFound           = "Role not found"
+	ErrArtNotFound            = "Art not found"
+	ErrOrderNotFound          = "Order not found"
+	ErrPictureNotFound        = "Picture not found"
+	ErrLanguageNotFound       = "Language not found"
+	ErrSavedNotFound          = "Saved not found"
 	ErrArtTranslationNotFound = "Art translation not found"
 
 	// Conflict/Duplicate errors
-	ErrUserAlreadyExists        = "Email already in use"
-	ErrRoleAlreadyExists        = "Role already exists"
-	ErrLanguageAlreadyExists    = "Language already exists"
-	ErrArtTranslationExists     = "Art translation already exists for this language"
-	ErrArtAlreadySaved          = "Art is already saved for this user"
+	ErrUserAlreadyExists     = "Email already in use"
+	ErrRoleAlreadyExists     = "Role already exists"
+	ErrLanguageAlreadyExists = "Language already exists"
+	ErrArtTranslationExists  = "Art translation already exists for this language"
+	ErrArtAlreadySaved       = "Art is already saved for this user"
 
 	// Business rule errors
-	ErrArtNotAvailable          = "Art is not available"
-	ErrOwnerOnlyOrders          = "You can only see orders for your own user account"
-	ErrOwnerOnlyCreate          = "You can only create orders for your own user account"
-	ErrOwnerOnlyAccess          = "Access denied: can only access your own saved items"
-	ErrOwnerOnlySaved           = "You can only see saved for your own user account"
-	ErrOwnerOnlyCreateSaved     = "You can only create saved for your own user account"
-	ErrOwnerOnlyUpdateSaved     = "You can only update saved for your own user account"
-	ErrNotAllowedRoute          = "You are not allowed to see this route"
-	ErrAdminOnlyPictures        = "You can only update pictures as an admin"
+	ErrArtNotAvailable      = "Art is not available"
+	ErrOwnerOnlyOrders      = "You can only see orders for your own user account"
+	ErrOwnerOnlyCreate      = "You can only create orders for your own user account"
+	ErrOwnerOnlyAccess      = "Access denied: can only access your own saved items"
+	ErrOwnerOnlySaved       = "You can only see saved for your own user account"
+	ErrOwnerOnlyCreateSaved = "You can only create saved for your own user account"
+	ErrOwnerOnlyUpdateSaved = "You can only update saved for your own user account"
+	ErrNotAllowedRoute      = "You are not allowed to see this route"
+	ErrAdminOnlyPictures    = "You can only update pictures as an admin"
 
 	// Form/Input validation errors
-	ErrPictureRequired          = "Picture is required"
-	ErrInvalidImageFormat       = "Invalid image format"
-	ErrInvalidPriorityFormat    = "Invalid priority format"
-	ErrInvalidPublicFormat      = "Invalid isPublic format"
-	ErrNoContentFound           = "No content found"
+	ErrPictureRequired       = "Picture is required"
+	ErrInvalidImageFormat    = "Invalid image format"
+	ErrInvalidPriorityFormat = "Invalid priority format"
+	ErrInvalidPublicFormat   = "Invalid isPublic format"
+	ErrNoContentFound        = "No content found"
 
-	// Auth/Token errors  
-	ErrAccessTokenRequired      = "Access token is required"
-	ErrInvalidAuthHeader        = "Invalid authorization header format"
-	ErrInvalidTokenClaims       = "Invalid token claims"
-	ErrRoleNotInToken          = "Role not found in token"
+	// Auth/Token errors
+	ErrAccessTokenRequired = "Access token is required"
+	ErrInvalidAuthHeader   = "Invalid authorization header format"
+	ErrInvalidTokenClaims  = "Invalid token claims"
+	ErrRoleNotInToken      = "Role not found in token"
 
 	// Database operation errors
-	ErrDatabaseRetrieval        = "Error while retrieving data from database"
-	ErrDatabaseUpdate           = "Error while updating data"
-	ErrDatabaseDelete           = "Error while deleting data"
-	ErrDatabaseCreate           = "Error while creating data"
-	ErrDatabaseCount            = "Error while counting records"
-	ErrTransactionStart         = "Failed to start transaction"
-	ErrTransactionCommit        = "Failed to commit transaction"
-	ErrHashPassword             = "Failed to hash password"
+	ErrDatabaseRetrieval = "Error while retrieving data from database"
+	ErrDatabaseUpdate    = "Error while updating data"
+	ErrDatabaseDelete    = "Error while deleting data"
+	ErrDatabaseCreate    = "Error while creating data"
+	ErrDatabaseCount     = "Error while counting records"
+	ErrTransactionStart  = "Failed to start transaction"
+	ErrTransactionCommit = "Failed to commit transaction"
+	ErrHashPassword      = "Failed to hash password"
 )
 
 // Error response structure
@@ -125,11 +126,11 @@ func RespondWithError(c *gin.Context, statusCode int, message string, details ..
 		Error: message,
 		Code:  statusCode,
 	}
-	
+
 	if len(details) > 0 && details[0] != "" {
 		response.Details = details[0]
 	}
-	
+
 	c.JSON(statusCode, response)
 }
 
@@ -147,11 +148,11 @@ func RespondWithSuccess(c *gin.Context, statusCode int, data interface{}, messag
 	response := SuccessResponse{
 		Data: data,
 	}
-	
+
 	if len(message) > 0 && message[0] != "" {
 		response.Message = message[0]
 	}
-	
+
 	c.JSON(statusCode, response)
 }
 
@@ -212,6 +213,10 @@ func NewFieldRequiredError(fieldName string) *models.ServiceError {
 
 func NewFieldEmptyError(fieldName string) *models.ServiceError {
 	return NewBadRequestError(fieldName + ErrFieldEmpty)
+}
+
+func NewFieldNotEmptyError(fieldName string) *models.ServiceError {
+	return NewBadRequestError(fieldName + ErrFieldNotEmpty)
 }
 
 func NewFieldInvalidError(fieldName string) *models.ServiceError {

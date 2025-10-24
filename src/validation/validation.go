@@ -1,10 +1,6 @@
 package validation
 
 import (
-	"github.com/ienjir/ArtaferaBackend/src/models"
-	"github.com/ienjir/ArtaferaBackend/src/utils"
-	"github.com/nyaruka/phonenumbers"
-	passwordvalidator "github.com/wagslane/go-password-validator"
 	"log"
 	"mime/multipart"
 	"net/mail"
@@ -12,6 +8,11 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
+	"github.com/nyaruka/phonenumbers"
+	passwordvalidator "github.com/wagslane/go-password-validator"
 )
 
 var MinEntropyBits float64
@@ -254,6 +255,12 @@ func (v *Validator) ValidateBucketRestriction(publicBucket, privateBucket string
 		v.errors = append(v.errors, utils.NewForbiddenError("You are not allowed to send with a bucket name"))
 	}
 	return v
+}
+
+func (v *Validator) ValidateEmpty(value *string, fieldName string) {
+	if *value != "" {
+		v.errors = append(v.errors, utils.NewFieldNotEmptyError(fieldName))
+	}
 }
 
 func (v *Validator) GetFirstError() *models.ServiceError {

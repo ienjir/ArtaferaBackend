@@ -1,0 +1,20 @@
+meta {
+  name: Create picture
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BaseURL}}{{Group}}
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  picture: @file(/home/taahalu9/Downloads/SC202203000017.jpg)
+  isPublic: true
+}
+
+settings {
+  encodeUrl: true
+}
