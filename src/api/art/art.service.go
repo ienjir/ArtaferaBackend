@@ -7,14 +7,10 @@ import (
 )
 
 func getArtByIDService(data models.GetArtByIDRequest) (*models.Art, *models.ServiceError) {
-	art, err := database.Repositories.Art.GetByID(data.TargetID)
+	art, err := database.Repositories.Art.GetPublicArtByID(data.TargetID, data.LanguageCode)
 	if err != nil {
-		if err.StatusCode == 404 {
-			return nil, utils.NewArtNotFoundError()
-		}
 		return nil, err
 	}
-
 	return art, nil
 }
 

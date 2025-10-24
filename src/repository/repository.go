@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"gorm.io/gorm"
@@ -64,7 +65,7 @@ func (r *GormRepository[T]) Update(entity *T) *models.ServiceError {
 
 func (r *GormRepository[T]) UpdateFields(id int64, updates map[string]interface{}) (*T, *models.ServiceError) {
 	var entity T
-	
+
 	if err := r.db.First(&entity, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, utils.NewRecordNotFoundError()
@@ -81,7 +82,7 @@ func (r *GormRepository[T]) UpdateFields(id int64, updates map[string]interface{
 
 func (r *GormRepository[T]) Delete(id int64) *models.ServiceError {
 	var entity T
-	
+
 	if err := r.db.First(&entity, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return utils.NewRecordNotFoundError()

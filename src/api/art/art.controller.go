@@ -1,6 +1,7 @@
 package art
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,31 +12,24 @@ import (
 
 func GetArtByID(c *gin.Context) {
 	var json models.GetArtByIDRequest
-
 	artID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
-
-	userID := c.GetInt64("userID")
-	userRole := c.GetString("userRole")
-
 	json.TargetID = artID
-	json.UserID = userID
-	json.UserRole = userRole
+
+	json.LanguageCode = c.Query("lang")
 
 	if err := verifyGetArtByID(json); err != nil {
 		utils.RespondWithServiceError(c, err)
 		return
 	}
-
 	art, err := getArtByIDService(json)
 	if err != nil {
 		utils.RespondWithServiceError(c, err)
 		return
 	}
-
 	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"art": art})
 	return
 }
