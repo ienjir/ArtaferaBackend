@@ -1,7 +1,6 @@
 package art
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
