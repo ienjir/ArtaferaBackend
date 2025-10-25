@@ -26,7 +26,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		userRoutes.GET("/:id", user.GetUserByID)
 		userRoutes.POST("/getByEmail", user.GetUserByEmail)
-		userRoutes.POST("/", user.CreateUser)
+		userRoutes.POST("", user.CreateUser)
 		userRoutes.PUT("/:id", user.UpdateUser)
 		userRoutes.DELETE("/:id", user.DeleteUser)
 
@@ -42,7 +42,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		roleRoutes.GET("/:id", role.GetRoleByID)
 		roleRoutes.POST("/list", role.ListRoles)
-		roleRoutes.POST("/", role.CreateRole)
+		roleRoutes.POST("", role.CreateRole)
 		roleRoutes.PUT("/:id", role.UpdateRole)
 		roleRoutes.DELETE("/:id", role.DeleteRole)
 	}
@@ -52,7 +52,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		languageRoutes.GET("/:id", language.GetLanguageByID)
 		languageRoutes.POST("/list", language.ListLanguages)
-		languageRoutes.POST("/", language.CreateLanguage)
+		languageRoutes.POST("", language.CreateLanguage)
 		languageRoutes.PUT("/:id", language.UpdateLanguage)
 		languageRoutes.DELETE("/:id", language.DeleteLanguage)
 	}
@@ -63,7 +63,7 @@ func RegisterRoutes(router *gin.Engine) {
 		orderRoutes.GET("/:id", order.GetOrderByID)
 		orderRoutes.GET("/user/:id", order.GetOrdersForUser)
 		orderRoutes.POST("/list", order.ListOrder)
-		orderRoutes.POST("/", order.CreateOrder)
+		orderRoutes.POST("", order.CreateOrder)
 		orderRoutes.PUT("/:id", order.UpdateOrder)
 
 		orderAdminRoutes := orderRoutes.Group("")
@@ -78,7 +78,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		savedRoutes.GET("/:id", saved.GetSavedByID)
 		savedRoutes.GET("/user/:id", saved.GetSavedForUser)
-		savedRoutes.POST("/", saved.CreateSaved)
+		savedRoutes.POST("", saved.CreateSaved)
 		savedRoutes.PUT("/:id", saved.UpdateSaved)
 		savedRoutes.DELETE("/:id", saved.DeleteSaved)
 
@@ -95,7 +95,7 @@ func RegisterRoutes(router *gin.Engine) {
 		pictureRoutes.GET("/:id", picture.GetPictureByID)
 		pictureRoutes.POST("/name", picture.GetPictureByName)
 		pictureRoutes.POST("/list", picture.ListPicture)
-		pictureRoutes.POST("/", picture.CreatePicture)
+		pictureRoutes.POST("", picture.CreatePicture)
 		pictureRoutes.PUT("/:id", picture.UpdatePicture)
 		pictureRoutes.DELETE("/:id", picture.DeletePicture)
 	}
@@ -105,7 +105,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		artTranslationRoutes.GET("/:id", artTranslation.GetArtTranslationByID)
 		artTranslationRoutes.POST("/list", artTranslation.ListArtTranslations)
-		artTranslationRoutes.POST("/", artTranslation.CreateArtTranslation)
+		artTranslationRoutes.POST("", artTranslation.CreateArtTranslation)
 		artTranslationRoutes.PUT("/:id", artTranslation.UpdateArtTranslation)
 		artTranslationRoutes.DELETE("/:id", artTranslation.DeleteArtTranslation)
 	}
@@ -119,7 +119,7 @@ func RegisterRoutes(router *gin.Engine) {
 		artAdminRoutes := artRoutes.Group("")
 		artAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 		{
-			artAdminRoutes.POST("/", art.CreateArt)
+			artAdminRoutes.POST("", art.CreateArt)
 			artAdminRoutes.PUT("/:id", art.UpdateArt)
 			artAdminRoutes.DELETE("/:id", art.DeleteArt)
 		}
