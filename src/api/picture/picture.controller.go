@@ -154,15 +154,16 @@ func ListPicture(c *gin.Context) {
 func CreatePicture(c *gin.Context) {
 	var json models.CreatePictureRequest
 
-	if err := c.ShouldBind(&json); err != nil {
-		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
-		return
-	}
-
 	picture, err := c.FormFile("picture")
 	if err != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrPictureRequired)
 		return
+	}
+
+	isPublicStr := c.PostForm("isPublic")
+	if isPublicStr != "" {
+		isPublic := isPublicStr == "true"
+		json.IsPublic = &isPublic
 	}
 
 	json.Picture = *picture

@@ -27,13 +27,13 @@ type ListPictureRequest struct {
 }
 
 type CreatePictureRequest struct {
-	UserID        int64                `json:"-"`
-	UserRole      string               `json:"-"`
-	Name          *string              `json:"-"`
-	IsPublic      *bool                `json:"isPublic" form:"isPublic"`
-	Picture       multipart.FileHeader `json:"-"`
-	PublicBucket  string               `json:"-"`
-	PrivateBucket string               `json:"-"`
+	UserID        int64                `json:"-" form:"-"`
+	UserRole      string               `json:"-" form:"-"`
+	Name          *string              `json:"-" form:"name"`
+	IsPublic      *bool                `form:"isPublic" json:"-"`
+	Picture       multipart.FileHeader `json:"-" form:"-"`
+	PublicBucket  string               `json:"-" form:"-"`
+	PrivateBucket string               `json:"-" form:"-"`
 }
 
 type UpdatePictureRequest struct {
