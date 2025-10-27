@@ -7,6 +7,10 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"crypto/md5"
+	"encoding/hex"
+	"math/rand"
+	"time"
 )
 
 var GinMode int
@@ -54,4 +58,12 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func GenerateRandomFileName() string {
+	rand.Seed(time.Now().UnixNano())
+	data := fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Intn(1000000))
+
+	hash := md5.Sum([]byte(data))
+	return hex.EncodeToString(hash[:])
 }

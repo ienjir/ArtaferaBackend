@@ -170,14 +170,6 @@ func CreatePicture(c *gin.Context) {
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
 
-	if name := c.PostForm("name"); name != "" {
-		trimmedName := strings.TrimSuffix(*json.Name, filepath.Ext(json.Picture.Filename))
-		json.Name = &trimmedName
-	} else {
-		filenameWithoutExt := strings.TrimSuffix(json.Picture.Filename, filepath.Ext(json.Picture.Filename))
-		json.Name = &filenameWithoutExt
-	}
-
 	if isPublic := c.PostForm("isPublic"); isPublic != "" {
 		if isPublicBool, err := strconv.ParseBool(isPublic); err == nil {
 			json.IsPublic = &isPublicBool

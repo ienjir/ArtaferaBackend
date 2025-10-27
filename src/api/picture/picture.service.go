@@ -1,13 +1,8 @@
 package picture
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"fmt"
-	"math/rand"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/database"
@@ -128,20 +123,19 @@ func createPictureService(data models.CreatePictureRequest, context *gin.Context
 	}
 
 	picture := models.Picture{
-		Name:     *data.Name,
 		IsPublic: isPublic,
 	}
 
 	picture.Type = filepath.Ext(data.Picture.Filename)
-	fmt.Println(picture.Type)
+	randomName := utils.GenerateRandomFileName()
+
+	picture.Name = randomName
 
 	if err := database.Repositories.Picture.Create(&picture); err != nil {
 		return nil, err
 	}
 
-	fileExt := filepath.Ext(data.Picture.Filename)
-	fmt.Println(fileExt)
-	bucketFileName := *data.Name + "__" + strconv.Itoa(int(picture.ID)) + fileExt
+	bucketFileName := randomName + picture.Type
 
 	_, err := utils.UploadMultipartFileToMinio(data.Picture, bucketName, bucketFileName, context)
 	if err != nil {
@@ -237,12 +231,4 @@ func deletePictureService(data models.DeletePictureRequest, context *gin.Context
 	}
 
 	return nil
-}
-
-func GenerateRandomFileName() string {
-	rand.Seed(time.Now().UnixNano())
-	data := fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Intn(1000000))
-
-	hash := md5.Sum([]byte(data))
-	return hex.EncodeToString(hash[:])
 }

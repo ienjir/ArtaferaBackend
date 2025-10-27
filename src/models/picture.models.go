@@ -29,7 +29,7 @@ type ListPictureRequest struct {
 type CreatePictureRequest struct {
 	UserID        int64                `json:"-" form:"-"`
 	UserRole      string               `json:"-" form:"-"`
-	Name          *string              `json:"-" form:"name"`
+	Name          string               `json:"-" form:"-"`
 	IsPublic      *bool                `form:"isPublic" json:"-"`
 	Picture       multipart.FileHeader `json:"-" form:"-"`
 	PublicBucket  string               `json:"-" form:"-"`
