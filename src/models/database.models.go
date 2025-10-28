@@ -133,12 +133,12 @@ type ArtTranslation struct {
 
 type ArtPicture struct {
 	Model
-	ArtID     int64   `gorm:"not null;index" json:"art_id"`
+	ArtID     int64   `gorm:"not null;index:idx_art_priority,unique" json:"art_id"`
 	Art       *Art    `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE" json:"art,omitempty"`
 	PictureID int64   `gorm:"not null;index" json:"picture_id"`
 	Picture   Picture `gorm:"foreignKey:PictureID;references:ID;constraint:OnDelete:CASCADE" json:"picture,omitempty"`
 	Name      string  `gorm:"size:255;not null" json:"name"`
-	Priority  *int    `json:"priority,omitempty"`
+	Priority  int     `gorm:"not null;index:idx_art_priority,unique" json:"priority"`
 }
 
 type Picture struct {
