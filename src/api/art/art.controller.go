@@ -75,7 +75,7 @@ func ListArtForArtPage(c *gin.Context) {
 		return
 	}
 	
-	arts, total, err := listArtForArtPageService(json)
+	arts, count, err := listArtForArtPageService(json)
 	if err != nil {
 		utils.RespondWithServiceError(c, err)
 		return
@@ -83,7 +83,7 @@ func ListArtForArtPage(c *gin.Context) {
 	
 	utils.RespondWithSuccess(c, http.StatusOK, gin.H{
 		"arts":   arts,
-		"total":  total,
+		"count":  count,
 		"offset": json.Offset,
 		"limit":  json.Limit,
 	})
