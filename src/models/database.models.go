@@ -75,12 +75,12 @@ type Art struct {
 	Width        *float32         `gorm:"type:decimal(8,2)" json:"width,omitempty"`
 	Height       *float32         `gorm:"type:decimal(8,2)" json:"height,omitempty"`
 	Depth        *float32         `gorm:"type:decimal(8,2)" json:"depth,omitempty"`
+	Available    bool             `gorm:"default:true" json:"available"`
+	Visible      bool             `gorm:"default:true" json:"-"`
 	Pictures     []ArtPicture     `gorm:"foreignKey:ArtID" json:"artPictures,omitempty"`
 	Translations []ArtTranslation `gorm:"foreignKey:ArtID" json:"translations,omitempty"`
 	Orders       []Order          `gorm:"foreignKey:ArtID" json:"orders,omitempty"`
 	Saved        []Saved          `gorm:"foreignKey:ArtID" json:"saved,omitempty"`
-	Available    bool             `gorm:"default:true" json:"available"`
-	Visible      bool             `gorm:"default:true" json:"-"`
 }
 
 // Role Done
