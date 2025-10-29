@@ -115,6 +115,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		artRoutes.POST("/list", art.ListArts)
 		artRoutes.GET("/:id", art.GetArtByID)
+		artRoutes.GET("/publiclist", art.ListArtForArtPage)
 
 		artAdminRoutes := artRoutes.Group("")
 		artAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))

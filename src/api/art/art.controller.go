@@ -59,6 +59,36 @@ func ListArts(c *gin.Context) {
 	return
 }
 
+func ListArtForArtPage(c *gin.Context) {
+	var json models.ListArtForArtPageRequest
+	
+	json.Offset = 0
+	json.Limit = 20 	
+
+	if err := c.ShouldBindQuery(&json); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, "Invalid request parameters")
+		return
+	}
+	
+	if err := verifyListArtForArtPage(json); err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+	
+	arts, total, err := listArtForArtPageService(json)
+	if err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+	
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{
+		"arts":   arts,
+		"total":  total,
+		"offset": json.Offset,
+		"limit":  json.Limit,
+	})
+}
+
 func CreateArt(c *gin.Context) {
 	var json models.CreateArtRequest
 

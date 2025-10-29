@@ -123,7 +123,7 @@ type ArtTranslation struct {
 	Model
 	ArtID       int64     `gorm:"not null;index" json:"art_id"`
 	Art         *Art      `gorm:"foreignKey:ArtID;references:ID;constraint:OnDelete:CASCADE" json:"art,omitempty"`
-	LanguageID  int64     `gorm:"not null;index" json:"language_id1"`
+	LanguageID  int64     `gorm:"not null;index" json:"language_id"`
 	Language    *Language `gorm:"foreignKey:LanguageID;references:ID;constraint:OnDelete:CASCADE" json:"language,omitempty"`
 	Title       string    `gorm:"size:255;not null" json:"title"`
 	Description string    `gorm:"size:1000;not null" json:"description"`

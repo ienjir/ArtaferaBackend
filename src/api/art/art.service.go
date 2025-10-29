@@ -28,6 +28,20 @@ func listArtService(data models.ListArtRequest) (*[]models.Art, *int64, *models.
 	return artItems, count, nil
 }
 
+func listArtForArtPageService(data models.ListArtForArtPageRequest) (*[]models.Art, *int64, *models.ServiceError) {
+	arts, err := database.Repositories.Art.ListPublicArts(data.LanguageCode, data.Offset, data.Limit)
+	if err != nil {
+		return nil, nil, err
+	}
+	
+	count, err := database.Repositories.Art.CountPublicArts()
+	if err != nil {
+		return nil, nil, err
+	}
+	
+	return arts, count, nil
+}
+
 func createArtService(data models.CreateArtRequest) (*models.Art, *models.ServiceError) {
 	art := models.Art{
 		Price:        data.Price,

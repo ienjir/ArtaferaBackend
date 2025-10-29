@@ -293,11 +293,11 @@ func SeedDatabase() error {
 
 	// Art Pictures
 	artPictures := []models.ArtPicture{
-		{ArtID: 1, PictureID: 1, Name: "Main view", Priority: intPtr(1)},
-		{ArtID: 1, PictureID: 2, Name: "Detail view", Priority: intPtr(2)},
-		{ArtID: 2, PictureID: 3, Name: "Main view", Priority: intPtr(1)},
-		{ArtID: 3, PictureID: 4, Name: "Main view", Priority: intPtr(1)},
-		{ArtID: 4, PictureID: 5, Name: "Main view", Priority: intPtr(1)},
+		{ArtID: 1, PictureID: 1, Name: "Main view", Priority: 1},
+		{ArtID: 1, PictureID: 2, Name: "Detail view", Priority: 2},
+		{ArtID: 2, PictureID: 3, Name: "Main view", Priority: 1},
+		{ArtID: 3, PictureID: 4, Name: "Main view", Priority: 1},
+		{ArtID: 4, PictureID: 5, Name: "Main view", Priority: 1},
 	}
 	for i := range artPictures {
 		if err := database.Repositories.ArtPicture.Create(&artPictures[i]); err != nil {

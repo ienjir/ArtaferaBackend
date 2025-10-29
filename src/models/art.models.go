@@ -43,3 +43,9 @@ type DeleteArtRequest struct {
 	UserRole string `json:"-"`
 	TargetID int64  `json:"-"`
 }
+
+type ListArtForArtPageRequest struct {
+	LanguageCode string `form:"lang" binding:"required,len=2"` 	
+	Offset       int    `form:"offset" binding:"min=0"`
+	Limit        int    `form:"-" binding:"min=1,max=100"`
+}
