@@ -58,7 +58,7 @@ func (r *GormArtRepository) GetPublicArtByID(id int64, languageCode string) (*mo
 func (r *GormArtRepository) ListPublicArts(languageCode string, offset, limit int) (*[]models.Art, *models.ServiceError) {
 	var arts []models.Art
 	
-	query := r.db.Where("visible = ? AND available = ?", true, true).
+	query := r.db.Where("visible = ?", true).
 		Offset(offset).
 		Limit(limit)
 	
@@ -97,7 +97,7 @@ func (r *GormArtRepository) ListPublicArts(languageCode string, offset, limit in
 
 func (r *GormArtRepository) CountPublicArts() (*int64, *models.ServiceError) {
 	var count int64
-	if err := r.db.Model(&models.Art{}).Where("visible = ? AND available = ?", true, true).Count(&count).Error; err != nil {
+	if err := r.db.Model(&models.Art{}).Where("visible = ?", true).Count(&count).Error; err != nil {
 		return nil, utils.NewDatabaseCountError()
 	}
 	return &count, nil
