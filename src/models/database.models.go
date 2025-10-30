@@ -145,7 +145,7 @@ type Picture struct {
 	Model
 	Name     string `gorm:"size:255;not null" json:"name"`
 	IsPublic bool   `gorm:"default:false" json:"is_public"`
-	Type     string `gorm:"not null"`
+	Type     string `gorm:"not null" json:"type"`
 }
 
 type Currency struct {
