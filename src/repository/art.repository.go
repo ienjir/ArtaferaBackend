@@ -73,8 +73,8 @@ func (r *GormArtRepository) ListPublicArts(languageCode string, offset, limit in
 
 	// Get all visible arts (including sold ones for portfolio)
 	query := r.db.Where("visible = ?", true).
-		Offset(offset).
-		Limit(limit)
+		Offset(offset * 20).
+		Limit(20)
 
 	// Preload currency (simple 1:1, no issue)
 	query = query.Preload("Currency")
