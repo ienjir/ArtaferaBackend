@@ -24,6 +24,9 @@ func main() {
 
 	utils.SetGinMode()
 
+	test := "String"
+	fmt.Println(test)
+
 	router := gin.Default()
 	router.Use(utils.CORSMiddleware())
 

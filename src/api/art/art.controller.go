@@ -29,7 +29,7 @@ func GetArtByID(c *gin.Context) {
 		utils.RespondWithServiceError(c, err)
 		return
 	}
-	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"art": art})
+	utils.RespondWithSuccess(c, http.StatusOK, art)
 	return
 }
 

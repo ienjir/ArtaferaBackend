@@ -223,7 +223,18 @@ func SeedDatabase() error {
 				LanguageID:  lang.ID,
 				Title:       titles[int(artID)][lang.LanguageCode],
 				Description: descriptions[int(artID)][lang.LanguageCode],
-				Text:        "Detailed artwork description goes here. This would be a longer text about the artwork's history and significance.",
+				Text:        "## Test Heading\n\n" +
+				"Lorem ipsum dolor sit amet, **consetetur sadipscing elitr**, sed diam nonumy " +
+				"eirmod tempor invidunt ut *labore et dolore magna aliquyam erat*. Quisque vel " +
+				"augue id metus fermentum aliquet, und irgendwie wirkt das alles weniger stabil als es sollte.\n\n" +
+				"> A small blockquote to check indentation and styling.\n\n" +
+				"Curabitur 'inline code' wird auch gern uebersehen, waehrend ein laengerer Abschnitt wie " +
+				"dieser prueft, ob dein Renderer sauber umbrechen kann.\n\n" +
+				"- List item eins\n" +
+				"- List item zwei\n" +
+				"- List item drei\n\n" +
+				"Am Ende noch ein [Testlink](https://example.com), gefolgt von einem abschliessenden Satz, " +
+				"der genug Text liefert, um zu sehen, ob dein Markdown System irgendwas verschluckt oder falsch interpretiert.",
 				Label:       labels[int(artID)][lang.LanguageCode],
 			})
 		}
