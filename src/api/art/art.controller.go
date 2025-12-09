@@ -1,41 +1,35 @@
 package art
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
-	"net/http"
-	"strconv"
 )
 
 func GetArtByID(c *gin.Context) {
 	var json models.GetArtByIDRequest
-
 	artID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
 	if parseErr != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
 		return
 	}
-
-	userID := c.GetInt64("userID")
-	userRole := c.GetString("userRole")
-
 	json.TargetID = artID
-	json.UserID = userID
-	json.UserRole = userRole
+
+	json.LanguageCode = c.Query("lang")
 
 	if err := verifyGetArtByID(json); err != nil {
 		utils.RespondWithServiceError(c, err)
 		return
 	}
-
 	art, err := getArtByIDService(json)
 	if err != nil {
 		utils.RespondWithServiceError(c, err)
 		return
 	}
-
-	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"art": art})
+	utils.RespondWithSuccess(c, http.StatusOK, art)
 	return
 }
 
@@ -63,6 +57,36 @@ func ListArts(c *gin.Context) {
 
 	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"count": count, "arts": arts})
 	return
+}
+
+func ListArtForArtPage(c *gin.Context) {
+	var json models.ListArtForArtPageRequest
+	
+	json.Offset = 0
+	json.Limit = 20 	
+
+	if err := c.ShouldBindQuery(&json); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, "Invalid request parameters")
+		return
+	}
+	
+	if err := verifyListArtForArtPage(json); err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+	
+	arts, count, err := listArtForArtPageService(json)
+	if err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+	
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{
+		"arts":   arts,
+		"count":  count,
+		"offset": json.Offset,
+		"limit":  json.Limit,
+	})
 }
 
 func CreateArt(c *gin.Context) {

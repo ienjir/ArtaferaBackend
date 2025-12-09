@@ -7,53 +7,39 @@ import (
 )
 
 func getArtByIDService(data models.GetArtByIDRequest) (*models.Art, *models.ServiceError) {
-	art, err := database.Repositories.Art.GetByID(data.TargetID)
+	art, err := database.Repositories.Art.GetPublicArtByID(data.TargetID, data.LanguageCode)
 	if err != nil {
-		if err.StatusCode == 404 {
-			return nil, utils.NewArtNotFoundError()
-		}
 		return nil, err
 	}
-
 	return art, nil
 }
 
 func listArtService(data models.ListArtRequest) (*[]models.Art, *int64, *models.ServiceError) {
-	query := database.Repositories.Art.Query()
-
-	if data.Available != nil {
-		query = query.Where("available = ?", *data.Available)
+	artItems, err := database.Repositories.Art.List(int(data.Offset*30), 30)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if data.UserRole != "admin" {
-		query = query.Where("visible = ?", true)
+	count, err := database.Repositories.Art.Count()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	var count int64
-	if err := query.Count(&count).Error; err != nil {
-		return nil, nil, utils.NewDatabaseCountError()
+	return artItems, count, nil
+}
+
+func listArtForArtPageService(data models.ListArtForArtPageRequest) (*[]models.Art, *int64, *models.ServiceError) {
+	arts, err := database.Repositories.Art.ListPublicArts(data.LanguageCode, data.Offset, data.Limit)
+	if err != nil {
+		return nil, nil, err
 	}
-
-	offset := (data.Page - 1) * data.PageSize
-	sortBy := "created_at"
-	sortOrder := "desc"
-
-	if data.SortBy != nil {
-		sortBy = *data.SortBy
+	
+	count, err := database.Repositories.Art.CountPublicArts()
+	if err != nil {
+		return nil, nil, err
 	}
-	if data.SortOrder != nil {
-		sortOrder = *data.SortOrder
-	}
-
-	orderClause := sortBy + " " + sortOrder
-
-	var arts []models.Art
-	if err := query.Preload("Currency").Preload("Pictures").Preload("Translations").
-		Offset(offset).Limit(data.PageSize).Order(orderClause).Find(&arts).Error; err != nil {
-		return nil, nil, utils.NewDatabaseRetrievalError()
-	}
-
-	return &arts, &count, nil
+	
+	return arts, count, nil
 }
 
 func createArtService(data models.CreateArtRequest) (*models.Art, *models.ServiceError) {

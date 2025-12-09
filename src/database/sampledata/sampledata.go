@@ -3,16 +3,16 @@ package sampledata
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"time"
+
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	miniobucket "github.com/ienjir/ArtaferaBackend/src/minio"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/minio/minio-go/v7"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strconv"
-	"time"
 )
 
 func SeedDatabase() error {
@@ -181,6 +181,13 @@ func SeedDatabase() error {
 		4: {"en": "City Lights", "de": "Stadtlichter", "fr": "Lumières de la ville"},
 		5: {"en": "Ocean Waves", "de": "Meereswellen", "fr": "Vagues de l'océan"},
 	}
+	labels := map[int]map[string]string{
+		1: {"en": "Wind", "de": "Wind", "fr": "Windee"},
+		2: {"en": "Clouds", "de": "Wolken", "fr": "Wolkeen"},
+		3: {"en": "Ice", "de": "Eis", "fr": "Iseeee"},
+		4: {"en": "Rectangles", "Vierecke": "Wind", "fr": "Quatreequee"},
+		5: {"en": "Idk", "de": "iwn", "fr": "jnsp"},
+	}
 	descriptions := map[int]map[string]string{
 		1: {
 			"en": "A beautiful sunset over the ocean",
@@ -216,7 +223,19 @@ func SeedDatabase() error {
 				LanguageID:  lang.ID,
 				Title:       titles[int(artID)][lang.LanguageCode],
 				Description: descriptions[int(artID)][lang.LanguageCode],
-				Text:        "Detailed artwork description goes here. This would be a longer text about the artwork's history and significance.",
+				Text:        "## Test Heading\n\n" +
+				"Lorem ipsum dolor sit amet, **consetetur sadipscing elitr**, sed diam nonumy " +
+				"eirmod tempor invidunt ut *labore et dolore magna aliquyam erat*. Quisque vel " +
+				"augue id metus fermentum aliquet, und irgendwie wirkt das alles weniger stabil als es sollte.\n\n" +
+				"> A small blockquote to check indentation and styling.\n\n" +
+				"Curabitur 'inline code' wird auch gern uebersehen, waehrend ein laengerer Abschnitt wie " +
+				"dieser prueft, ob dein Renderer sauber umbrechen kann.\n\n" +
+				"- List item eins\n" +
+				"- List item zwei\n" +
+				"- List item drei\n\n" +
+				"Am Ende noch ein [Testlink](https://example.com), gefolgt von einem abschliessenden Satz, " +
+				"der genug Text liefert, um zu sehen, ob dein Markdown System irgendwas verschluckt oder falsch interpretiert.",
+				Label:       labels[int(artID)][lang.LanguageCode],
 			})
 		}
 	}
@@ -228,11 +247,21 @@ func SeedDatabase() error {
 
 	// Pictures
 	pictures := []models.Picture{
-		{Name: "slide_1", Priority: int64Ptr(1), IsPublic: true, Type: ".jpg"},
-		{Name: "privateImage", IsPublic: false, Type: ".jpg"},
-		{Name: "slide_2", Priority: int64Ptr(2), IsPublic: true, Type: ".jpg"},
-		{Name: "slide_3", Type: ".jpg"},
-		{Name: "privateImage2", IsPublic: false, Priority: int64Ptr(4), Type: ".jpg"},
+		{Name: "bc846bc97a96ddaee17a3d4196bed886", IsPublic: true, Type: ".jpg"},
+		{Name: "6b7c732715b67af383765fddd317639c", IsPublic: true, Type: ".jpg"},
+		{Name: "b35b304bafaba9e2e8e41f7e9b6006b9", IsPublic: true, Type: ".jpg"},
+		{Name: "000bc457d300a6eea6f6e15ebfa8d4a1", IsPublic: true, Type: ".jpg"},
+		{Name: "b562e93414be79f9fa91cab1d688264f", IsPublic: true, Type: ".jpg"},
+		{Name: "7d0b14209673572cbf361872c327c805", IsPublic: true, Type: ".jpg"},
+		{Name: "384c22ed9ad97008f059c79f046d592d", IsPublic: true, Type: ".jpg"},
+		{Name: "26dcb69c91de090eeb9914d1190b476c", IsPublic: true, Type: ".jpg"},
+		{Name: "bfda02666976025ac5bb0227e40701f2", IsPublic: true, Type: ".jpg"},
+		{Name: "51d849089bedcd11e04c5586013854c9", IsPublic: true, Type: ".jpg"},
+		{Name: "7d075abf1fe444c33632e29d29fa080f", IsPublic: true, Type: ".jpg"},
+		{Name: "a938357207e3caa046dd0186be1c6afa", IsPublic: true, Type: ".jpg"},
+		{Name: "fbfe3dedeea9d5156cc327f96282bca6", IsPublic: true, Type: ".jpg"},
+		{Name: "f3edef79bb9f99de3b509da3b1cc2810", IsPublic: true, Type: ".jpg"},
+		{Name: "9f68aa9d9a6b0b90f4140ec61d4bda80", IsPublic: true, Type: ".jpg"},
 	}
 	for i := range pictures {
 		if err := database.Repositories.Picture.Create(&pictures[i]); err != nil {
@@ -250,7 +279,6 @@ func SeedDatabase() error {
 	for i, picture := range pictures {
 		srcPath := filepath.Join(imagesDir, fmt.Sprintf("%d.jpg", i+1))
 
-		picture.Name = picture.Name + "__" + strconv.Itoa(int(picture.ID))
 		fmt.Printf("PictureName: %s \n", picture.Name)
 
 		// Determine destination bucket based on IsPublic flag
@@ -284,11 +312,21 @@ func SeedDatabase() error {
 
 	// Art Pictures
 	artPictures := []models.ArtPicture{
-		{ArtID: 1, PictureID: 1, Name: "Main view", Priority: intPtr(1)},
-		{ArtID: 1, PictureID: 2, Name: "Detail view", Priority: intPtr(2)},
-		{ArtID: 2, PictureID: 3, Name: "Main view", Priority: intPtr(1)},
-		{ArtID: 3, PictureID: 4, Name: "Main view", Priority: intPtr(1)},
-		{ArtID: 4, PictureID: 5, Name: "Main view", Priority: intPtr(1)},
+		{ArtID: 1, PictureID: 1, Name: "Main view", Priority: 1},
+		{ArtID: 1, PictureID: 2, Name: "Detail view", Priority: 2},
+		{ArtID: 1, PictureID: 3, Name: "Detail view", Priority: 3},
+		{ArtID: 2, PictureID: 4, Name: "Main view", Priority: 1},
+		{ArtID: 2, PictureID: 5, Name: "Main view", Priority: 2},
+		{ArtID: 2, PictureID: 6, Name: "Main view", Priority: 3},
+		{ArtID: 3, PictureID: 7, Name: "Main view", Priority: 1},
+		{ArtID: 3, PictureID: 8, Name: "Main view", Priority: 2},
+		{ArtID: 3, PictureID: 9, Name: "Main view", Priority: 3},
+		{ArtID: 4, PictureID: 10, Name: "Main view", Priority: 1},
+		{ArtID: 4, PictureID: 11, Name: "Main view", Priority: 2},
+		{ArtID: 4, PictureID: 12, Name: "Main view", Priority: 3},
+		{ArtID: 5, PictureID: 13, Name: "Main view", Priority: 1},
+		{ArtID: 5, PictureID: 14, Name: "Main view", Priority: 2},
+		{ArtID: 5, PictureID: 15, Name: "Main view", Priority: 3},
 	}
 	for i := range artPictures {
 		if err := database.Repositories.ArtPicture.Create(&artPictures[i]); err != nil {

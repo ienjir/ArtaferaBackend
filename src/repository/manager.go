@@ -8,7 +8,7 @@ import (
 type RepositoryManager struct {
 	User           Repository[models.User]
 	Role           Repository[models.Role]
-	Art            Repository[models.Art]
+	Art            ArtRepository
 	ArtTranslation Repository[models.ArtTranslation]
 	ArtPicture     Repository[models.ArtPicture]
 	Picture        Repository[models.Picture]
@@ -23,7 +23,7 @@ func NewRepositoryManager(db *gorm.DB) *RepositoryManager {
 	return &RepositoryManager{
 		User:           NewRepository[models.User](db),
 		Role:           NewRepository[models.Role](db),
-		Art:            NewRepository[models.Art](db),
+		Art:            NewArtRepository(db),
 		ArtTranslation: NewRepository[models.ArtTranslation](db),
 		ArtPicture:     NewRepository[models.ArtPicture](db),
 		Picture:        NewRepository[models.Picture](db),

@@ -1,0 +1,19 @@
+meta {
+  name: List public art
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{BaseURL}}{{Group}}/publiclist?lang=de
+  body: none
+  auth: inherit
+}
+
+params:query {
+  lang: de
+}
+
+settings {
+  encodeUrl: true
+}

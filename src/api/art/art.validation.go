@@ -13,10 +13,11 @@ func verifyGetArtByID(data models.GetArtByIDRequest) *models.ServiceError {
 
 func verifyListArt(data models.ListArtRequest) *models.ServiceError {
 	return validation.NewValidator().
-		ValidateIntID(data.Page, "Page").
-		ValidatePageSize(data.PageSize).
-		ValidateSortOrder(data.SortOrder).
+		ValidateOffset(int64(data.Offset)).
 		GetFirstError()
+}
+func verifyListArtForArtPage(data models.ListArtForArtPageRequest) *models.ServiceError {
+	return nil
 }
 
 func verifyCreateArt(data models.CreateArtRequest) *models.ServiceError {

@@ -1,19 +1,14 @@
 package models
 
 type GetArtByIDRequest struct {
-	UserID   int64  `json:"-"`
-	UserRole string `json:"-"`
-	TargetID int64  `json:"-"`
+	TargetID     int64  `json:"-"`
+	LanguageCode string `form:"lang"`
 }
 
 type ListArtRequest struct {
-	UserID    int64   `json:"-"`
-	UserRole  string  `json:"-"`
-	Page      int     `json:"page" binding:"required,min=1"`
-	PageSize  int     `json:"page_size" binding:"required,min=1,max=100"`
-	SortBy    *string `json:"sort_by,omitempty"`
-	SortOrder *string `json:"sort_order,omitempty"`
-	Available *bool   `json:"available,omitempty"`
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	Offset   int64  `json:"offset"`
 }
 
 type CreateArtRequest struct {
@@ -47,4 +42,10 @@ type DeleteArtRequest struct {
 	UserID   int64  `json:"-"`
 	UserRole string `json:"-"`
 	TargetID int64  `json:"-"`
+}
+
+type ListArtForArtPageRequest struct {
+	LanguageCode string `form:"lang" binding:"required,len=2"` 	
+	Offset       int    `form:"offset" binding:"min=0"`
+	Limit        int    `form:"-" binding:"min=1,max=100"`
 }

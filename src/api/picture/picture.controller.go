@@ -3,14 +3,15 @@ package picture
 import (
 	"bytes"
 	"encoding/base64"
-	"github.com/gin-gonic/gin"
-	"github.com/ienjir/ArtaferaBackend/src/models"
-	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"io"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 )
 
 var PublicBucket = "pictures"
@@ -153,37 +154,21 @@ func ListPicture(c *gin.Context) {
 func CreatePicture(c *gin.Context) {
 	var json models.CreatePictureRequest
 
-	if err := c.ShouldBind(&json); err != nil {
-		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
-		return
-	}
-
 	picture, err := c.FormFile("picture")
 	if err != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrPictureRequired)
 		return
 	}
 
+	isPublicStr := c.PostForm("isPublic")
+	if isPublicStr != "" {
+		isPublic := isPublicStr == "true"
+		json.IsPublic = &isPublic
+	}
+
 	json.Picture = *picture
 	json.UserID = c.GetInt64("userID")
 	json.UserRole = c.GetString("userRole")
-
-	if priority := c.PostForm("priority"); priority != "" {
-		if priorityInt, err := strconv.ParseInt(priority, 10, 8); err == nil {
-			json.Priority = &priorityInt
-		} else {
-			utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidPriorityFormat)
-			return
-		}
-	}
-
-	if name := c.PostForm("name"); name != "" {
-		trimmedName := strings.TrimSuffix(*json.Name, filepath.Ext(json.Picture.Filename))
-		json.Name = &trimmedName
-	} else {
-		filenameWithoutExt := strings.TrimSuffix(json.Picture.Filename, filepath.Ext(json.Picture.Filename))
-		json.Name = &filenameWithoutExt
-	}
 
 	if isPublic := c.PostForm("isPublic"); isPublic != "" {
 		if isPublicBool, err := strconv.ParseBool(isPublic); err == nil {

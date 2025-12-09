@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
 	"github.com/ienjir/ArtaferaBackend/src/database"
@@ -11,11 +13,9 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"github.com/ienjir/ArtaferaBackend/src/validation"
 	"github.com/joho/godotenv"
-	"log"
 )
 
 func main() {
-	log.Println("new test 5")
 	// Load env's from .env file
 	err := godotenv.Load()
 	if err != nil {
@@ -23,6 +23,9 @@ func main() {
 	}
 
 	utils.SetGinMode()
+
+	test := "String"
+	fmt.Println(test)
 
 	router := gin.Default()
 	router.Use(utils.CORSMiddleware())
