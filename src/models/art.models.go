@@ -21,6 +21,7 @@ type CreateArtRequest struct {
 	Height       *float32 `json:"height,omitempty"`
 	Depth        *float32 `json:"depth,omitempty"`
 	Available    *bool    `json:"available,omitempty"`
+	Featured     *bool    `json:"featured,omitempty"`
 	Visible      *bool    `json:"visible,omitempty"`
 }
 
@@ -35,6 +36,7 @@ type UpdateArtRequest struct {
 	Height       *float32 `json:"height,omitempty"`
 	Depth        *float32 `json:"depth,omitempty"`
 	Available    *bool    `json:"available,omitempty"`
+	Featured     *bool    `json:"featured,omitempty"`
 	Visible      *bool    `json:"visible,omitempty"`
 }
 
@@ -48,4 +50,9 @@ type ListArtForArtPageRequest struct {
 	LanguageCode string `form:"lang" binding:"required,len=2"` 	
 	Offset       int    `form:"offset" binding:"min=0"`
 	Limit        int    `form:"-" binding:"min=1,max=100"`
+}
+
+type ListFeaturedArtRequest struct {
+	LanguageCode string `form:"lang" binding:"omitempty,len=2"`
+	Limit        int    `form:"limit" binding:"omitempty,min=1,max=20"`
 }

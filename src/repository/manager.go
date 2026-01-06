@@ -17,6 +17,7 @@ type RepositoryManager struct {
 	Order          Repository[models.Order]
 	Saved          Repository[models.Saved]
 	Translation    Repository[models.Translation]
+	ContactMessage Repository[models.ContactMessage]
 }
 
 func NewRepositoryManager(db *gorm.DB) *RepositoryManager {
@@ -32,5 +33,6 @@ func NewRepositoryManager(db *gorm.DB) *RepositoryManager {
 		Order:          NewRepository[models.Order](db),
 		Saved:          NewRepository[models.Saved](db),
 		Translation:    NewRepository[models.Translation](db),
+		ContactMessage: NewRepository[models.ContactMessage](db),
 	}
 }
