@@ -89,6 +89,33 @@ func ListArtForArtPage(c *gin.Context) {
 	})
 }
 
+func ListFeaturedArt(c *gin.Context) {
+	var json models.ListFeaturedArtRequest
+	json.Limit = 3
+
+	if err := c.ShouldBindQuery(&json); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, "Invalid request parameters")
+		return
+	}
+
+	if err := verifyListFeaturedArt(json); err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+
+	arts, count, err := listFeaturedArtService(json)
+	if err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{
+		"arts":  arts,
+		"count": count,
+		"limit": json.Limit,
+	})
+}
+
 func CreateArt(c *gin.Context) {
 	var json models.CreateArtRequest
 

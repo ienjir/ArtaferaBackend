@@ -127,6 +127,7 @@ func SeedDatabase() error {
 			Width:        float32Ptr(60.5),
 			Height:       float32Ptr(40.2),
 			Available:    true,
+			Featured:     true,
 			Visible:      true,
 		},
 		{
@@ -136,6 +137,7 @@ func SeedDatabase() error {
 			Width:        float32Ptr(80.0),
 			Height:       float32Ptr(60.0),
 			Available:    true,
+			Featured:     true,
 			Visible:      true,
 		},
 		{
@@ -145,6 +147,7 @@ func SeedDatabase() error {
 			Width:        float32Ptr(100.0),
 			Height:       float32Ptr(70.0),
 			Available:    true,
+			Featured:     true,
 			Visible:      true,
 		},
 		{

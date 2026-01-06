@@ -20,6 +20,14 @@ func verifyListArtForArtPage(data models.ListArtForArtPageRequest) *models.Servi
 	return nil
 }
 
+func verifyListFeaturedArt(data models.ListFeaturedArtRequest) *models.ServiceError {
+	validator := validation.NewValidator()
+	if data.Limit > 0 {
+		validator = validator.ValidateRange(&data.Limit, 1, 20, "Limit")
+	}
+	return validator.GetFirstError()
+}
+
 func verifyCreateArt(data models.CreateArtRequest) *models.ServiceError {
 	return validation.NewValidator().
 		ValidateID(data.UserID, "UserID").

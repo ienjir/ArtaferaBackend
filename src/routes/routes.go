@@ -5,6 +5,7 @@ import (
 	"github.com/ienjir/ArtaferaBackend/src/api/art"
 	"github.com/ienjir/ArtaferaBackend/src/api/artTranslation"
 	"github.com/ienjir/ArtaferaBackend/src/api/auth"
+	"github.com/ienjir/ArtaferaBackend/src/api/contact"
 	"github.com/ienjir/ArtaferaBackend/src/api/language"
 	"github.com/ienjir/ArtaferaBackend/src/api/order"
 	picture "github.com/ienjir/ArtaferaBackend/src/api/picture"
@@ -19,6 +20,12 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		authRoutes.POST("/login", auth.Login)
 		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
+	}
+
+	contactRoutes := router.Group("/contact")
+	contactRoutes.Use(middleware.RoleAuthMiddleware("all"))
+	{
+		contactRoutes.POST("", contact.CreateContactMessage)
 	}
 
 	userRoutes := router.Group("/user")
@@ -114,8 +121,9 @@ func RegisterRoutes(router *gin.Engine) {
 	artRoutes.Use(middleware.RoleAuthMiddleware("all"))
 	{
 		artRoutes.POST("/list", art.ListArts)
-		artRoutes.GET("/:id", art.GetArtByID)
 		artRoutes.GET("/publiclist", art.ListArtForArtPage)
+		artRoutes.GET("/featured", art.ListFeaturedArt)
+		artRoutes.GET("/:id", art.GetArtByID)
 
 		artAdminRoutes := artRoutes.Group("")
 		artAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))

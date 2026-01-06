@@ -13,6 +13,8 @@ type ArtRepository interface {
 	GetPublicArtByID(id int64, languageCode string) (*models.Art, *models.ServiceError)
 	ListPublicArts(languageCode string, offset, limit int) (*[]models.Art, *models.ServiceError)
 	CountPublicArts() (*int64, *models.ServiceError)
+	ListFeaturedArts(languageCode string, limit int) (*[]models.Art, *models.ServiceError)
+	CountFeaturedArts() (*int64, *models.ServiceError)
 }
 
 type GormArtRepository struct {
@@ -124,6 +126,59 @@ func (r *GormArtRepository) ListPublicArts(languageCode string, offset, limit in
 func (r *GormArtRepository) CountPublicArts() (*int64, *models.ServiceError) {
 	var count int64
 	if err := r.db.Model(&models.Art{}).Where("visible = ?", true).Count(&count).Error; err != nil {
+		return nil, utils.NewDatabaseCountError()
+	}
+	return &count, nil
+}
+
+func (r *GormArtRepository) ListFeaturedArts(languageCode string, limit int) (*[]models.Art, *models.ServiceError) {
+	var arts []models.Art
+
+	query := r.db.Where("visible = ? AND featured = ?", true, true).
+		Order("created_at DESC").
+		Limit(limit)
+
+	query = query.Preload("Currency")
+	query = query.Preload("Pictures", func(db *gorm.DB) *gorm.DB {
+		return db.Order("priority ASC")
+	})
+	query = query.Preload("Pictures.Picture")
+
+	if languageCode != "" {
+		query = query.Preload("Translations", func(db *gorm.DB) *gorm.DB {
+			return db.Joins("JOIN languages ON languages.id = art_translations.language_id").
+				Where("languages.language_code = ?", languageCode)
+		})
+	} else {
+		query = query.Preload("Translations")
+	}
+	query = query.Preload("Translations.Language")
+
+	if err := query.Find(&arts).Error; err != nil {
+		return nil, utils.NewDatabaseRetrievalError()
+	}
+
+	for i := range arts {
+		var publicPictures []models.ArtPicture
+		for _, pic := range arts[i].Pictures {
+			if pic.Picture.IsPublic {
+				publicPictures = append(publicPictures, pic)
+				break
+			}
+		}
+		arts[i].Pictures = publicPictures
+
+		if len(arts[i].Translations) > 1 {
+			arts[i].Translations = arts[i].Translations[:1]
+		}
+	}
+
+	return &arts, nil
+}
+
+func (r *GormArtRepository) CountFeaturedArts() (*int64, *models.ServiceError) {
+	var count int64
+	if err := r.db.Model(&models.Art{}).Where("visible = ? AND featured = ?", true, true).Count(&count).Error; err != nil {
 		return nil, utils.NewDatabaseCountError()
 	}
 	return &count, nil

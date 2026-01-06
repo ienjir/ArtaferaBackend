@@ -18,6 +18,7 @@ var AllModels = []interface{}{
 	&Picture{},
 	&Currency{},
 	&Translation{},
+	&ContactMessage{},
 }
 
 type OrderStatus string
@@ -76,6 +77,7 @@ type Art struct {
 	Height       *float32         `gorm:"type:decimal(8,2)" json:"height,omitempty"`
 	Depth        *float32         `gorm:"type:decimal(8,2)" json:"depth,omitempty"`
 	Available    bool             `gorm:"default:true" json:"available"`
+	Featured     bool             `gorm:"default:false" json:"featured"`
 	Visible      bool             `gorm:"default:true" json:"-"`
 	Pictures     []ArtPicture     `gorm:"foreignKey:ArtID" json:"artPictures,omitempty"`
 	Translations []ArtTranslation `gorm:"foreignKey:ArtID" json:"translations,omitempty"`
@@ -162,4 +164,10 @@ type Translation struct {
 	Language   *Language `gorm:"foreignKey:LanguageID;references:ID;constraint:OnDelete:CASCADE" json:"language,omitempty"`
 	Context    string    `gorm:"size:50;not null" json:"context"`
 	Text       string    `gorm:"type:text;not null" json:"text"`
+}
+
+type ContactMessage struct {
+	Model
+	Email   string `gorm:"size:255;not null" json:"email"`
+	Message string `gorm:"type:text;not null" json:"message"`
 }

@@ -42,6 +42,20 @@ func listArtForArtPageService(data models.ListArtForArtPageRequest) (*[]models.A
 	return arts, count, nil
 }
 
+func listFeaturedArtService(data models.ListFeaturedArtRequest) (*[]models.Art, *int64, *models.ServiceError) {
+	arts, err := database.Repositories.Art.ListFeaturedArts(data.LanguageCode, data.Limit)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	count, err := database.Repositories.Art.CountFeaturedArts()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return arts, count, nil
+}
+
 func createArtService(data models.CreateArtRequest) (*models.Art, *models.ServiceError) {
 	art := models.Art{
 		Price:        data.Price,
@@ -62,6 +76,10 @@ func createArtService(data models.CreateArtRequest) (*models.Art, *models.Servic
 		art.Visible = *data.Visible
 	} else {
 		art.Visible = true
+	}
+
+	if data.Featured != nil {
+		art.Featured = *data.Featured
 	}
 
 	if err := database.Repositories.Art.Create(&art); err != nil {
@@ -94,6 +112,9 @@ func updateArtService(data models.UpdateArtRequest) (*models.Art, *models.Servic
 	}
 	if data.Available != nil {
 		updates["available"] = *data.Available
+	}
+	if data.Featured != nil {
+		updates["featured"] = *data.Featured
 	}
 	if data.Visible != nil {
 		updates["visible"] = *data.Visible
