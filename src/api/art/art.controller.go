@@ -91,7 +91,7 @@ func ListArtForArtPage(c *gin.Context) {
 
 func ListFeaturedArt(c *gin.Context) {
 	var json models.ListFeaturedArtRequest
-	json.Limit = 6
+	json.Limit = 3
 
 	if err := c.ShouldBindQuery(&json); err != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, "Invalid request parameters")
