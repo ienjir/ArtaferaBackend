@@ -39,4 +39,4 @@ To start using this project for prod make the following steps:
 
 Afterward run `docker compose up -d`. 
 
-For any more specific documentation refer to the right `md` file in the `src/docs` folder
+For any more specific documentation refer to the right `md` file in the `src/docs` folder.
