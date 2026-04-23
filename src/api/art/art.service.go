@@ -14,6 +14,14 @@ func getArtByIDService(data models.GetArtByIDRequest) (*models.Art, *models.Serv
 	return art, nil
 }
 
+func getArtByIDAdminService(data models.GetArtByIDAdminRequest) (*models.Art, *models.ServiceError) {
+	art, err := database.Repositories.Art.GetAdminArtByID(data.TargetID)
+	if err != nil {
+		return nil, err
+	}
+	return art, nil
+}
+
 func listArtService(data models.ListArtRequest) (*[]models.Art, *int64, *models.ServiceError) {
 	artItems, err := database.Repositories.Art.List(int(data.Offset*30), 30)
 	if err != nil {

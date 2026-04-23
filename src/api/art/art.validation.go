@@ -11,6 +11,14 @@ func verifyGetArtByID(data models.GetArtByIDRequest) *models.ServiceError {
 		GetFirstError()
 }
 
+func verifyGetArtByIDAdmin(data models.GetArtByIDAdminRequest) *models.ServiceError {
+	return validation.NewValidator().
+		ValidateID(data.UserID, "UserID").
+		ValidateAdminRole(data.UserRole).
+		ValidateID(data.TargetID, "TargetID").
+		GetFirstError()
+}
+
 func verifyListArt(data models.ListArtRequest) *models.ServiceError {
 	return validation.NewValidator().
 		ValidateOffset(int64(data.Offset)).

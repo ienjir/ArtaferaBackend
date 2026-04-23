@@ -5,6 +5,12 @@ type GetArtByIDRequest struct {
 	LanguageCode string `form:"lang"`
 }
 
+type GetArtByIDAdminRequest struct {
+	UserID   int64  `json:"-"`
+	UserRole string `json:"-"`
+	TargetID int64  `json:"-"`
+}
+
 type ListArtRequest struct {
 	UserID   int64  `json:"-"`
 	UserRole string `json:"-"`

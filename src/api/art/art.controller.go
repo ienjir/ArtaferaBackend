@@ -33,6 +33,30 @@ func GetArtByID(c *gin.Context) {
 	return
 }
 
+func GetArtByIDAdmin(c *gin.Context) {
+	var json models.GetArtByIDAdminRequest
+	artID, parseErr := strconv.ParseInt(c.Param("id"), 10, 64)
+	if parseErr != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidID)
+		return
+	}
+	json.TargetID = artID
+	json.UserID = c.GetInt64("userID")
+	json.UserRole = c.GetString("userRole")
+
+	if err := verifyGetArtByIDAdmin(json); err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+	art, err := getArtByIDAdminService(json)
+	if err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+	utils.RespondWithSuccess(c, http.StatusOK, art)
+	return
+}
+
 func ListArts(c *gin.Context) {
 	var json models.ListArtRequest
 
