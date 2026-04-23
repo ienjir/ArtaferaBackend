@@ -128,6 +128,7 @@ func RegisterRoutes(router *gin.Engine) {
 		artAdminRoutes := artRoutes.Group("")
 		artAdminRoutes.Use(middleware.RoleAuthMiddleware("admin"))
 		{
+			artAdminRoutes.GET("/:id/admin", art.GetArtByIDAdmin)
 			artAdminRoutes.POST("", art.CreateArt)
 			artAdminRoutes.PUT("/:id", art.UpdateArt)
 			artAdminRoutes.DELETE("/:id", art.DeleteArt)

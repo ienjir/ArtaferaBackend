@@ -11,6 +11,7 @@ import (
 type ArtRepository interface {
 	Repository[models.Art]
 	GetPublicArtByID(id int64, languageCode string) (*models.Art, *models.ServiceError)
+	GetAdminArtByID(id int64) (*models.Art, *models.ServiceError)
 	ListPublicArts(languageCode string, offset, limit int) (*[]models.Art, *models.ServiceError)
 	CountPublicArts() (*int64, *models.ServiceError)
 	ListFeaturedArts(languageCode string, limit int) (*[]models.Art, *models.ServiceError)
@@ -66,6 +67,27 @@ func (r *GormArtRepository) GetPublicArtByID(id int64, languageCode string) (*mo
 		}
 	}
 	art.Pictures = publicPictures
+
+	return &art, nil
+}
+
+func (r *GormArtRepository) GetAdminArtByID(id int64) (*models.Art, *models.ServiceError) {
+	var art models.Art
+	query := r.db.
+		Preload("Pictures", func(db *gorm.DB) *gorm.DB {
+			return db.Order("priority ASC")
+		}).
+		Preload("Pictures.Picture").
+		Preload("Currency").
+		Preload("Translations").
+		Preload("Translations.Language")
+
+	if err := query.First(&art, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, utils.NewArtNotFoundError()
+		}
+		return nil, utils.NewDatabaseRetrievalError()
+	}
 
 	return &art, nil
 }
