@@ -2,12 +2,53 @@ package user
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ienjir/ArtaferaBackend/src/api/auth"
+	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
 	"github.com/ienjir/ArtaferaBackend/src/utils"
 	"net/http"
 	"strconv"
 	"strings"
 )
+
+// Register lets an unauthenticated visitor create their own account and
+// immediately signs them in, unlike CreateUser which is for admins/users
+// creating accounts on behalf of someone else.
+func Register(c *gin.Context) {
+	var json models.CreateUserRequest
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, utils.ErrInvalidJSON)
+		return
+	}
+
+	json.Email = strings.ToLower(json.Email)
+
+	if err := verifyCreateUserData(json); err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+
+	newUser, err := createUserService(json)
+	if err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+
+	userWithRole, err := database.Repositories.User.GetByID(newUser.ID, "Role")
+	if err != nil {
+		utils.RespondWithServiceError(c, err)
+		return
+	}
+
+	jwt, tokenErr := auth.GenerateTokenPair(*userWithRole)
+	if tokenErr != nil {
+		utils.RespondWithServiceError(c, tokenErr)
+		return
+	}
+
+	utils.RespondWithSuccess(c, http.StatusCreated, gin.H{"user": userWithRole, "token": jwt})
+}
 
 func GetUserByID(c *gin.Context) {
 	var json models.GetUserByIDRequest

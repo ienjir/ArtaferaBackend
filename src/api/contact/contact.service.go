@@ -1,8 +1,11 @@
 package contact
 
 import (
+	"log"
+
 	"github.com/ienjir/ArtaferaBackend/src/database"
 	"github.com/ienjir/ArtaferaBackend/src/models"
+	"github.com/ienjir/ArtaferaBackend/src/utils"
 )
 
 func createContactMessageService(data models.CreateContactMessageRequest) (*models.ContactMessage, *models.ServiceError) {
@@ -21,5 +24,7 @@ func createContactMessageService(data models.CreateContactMessageRequest) (*mode
 }
 
 func notifyContactMessageReceived(message *models.ContactMessage) {
-	// TODO: hook up notifications (email, SMS, webhook, etc.).
+	if err := utils.SendContactNotification(message.Email, message.Message); err != nil {
+		log.Printf("Failed to send contact notification email: %v", err)
+	}
 }

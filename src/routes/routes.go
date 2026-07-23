@@ -20,6 +20,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		authRoutes.POST("/login", auth.Login)
 		authRoutes.POST("/refresh", auth.RefreshTokenHandler)
+		authRoutes.POST("/register", user.Register)
 	}
 
 	contactRoutes := router.Group("/contact")
